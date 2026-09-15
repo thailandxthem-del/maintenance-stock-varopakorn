@@ -1,6 +1,6 @@
 {
-  "version": 1789451276738,
-  "lastUpdated": "2026-09-15T05:47:56.738Z",
+  "version": 1789453791100,
+  "lastUpdated": "2026-09-15T06:29:51.100Z",
   "users": [
     {
       "id": "U-001",
@@ -48,43 +48,50 @@
       "code": "M-001",
       "name": "CNC Milling Machine (เครื่องกัดซีเอ็นซี)",
       "location": "Production Line A",
-      "dept": "Machining"
+      "dept": "Machining",
+      "active": true
     },
     {
       "code": "M-002",
       "name": "Stamping Press 200T (เครื่องปั๊มขึ้นรูปโลหะ)",
       "location": "Press Shop",
-      "dept": "Stamping"
+      "dept": "Stamping",
+      "active": true
     },
     {
       "code": "M-003",
       "name": "Air Compressor 75kW (เครื่องอัดลมโรงงาน)",
       "location": "Utility Room 1",
-      "dept": "Utility"
+      "dept": "Utility",
+      "active": true
     },
     {
       "code": "M-004",
       "name": "Injection Molding Machine (เครื่องฉีดพลาสติก)",
       "location": "Production Line B",
-      "dept": "Molding"
+      "dept": "Molding",
+      "active": true
     },
     {
       "code": "M-005",
       "name": "Overhead Crane 10T (เครนเหนือศีรษะ)",
       "location": "Heavy Bay",
-      "dept": "Maintenance"
+      "dept": "Maintenance",
+      "active": true
     },
     {
       "code": "M-006",
       "name": "Conveyor Assembly Line (สายพานลำเลียงหลัก)",
       "location": "Assembly Hall",
-      "dept": "Assembly"
+      "dept": "Assembly",
+      "active": true
     },
     {
       "code": "WS-01",
       "name": "Maintenance Workshop & Tool Room (ห้องช่าง)",
       "location": "Tool Room A",
-      "dept": "Maintenance"
+      "dept": "Maintenance",
+      "active": true
     }
   ],
   "suppliers": [
@@ -13680,6 +13687,78 @@
   ],
   "auditLogs": [
     {
+      "id": "AUD-EMP-DEL-1789453791100",
+      "timestamp": "2026-09-15 06:29:51",
+      "user": "Developer",
+      "action": "PERSONNEL_DELETE",
+      "partNumber": "EMP-0826",
+      "reason": "ลบรายชื่อบุคลากร: สมเกียรติ ช่างซ่อม (หัวหน้า) (EMP-0826) เหตุผล: ปรับปรุงรายชื่อบุคลากร",
+      "reference": "EMP-0826"
+    },
+    {
+      "id": "AUD-MC-DEL-1789453791069",
+      "timestamp": "2026-09-15 06:29:51",
+      "user": "Developer",
+      "action": "MACHINE_DELETE",
+      "partNumber": "TEST-MC-01",
+      "reason": "ลบเครื่องจักร: เครื่องทดสอบความเที่ยงตรงสูง (TEST-MC-01) เหตุผล: ปรับปรุงรายการเครื่องจักร",
+      "reference": "TEST-MC-01"
+    },
+    {
+      "id": "AUD-RET-1789453791010",
+      "timestamp": "2026-09-15 06:29:51",
+      "user": "สโตร์ช่าง",
+      "action": "TOOL_RETURN",
+      "partNumber": "TL-TEST-01",
+      "reason": "คืนเครื่องมือ: ประแจปอนด์ดิจิทัล (Digital Torque Wrench) (สภาพ: Good) คืนโดย สมเกียรติ ช่างซ่อม (หัวหน้า)",
+      "reference": "LN-790980"
+    },
+    {
+      "id": "AUD-LN-1789453790980",
+      "timestamp": "2026-09-15 06:29:50",
+      "user": "สโตร์ช่าง",
+      "action": "TOOL_BORROW",
+      "partNumber": "TL-TEST-01",
+      "reason": "ยืมเครื่องมือ: ประแจปอนด์ดิจิทัล (Digital Torque Wrench) โดย สมเกียรติ ช่างซ่อม (หัวหน้า) (ไปใช้ที่: เครื่องทดสอบความเที่ยงตรงสูง)",
+      "reference": "LN-790980"
+    },
+    {
+      "id": "AUD-MC-1789453790923",
+      "timestamp": "2026-09-15 06:29:50",
+      "user": "Developer",
+      "action": "MACHINE_SAVE",
+      "partNumber": "TEST-MC-01",
+      "reason": "บันทึกข้อมูลเครื่องจักร: เครื่องทดสอบความเที่ยงตรงสูง (TEST-MC-01)",
+      "reference": "TEST-MC-01"
+    },
+    {
+      "id": "AUD-EMP-1789453790890",
+      "timestamp": "2026-09-15 06:29:50",
+      "user": "Developer",
+      "action": "PERSONNEL_UPDATE",
+      "partNumber": "EMP-0826",
+      "reason": "บันทึกข้อมูลบุคลากร: สมเกียรติ ช่างซ่อม (หัวหน้า) (ฝ่ายซ่อมบำรุง)",
+      "reference": "EMP-0826"
+    },
+    {
+      "id": "AUD-EMP-1789453790826",
+      "timestamp": "2026-09-15 06:29:50",
+      "user": "Developer",
+      "action": "PERSONNEL_CREATE",
+      "partNumber": "EMP-0826",
+      "reason": "บันทึกข้อมูลบุคลากร: สมเกียรติ ช่างซ่อม (ฝ่ายซ่อมบำรุง)",
+      "reference": "EMP-0826"
+    },
+    {
+      "id": "AUD-EMP-1789453770317",
+      "timestamp": "2026-09-15 06:29:30",
+      "user": "Developer",
+      "action": "PERSONNEL_CREATE",
+      "partNumber": "EMP-0310",
+      "reason": "บันทึกข้อมูลบุคลากร: สมเกียรติ ช่างซ่อม (ฝ่ายซ่อมบำรุง)",
+      "reference": "EMP-0310"
+    },
+    {
       "id": "AUD-DEL-LN-1789451276738",
       "timestamp": "2026-09-15 05:47:56",
       "user": "Admin Test",
@@ -14453,6 +14532,23 @@
   ],
   "toolLoans": [
     {
+      "id": "LN-790980",
+      "toolCode": "TL-TEST-01",
+      "toolName": "ประแจปอนด์ดิจิทัล (Digital Torque Wrench)",
+      "borrowerName": "สมเกียรติ ช่างซ่อม (หัวหน้า)",
+      "borrowerDept": "ฝ่ายซ่อมบำรุง",
+      "machineId": "TEST-MC-01",
+      "machineName": "เครื่องทดสอบความเที่ยงตรงสูง",
+      "borrowDate": "2026-09-15T05:59:50.947Z",
+      "actualReturnDate": "2026-09-15T06:29:50.990Z",
+      "status": "RETURNED",
+      "returnCondition": "Good",
+      "remark": "ทดสอบการนับเวลาเริ่มยืมแบบระบุเวลาย้อนหลัง",
+      "recordedBy": "สโตร์ช่าง",
+      "returnRemark": "สภาพปกติ ตรวจเช็คครบ",
+      "receivedBy": "สโตร์ช่าง"
+    },
+    {
       "id": "LN-113791",
       "toolCode": "CUSTOM",
       "toolName": "ประแจปอนด์ดิจิตอล 1/2 นิ้ว (เครื่องมือกลาง)",
@@ -14515,6 +14611,72 @@
       "returnCondition": null,
       "remark": "เช็คแผงคอนโทรลระบบอินเวอร์เตอร์",
       "recordedBy": "สมชาย ใจมั่น"
+    }
+  ],
+  "personnel": [
+    {
+      "id": "EMP-0310",
+      "name": "สมเกียรติ ช่างซ่อม",
+      "department": "ฝ่ายซ่อมบำรุง",
+      "roleTitle": "ช่างเครื่องกล",
+      "phone": "089-111-2222",
+      "active": true
+    },
+    {
+      "id": "EMP-001",
+      "name": "มีนะ",
+      "department": "Tool Room Store",
+      "roleTitle": "เจ้าหน้าที่สโตร์ / จัดการเครื่องมือ",
+      "phone": "081-111-2233",
+      "active": true
+    },
+    {
+      "id": "EMP-002",
+      "name": "สมชาย ใจมั่น",
+      "department": "ฝ่ายซ่อมบำรุง",
+      "roleTitle": "ช่างซ่อมบำรุงอาวุโส",
+      "phone": "082-222-3344",
+      "active": true
+    },
+    {
+      "id": "EMP-003",
+      "name": "วิชัย ช่างกลึง",
+      "department": "ฝ่ายซ่อมบำรุง",
+      "roleTitle": "ช่างกลึง / ซ่อมเครื่องจักร",
+      "phone": "083-333-4455",
+      "active": true
+    },
+    {
+      "id": "EMP-004",
+      "name": "เกรียงไกร ช่างไฟ",
+      "department": "ฝ่ายซ่อมบำรุง",
+      "roleTitle": "ช่างไฟฟ้าโรงงาน",
+      "phone": "084-444-5566",
+      "active": true
+    },
+    {
+      "id": "EMP-005",
+      "name": "ธนภัทร รัตนศิลป์",
+      "department": "Plant Maintenance",
+      "roleTitle": "หัวหน้าฝ่ายซ่อมบำรุง",
+      "phone": "085-555-6677",
+      "active": true
+    },
+    {
+      "id": "EMP-006",
+      "name": "วีระ หลังบ้าน",
+      "department": "Inventory Control",
+      "roleTitle": "ผู้ดูแลข้อมูลอะไหล่",
+      "phone": "086-666-7788",
+      "active": true
+    },
+    {
+      "id": "EMP-007",
+      "name": "Warrawat Baokhiev",
+      "department": "Mechanical Engineering",
+      "roleTitle": "วิศวกรเครื่องกล / Developer",
+      "phone": "02-xxx-xxxx",
+      "active": true
     }
   ]
 }

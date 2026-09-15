@@ -954,6 +954,162 @@ const server = http.createServer(async (req, res) => {
         return sendJSON(res, 200, { success: true, message: `ลบรายการ ${removed.id} สำเร็จ` });
       }
 
+      // ==================== MASTER DATA MANAGEMENT (Personnel & Machines) ====================
+      if (pathname === '/api/personnel/save' && method === 'POST') {
+        const db = readDB();
+        if (!db.personnel) db.personnel = [];
+        const body = await readRequestBody(req);
+        const { id, name, department, roleTitle, phone, active, operator } = body;
+
+        if (!name) {
+          return sendJSON(res, 400, { error: 'กรุณาระบุชื่อ-นามสกุล บุคลากร' });
+        }
+
+        let person;
+        const nowIso = new Date().toISOString();
+        if (id) {
+          person = db.personnel.find(p => p.id === id);
+        }
+
+        if (person) {
+          // Update
+          person.name = name.trim();
+          person.department = department ? department.trim() : 'ฝ่ายซ่อมบำรุง';
+          person.roleTitle = roleTitle ? roleTitle.trim() : 'ช่างซ่อมบำรุง';
+          person.phone = phone ? phone.trim() : '';
+          person.active = active !== undefined ? active : true;
+        } else {
+          // Create
+          const newId = id || `EMP-${Date.now().toString().slice(-4)}`;
+          person = {
+            id: newId,
+            name: name.trim(),
+            department: department ? department.trim() : 'ฝ่ายซ่อมบำรุง',
+            roleTitle: roleTitle ? roleTitle.trim() : 'ช่างซ่อมบำรุง',
+            phone: phone ? phone.trim() : '',
+            active: active !== undefined ? active : true
+          };
+          db.personnel.unshift(person);
+        }
+
+        if (!db.auditLogs) db.auditLogs = [];
+        db.auditLogs.unshift({
+          id: `AUD-EMP-${Date.now()}`,
+          timestamp: nowIso.replace('T', ' ').substring(0, 19),
+          user: operator || 'Developer',
+          action: id ? 'PERSONNEL_UPDATE' : 'PERSONNEL_CREATE',
+          partNumber: person.id,
+          reason: `บันทึกข้อมูลบุคลากร: ${person.name} (${person.department})`,
+          reference: person.id
+        });
+
+        saveDB(db);
+        broadcastEvent('MASTER_DATA_UPDATE', { type: 'PERSONNEL', person });
+        return sendJSON(res, 200, { success: true, message: `บันทึกข้อมูล ${person.name} เรียบร้อยแล้ว`, person });
+      }
+
+      if (pathname === '/api/personnel/delete' && method === 'POST') {
+        const db = readDB();
+        if (!db.personnel) db.personnel = [];
+        const body = await readRequestBody(req);
+        const { id, operator, reason } = body;
+
+        if (!id) return sendJSON(res, 400, { error: 'กรุณาระบุรหัสบุคลากร' });
+        const idx = db.personnel.findIndex(p => p.id === id);
+        if (idx === -1) return sendJSON(res, 404, { error: 'ไม่พบข้อมูลบุคลากรนี้' });
+
+        const [removed] = db.personnel.splice(idx, 1);
+        const nowIso = new Date().toISOString();
+        if (!db.auditLogs) db.auditLogs = [];
+        db.auditLogs.unshift({
+          id: `AUD-EMP-DEL-${Date.now()}`,
+          timestamp: nowIso.replace('T', ' ').substring(0, 19),
+          user: operator || 'Developer',
+          action: 'PERSONNEL_DELETE',
+          partNumber: removed.id,
+          reason: `ลบรายชื่อบุคลากร: ${removed.name} (${removed.id}) เหตุผล: ${reason || 'ปรับปรุงรายชื่อบุคลากร'}`,
+          reference: removed.id
+        });
+
+        saveDB(db);
+        broadcastEvent('MASTER_DATA_UPDATE', { type: 'PERSONNEL_DELETE', id });
+        return sendJSON(res, 200, { success: true, message: `ลบรายชื่อ ${removed.name} สำเร็จ` });
+      }
+
+      if (pathname === '/api/machines/save' && method === 'POST') {
+        const db = readDB();
+        if (!db.machines) db.machines = [];
+        const body = await readRequestBody(req);
+        const { code, name, location, dept, active, operator, isNew } = body;
+
+        if (!code || !name) {
+          return sendJSON(res, 400, { error: 'กรุณาระบุรหัสและชื่อเครื่องจักร' });
+        }
+
+        const cleanCode = code.trim().toUpperCase();
+        let machine = db.machines.find(m => m.code.toUpperCase() === cleanCode);
+        const nowIso = new Date().toISOString();
+
+        if (machine) {
+          machine.name = name.trim();
+          machine.location = location ? location.trim() : '';
+          machine.dept = dept ? dept.trim() : 'Maintenance';
+          machine.active = active !== undefined ? active : true;
+        } else {
+          machine = {
+            code: cleanCode,
+            name: name.trim(),
+            location: location ? location.trim() : '',
+            dept: dept ? dept.trim() : 'Maintenance',
+            active: active !== undefined ? active : true
+          };
+          db.machines.unshift(machine);
+        }
+
+        if (!db.auditLogs) db.auditLogs = [];
+        db.auditLogs.unshift({
+          id: `AUD-MC-${Date.now()}`,
+          timestamp: nowIso.replace('T', ' ').substring(0, 19),
+          user: operator || 'Developer',
+          action: 'MACHINE_SAVE',
+          partNumber: machine.code,
+          reason: `บันทึกข้อมูลเครื่องจักร: ${machine.name} (${machine.code})`,
+          reference: machine.code
+        });
+
+        saveDB(db);
+        broadcastEvent('MASTER_DATA_UPDATE', { type: 'MACHINE', machine });
+        return sendJSON(res, 200, { success: true, message: `บันทึกข้อมูลเครื่องจักร ${machine.name} สำเร็จ`, machine });
+      }
+
+      if (pathname === '/api/machines/delete' && method === 'POST') {
+        const db = readDB();
+        if (!db.machines) db.machines = [];
+        const body = await readRequestBody(req);
+        const { code, operator, reason } = body;
+
+        if (!code) return sendJSON(res, 400, { error: 'กรุณาระบุรหัสเครื่องจักร' });
+        const idx = db.machines.findIndex(m => m.code.toUpperCase() === code.trim().toUpperCase());
+        if (idx === -1) return sendJSON(res, 404, { error: 'ไม่พบเครื่องจักรนี้' });
+
+        const [removed] = db.machines.splice(idx, 1);
+        const nowIso = new Date().toISOString();
+        if (!db.auditLogs) db.auditLogs = [];
+        db.auditLogs.unshift({
+          id: `AUD-MC-DEL-${Date.now()}`,
+          timestamp: nowIso.replace('T', ' ').substring(0, 19),
+          user: operator || 'Developer',
+          action: 'MACHINE_DELETE',
+          partNumber: removed.code,
+          reason: `ลบเครื่องจักร: ${removed.name} (${removed.code}) เหตุผล: ${reason || 'ปรับปรุงรายการเครื่องจักร'}`,
+          reference: removed.code
+        });
+
+        saveDB(db);
+        broadcastEvent('MASTER_DATA_UPDATE', { type: 'MACHINE_DELETE', code });
+        return sendJSON(res, 200, { success: true, message: `ลบเครื่องจักร ${removed.name} สำเร็จ` });
+      }
+
       return sendJSON(res, 404, { error: 'API endpoint not found' });
     } catch (err) {
       console.error('API Error:', err);

@@ -261,9 +261,12 @@
               <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
               <span>บันทึกระบบ (Audit Log)</span>
             </button>
-            <button onclick="switchTab('master-data')" id="nav-master-data" class="nav-item admin-only w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
-              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
-              <span>ข้อมูลหลัก (Master Data)</span>
+            <button onclick="switchTab('master-data')" id="nav-master-data" class="nav-item develop-only w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+              <div class="flex items-center space-x-3">
+                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <span>จัดการบุคลากร & เครื่องจักร</span>
+              </div>
+              <span class="text-[10px] bg-purple-950 text-purple-300 font-bold px-1.5 py-0.5 rounded border border-purple-800">DEV</span>
             </button>
             <button onclick="switchTab('users')" id="nav-users" class="nav-item admin-only w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
               <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
@@ -589,7 +592,7 @@
 
   <!-- 7. BORROW TOOL MODAL (บันทึกการยืมเครื่องมือ) -->
   <div id="borrowToolModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden">
+    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden max-h-[92vh] flex flex-col">
       <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
         <div class="flex items-center space-x-2">
           <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-sky-500 text-slate-950 font-mono">TOOL LOAN</span>
@@ -598,10 +601,10 @@
         <button type="button" onclick="closeBorrowToolModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
       </div>
 
-      <form id="borrowToolForm" onsubmit="handleSaveBorrowTool(event)" class="p-6 space-y-3.5 text-xs">
+      <form id="borrowToolForm" onsubmit="handleSaveBorrowTool(event)" class="p-6 space-y-3.5 text-xs overflow-y-auto">
         <div class="p-2.5 rounded-lg bg-sky-50 border border-sky-200 text-sky-800 text-[11px] flex items-center space-x-2">
           <svg class="w-4 h-4 text-sky-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <span>ระบบจะบันทึกสถานะว่าเครื่องมือถูกยืมไปใช้งานที่ใด โดย<strong>ไม่มีการตัดยอดสต็อกคงเหลือ</strong> และจะแจ้งเตือนอัตโนมัติหากไม่คืนภายใน 24 ชม.</span>
+          <span>ระบบจะบันทึกสถานะการยืมโดย<strong>ไม่ตัดสต็อก</strong> และเริ่มคำนวณระยะเวลายืมจากเวลาที่ท่านระบุ</span>
         </div>
 
         <div>
@@ -617,10 +620,9 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-semibold text-slate-700 mb-1">ชื่อผู้ยืม (ช่าง / ผู้ปฏิบัติงาน) <span class="text-rose-500">*</span></label>
-            <input type="text" id="borrowerNameInput" list="techniciansDatalist" required 
-                   placeholder="พิมพ์ชื่อช่างผู้ยืม..." 
+            <input type="text" id="borrowerNameInput" list="personnelMasterDatalist" required 
+                   placeholder="เลือกหรือพิมพ์ชื่อช่างผู้ยืม..." 
                    class="w-full border border-slate-300 rounded-lg p-2.5 font-medium text-slate-900 focus:border-sky-500 focus:outline-none">
-            <datalist id="techniciansDatalist"></datalist>
           </div>
           <div>
             <label class="block font-semibold text-slate-700 mb-1">แผนกของผู้ยืม</label>
@@ -629,18 +631,34 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">วัน-เวลาที่ยืม <span class="text-rose-500">*</span></label>
-            <input type="datetime-local" id="borrowDateTimeInput" required 
-                   class="w-full border border-slate-300 rounded-lg p-2 font-mono font-medium text-slate-900 focus:border-sky-500 focus:outline-none">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">เครื่องจักร / จุดใช้งาน <span class="text-rose-500">*</span></label>
+          <input type="text" id="borrowMachineInput" list="machinesMasterDatalist" required 
+                 placeholder="เลือกหรือพิมพ์เครื่องจักร เช่น CM-01, Foil Mill 2, Workshop..." 
+                 class="w-full border border-slate-300 rounded-lg p-2.5 font-medium focus:border-sky-500 focus:outline-none">
+        </div>
+
+        <!-- STREAMLINED DATE & TIME INPUT -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="font-bold text-slate-800 text-[11px]">วัน-เวลาที่เริ่มยืม <span class="text-rose-500">*</span></label>
+            <!-- Quick Fill Buttons -->
+            <div class="flex items-center space-x-1">
+              <button type="button" onclick="setBorrowTimePreset(0)" class="px-2 py-0.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded text-[10px] shadow-xs transition">⚡ ตอนนี้ (Now)</button>
+              <button type="button" onclick="setBorrowTimePreset(-15)" class="px-1.5 py-0.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded text-[10px] transition">-15 นาที</button>
+              <button type="button" onclick="setBorrowTimePreset(-30)" class="px-1.5 py-0.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded text-[10px] transition">-30 นาที</button>
+              <button type="button" onclick="setBorrowTimePreset(-60)" class="px-1.5 py-0.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 rounded text-[10px] transition">-1 ชม.</button>
+            </div>
           </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">เครื่องจักร / จุดใช้งาน <span class="text-rose-500">*</span></label>
-            <input type="text" id="borrowMachineInput" list="machinesDatalist" required 
-                   placeholder="เช่น CM-01, FM-02, Workshop..." 
-                   class="w-full border border-slate-300 rounded-lg p-2 font-medium focus:border-sky-500 focus:outline-none">
-            <datalist id="machinesDatalist"></datalist>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <span class="text-[10px] text-slate-500 block mb-0.5">วันที่ยืม</span>
+              <input type="date" id="borrowDateInput" required class="w-full border border-slate-300 rounded-lg p-2 font-mono text-slate-900 bg-white focus:border-sky-500 focus:outline-none">
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 block mb-0.5">เวลาที่ยืม (พิมพ์เวลาได้)</span>
+              <input type="time" id="borrowTimeInput" required class="w-full border border-slate-300 rounded-lg p-2 font-mono font-bold text-slate-900 bg-white focus:border-sky-500 focus:outline-none">
+            </div>
           </div>
         </div>
 
@@ -668,7 +686,7 @@
 
   <!-- 8. RETURN TOOL MODAL (บันทึกการคืนเครื่องมือ & ตรวจสภาพ) -->
   <div id="returnToolModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full border border-slate-200 overflow-hidden">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full border border-slate-200 overflow-hidden max-h-[92vh] flex flex-col">
       <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
         <div class="flex items-center space-x-2">
           <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-500 text-slate-950 font-mono">RETURN TOOL</span>
@@ -677,7 +695,7 @@
         <button type="button" onclick="closeReturnToolModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
       </div>
 
-      <form id="returnToolForm" onsubmit="handleSaveReturnTool(event)" class="p-6 space-y-4 text-xs">
+      <form id="returnToolForm" onsubmit="handleSaveReturnTool(event)" class="p-6 space-y-4 text-xs overflow-y-auto">
         <input type="hidden" id="returnLoanId">
 
         <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
@@ -688,14 +706,26 @@
             <span>จุดใช้งาน: <strong id="returnMachineDisplay" class="text-slate-800">-</strong></span>
           </div>
           <div class="text-[11px] text-slate-500 pt-0.5">
-            ยืมเมื่อ: <span id="returnBorrowDateDisplay" class="font-mono font-medium text-slate-700">-</span>
+            ยืมเมื่อ: <span id="returnBorrowDateDisplay" class="font-mono font-bold text-sky-700">-</span>
           </div>
         </div>
 
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">วัน-เวลาที่ส่งคืน <span class="text-rose-500">*</span></label>
-          <input type="datetime-local" id="returnDateTimeInput" required 
-                 class="w-full border border-slate-300 rounded-lg p-2 font-mono font-bold text-slate-900 focus:border-emerald-500 focus:outline-none">
+        <!-- STREAMLINED RETURN DATE & TIME INPUT -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="font-bold text-slate-800 text-[11px]">วัน-เวลาที่ส่งคืน <span class="text-rose-500">*</span></label>
+            <button type="button" onclick="setReturnTimePreset(0)" class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-[10px] shadow-xs transition">⚡ ตอนนี้ (Now)</button>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <span class="text-[10px] text-slate-500 block mb-0.5">วันที่คืน</span>
+              <input type="date" id="returnDateInput" required class="w-full border border-slate-300 rounded-lg p-2 font-mono text-slate-900 bg-white focus:border-emerald-500 focus:outline-none">
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 block mb-0.5">เวลาที่คืน (พิมพ์เวลาได้)</span>
+              <input type="time" id="returnTimeInput" required class="w-full border border-slate-300 rounded-lg p-2 font-mono font-bold text-slate-900 bg-white focus:border-emerald-500 focus:outline-none">
+            </div>
+          </div>
         </div>
 
         <div>
@@ -778,7 +808,7 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-semibold text-slate-700 mb-1">ชื่อผู้ยืม (ช่าง) <span class="text-rose-500">*</span></label>
-            <input type="text" id="editLoanBorrowerName" required class="w-full border border-slate-300 rounded-lg p-2 font-medium text-slate-900 focus:border-sky-500 focus:outline-none">
+            <input type="text" id="editLoanBorrowerName" list="personnelMasterDatalist" required class="w-full border border-slate-300 rounded-lg p-2 font-medium text-slate-900 focus:border-sky-500 focus:outline-none">
           </div>
           <div>
             <label class="block font-semibold text-slate-700 mb-1">แผนกของผู้ยืม</label>
@@ -788,17 +818,30 @@
 
         <div>
           <label class="block font-semibold text-slate-700 mb-1">เครื่องจักร / จุดที่นำไปใช้ <span class="text-rose-500">*</span></label>
-          <input type="text" id="editLoanMachineName" list="machinesDatalist" required class="w-full border border-slate-300 rounded-lg p-2 font-medium focus:border-sky-500 focus:outline-none">
+          <input type="text" id="editLoanMachineName" list="machinesMasterDatalist" required class="w-full border border-slate-300 rounded-lg p-2 font-medium focus:border-sky-500 focus:outline-none">
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">วัน-เวลาที่ยืม <span class="text-rose-500">*</span></label>
-            <input type="datetime-local" id="editLoanBorrowDate" required class="w-full border border-slate-300 rounded-lg p-2 font-mono text-slate-900 focus:border-sky-500 focus:outline-none">
+        <!-- EDIT BORROW DATE & TIME -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="font-bold text-slate-800 text-[11px]">วัน-เวลาที่ยืม <span class="text-rose-500">*</span></label>
+            <button type="button" onclick="setEditBorrowTimePreset(0)" class="px-2 py-0.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded text-[10px] transition">⚡ ตอนนี้</button>
           </div>
-          <div id="editLoanReturnDateContainer">
-            <label class="block font-semibold text-slate-700 mb-1">วัน-เวลาที่ส่งคืน</label>
-            <input type="datetime-local" id="editLoanReturnDate" class="w-full border border-slate-300 rounded-lg p-2 font-mono text-slate-900 focus:border-emerald-500 focus:outline-none">
+          <div class="grid grid-cols-2 gap-2">
+            <input type="date" id="editLoanBorrowDatePart" required class="w-full border border-slate-300 rounded-lg p-2 font-mono text-slate-900 bg-white focus:border-sky-500 focus:outline-none">
+            <input type="time" id="editLoanBorrowTimePart" required class="w-full border border-slate-300 rounded-lg p-2 font-mono text-slate-900 bg-white focus:border-sky-500 focus:outline-none">
+          </div>
+        </div>
+
+        <!-- EDIT RETURN DATE & TIME -->
+        <div id="editLoanReturnDateContainer" class="bg-emerald-50/50 border border-emerald-200 rounded-xl p-3 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="font-bold text-emerald-900 text-[11px]">วัน-เวลาที่ส่งคืน</label>
+            <button type="button" onclick="setEditReturnTimePreset(0)" class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded text-[10px] transition">⚡ ตอนนี้</button>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="date" id="editLoanReturnDatePart" class="w-full border border-slate-300 rounded-lg p-2 font-mono text-slate-900 bg-white focus:border-emerald-500 focus:outline-none">
+            <input type="time" id="editLoanReturnTimePart" class="w-full border border-slate-300 rounded-lg p-2 font-mono text-slate-900 bg-white focus:border-emerald-500 focus:outline-none">
           </div>
         </div>
 
@@ -838,9 +881,138 @@
     </div>
   </div>
 
-  <!-- APPLICATION LOGIC (with Cache Busting v=2.7.0) -->
-  <script src="/js/app.js?v=2.7.0"></script>
+  <!-- 10. PERSONNEL MODAL (จัดการบุคลากร/ช่าง - สำหรับ Developer) -->
+  <div id="personnelModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full border border-slate-200 overflow-hidden">
+      <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-purple-500 text-slate-950 font-mono">PERSONNEL</span>
+          <h3 id="personnelModalTitle" class="text-sm font-bold">ข้อมูลบุคลากร / ช่าง</h3>
+        </div>
+        <button type="button" onclick="closePersonnelModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <form id="personnelForm" onsubmit="handleSavePersonnel(event)" class="p-6 space-y-4 text-xs">
+        <input type="hidden" id="personnelId">
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">ชื่อ-นามสกุล บุคลากร/ช่าง <span class="text-rose-500">*</span></label>
+          <input type="text" id="personnelNameInput" required placeholder="เช่น มีนะ, สมชาย ใจมั่น, เกรียงไกร ช่างไฟ" 
+                 class="w-full border border-slate-300 rounded-lg p-2.5 font-medium text-slate-900 focus:border-purple-500 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">แผนก / ฝ่าย <span class="text-rose-500">*</span></label>
+            <input type="text" id="personnelDeptInput" required list="deptOptionsList" placeholder="เช่น ฝ่ายซ่อมบำรุง, Tool Room" 
+                   class="w-full border border-slate-300 rounded-lg p-2 font-medium focus:border-purple-500 focus:outline-none">
+            <datalist id="deptOptionsList">
+              <option value="ฝ่ายซ่อมบำรุง">
+              <option value="Tool Room Store">
+              <option value="Mechanical Engineering">
+              <option value="Electrical Maintenance">
+              <option value="Production Line A">
+              <option value="Production Line B">
+              <option value="Inventory Control">
+            </datalist>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">ตำแหน่งหน้าที่</label>
+            <input type="text" id="personnelRoleTitleInput" placeholder="เช่น ช่างไฟฟ้า, ช่างกลึง, สโตร์ช่าง" 
+                   class="w-full border border-slate-300 rounded-lg p-2 focus:border-purple-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">เบอร์โทรศัพท์ติดต่อ</label>
+            <input type="text" id="personnelPhoneInput" placeholder="เช่น 081-xxx-xxxx" 
+                   class="w-full border border-slate-300 rounded-lg p-2 font-mono focus:border-purple-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">สถานะการปฏิบัติงาน</label>
+            <select id="personnelActiveSelect" class="w-full border border-slate-300 rounded-lg p-2 font-semibold text-slate-800 focus:border-purple-500 focus:outline-none">
+              <option value="true">🟢 กำลังปฏิบัติงาน (Active)</option>
+              <option value="false">🔴 พ้นสภาพ / ย้ายแผนก (Inactive)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-end space-x-2">
+          <button type="button" onclick="closePersonnelModal()" class="px-3.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold">ยกเลิก</button>
+          <button type="submit" class="px-5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold shadow-sm flex items-center space-x-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span>บันทึกข้อมูล</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 11. MACHINE MODAL (จัดการเครื่องจักร & จุดใช้งาน - สำหรับ Developer) -->
+  <div id="machineModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full border border-slate-200 overflow-hidden">
+      <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500 text-slate-950 font-mono">MACHINE</span>
+          <h3 id="machineModalTitle" class="text-sm font-bold">ข้อมูลเครื่องจักร / จุดใช้งาน</h3>
+        </div>
+        <button type="button" onclick="closeMachineModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <form id="machineForm" onsubmit="handleSaveMachine(event)" class="p-6 space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">รหัสเครื่องจักร (Machine Code) <span class="text-rose-500">*</span></label>
+          <input type="text" id="machineCodeInput" required placeholder="เช่น M-001, CM-01, WS-01" 
+                 class="w-full border border-slate-300 rounded-lg p-2.5 font-mono font-bold text-slate-900 focus:border-amber-500 focus:outline-none uppercase">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">ชื่อเครื่องจักร / จุดใช้งาน <span class="text-rose-500">*</span></label>
+          <input type="text" id="machineNameInput" required placeholder="เช่น CNC Milling Machine, Cold Mill Line 1, เวิร์กช็อป" 
+                 class="w-full border border-slate-300 rounded-lg p-2.5 font-medium text-slate-900 focus:border-amber-500 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">ตำแหน่ง / ไลน์ผลิต (Location)</label>
+            <input type="text" id="machineLocationInput" placeholder="เช่น Production Line A, Press Shop" 
+                   class="w-full border border-slate-300 rounded-lg p-2 focus:border-amber-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">แผนกที่รับผิดชอบ</label>
+            <input type="text" id="machineDeptInput" placeholder="เช่น Maintenance, Machining" 
+                   class="w-full border border-slate-300 rounded-lg p-2 focus:border-amber-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">สถานะเครื่องจักร</label>
+          <select id="machineActiveSelect" class="w-full border border-slate-300 rounded-lg p-2 font-semibold text-slate-800 focus:border-amber-500 focus:outline-none">
+            <option value="true">🟢 พร้อมใช้งาน / เดินเครื่องปกติ</option>
+            <option value="false">🔴 ปิดซ่อมบำรุง / ระงับการใช้</option>
+          </select>
+        </div>
+
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-end space-x-2">
+          <button type="button" onclick="closeMachineModal()" class="px-3.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold">ยกเลิก</button>
+          <button type="submit" class="px-5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-sm flex items-center space-x-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span>บันทึกเครื่องจักร</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- PERSISTENT MASTER DATALISTS -->
+  <datalist id="personnelMasterDatalist"></datalist>
+  <datalist id="machinesMasterDatalist"></datalist>
+
+  <!-- APPLICATION LOGIC (with Cache Busting v=2.8.0) -->
+  <script src="/js/app.js?v=2.8.0"></script>
 </body>
 </html>
+
 
 

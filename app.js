@@ -95,7 +95,13 @@ async function initApp() {
     Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้: ' + err.message, 'error');
   } finally {
     hideLoading();
+    syncMasterDatalists();
     updateHeaderCounts();
+    // Initialize develop-only items visibility (strict Develop only)
+    document.querySelectorAll('.develop-only').forEach(el => {
+      if (appState.currentUser && appState.currentUser.role === 'Develop') el.classList.remove('hidden');
+      else el.classList.add('hidden');
+    });
     const initHash = window.location.hash ? window.location.hash.replace('#', '') : '';
     switchTab(initHash || 'dashboard');
     initRealtimeSync();
@@ -143,6 +149,9 @@ function initRealtimeSync() {
               else if (event.type === 'TOOL_LOAN_UPDATE') {
                 const actName = event.payload.action === 'BORROW' ? 'ยืมเครื่องมือ' : 'คืนเครื่องมือ';
                 msg = `${actName}: ${event.payload.loan.toolName} โดย ${event.payload.loan.borrowerName}`;
+              } else if (event.type === 'MASTER_DATA_UPDATE') {
+                msg = `อัปเดตข้อมูลหลัก: ${event.payload.type} (${event.payload.action})`;
+                syncMasterDatalists();
               }
 
               Swal.fire({
@@ -219,6 +228,7 @@ function refreshData(showToast = false) {
 
 function updateHeaderCounts() {
   if (!appState.db || !appState.db.parts) return;
+  syncMasterDatalists();
   const parts = appState.db.parts;
   const lowStockCount = parts.filter(p => p.currentStock <= p.minStock).length;
   const criticalSpares = parts.filter(p => p.isCritical).length;
@@ -260,6 +270,13 @@ function changeUserRole(newRole) {
     const adminItems = document.querySelectorAll('.admin-only');
     adminItems.forEach(el => {
       if (newRole === 'Admin' || newRole === 'Develop') el.classList.remove('hidden');
+      else el.classList.add('hidden');
+    });
+
+    // Toggle Develop-only navigation visibility (STRICTLY Develop role only)
+    const devItems = document.querySelectorAll('.develop-only');
+    devItems.forEach(el => {
+      if (newRole === 'Develop') el.classList.remove('hidden');
       else el.classList.add('hidden');
     });
 
@@ -4281,18 +4298,155 @@ function exportMovementsToExcel() {
 
 // ==================== 19. TOOL & EQUIPMENT LOANS (ยืม-คืนเครื่องมือ ไม่ตัดสต็อก) ====================
 
+// ==================== MASTER DATALISTS SYNC ====================
+function syncMasterDatalists() {
+  if (!appState.db) return;
+
+  // 1. Sync Personnel Master Datalist
+  const pList = document.getElementById('personnelMasterDatalist');
+  if (pList) {
+    const personnel = (appState.db.personnel || []).filter(p => p.active !== false);
+    const users = appState.db.users || [];
+    let pOptions = personnel.map(p => `<option value="${p.name}">`);
+    // Add users if not already in personnel list
+    users.forEach(u => {
+      if (!personnel.some(p => p.name === u.name)) {
+        pOptions.push(`<option value="${u.name}">`);
+      }
+    });
+    pList.innerHTML = pOptions.join('');
+  }
+
+  // 2. Sync Machines Master Datalist
+  const mList = document.getElementById('machinesMasterDatalist');
+  if (mList) {
+    const machines = (appState.db.machines || []).filter(m => m.active !== false);
+    mList.innerHTML = machines.map(m => `<option value="${m.name} (${m.code})">`).join('') +
+      '<option value="Workshop (ซ่อมบำรุงส่วนกลาง)">' +
+      '<option value="อื่นๆ (ระบุในหมายเหตุ)">';
+  }
+
+  // 3. Sync Technicians Datalist (used in Tool Loans & Stock Issue)
+  const techsList = document.getElementById('techniciansDatalist');
+  if (techsList) {
+    const personnel = (appState.db.personnel || []).filter(p => p.active !== false);
+    techsList.innerHTML = personnel.map(p => `<option value="${p.name}">`).join('');
+  }
+
+  // 4. Sync Machines Datalist
+  const machsList = document.getElementById('machinesDatalist');
+  if (machsList) {
+    const machines = (appState.db.machines || []).filter(m => m.active !== false);
+    machsList.innerHTML = machines.map(m => `<option value="${m.name} (${m.code})">`).join('') +
+      '<option value="Workshop (ซ่อมบำรุงส่วนกลาง)">' +
+      '<option value="อื่นๆ (ระบุในหมายเหตุ)">';
+  }
+}
+
+// Helpers for DateTime format and Local String manipulation
+function getLocalDateTimeParts(offsetMinutes = 0) {
+  const target = new Date(Date.now() + offsetMinutes * 60000);
+  const year = target.getFullYear();
+  const month = String(target.getMonth() + 1).padStart(2, '0');
+  const day = String(target.getDate()).padStart(2, '0');
+  const hours = String(target.getHours()).padStart(2, '0');
+  const mins = String(target.getMinutes()).padStart(2, '0');
+  return {
+    date: `${year}-${month}-${day}`,
+    time: `${hours}:${mins}`,
+    iso: target.toISOString()
+  };
+}
+
+function parseDateTimePartsToIso(dateStr, timeStr) {
+  if (!dateStr) return new Date().toISOString();
+  const time = timeStr || '00:00';
+  // Use local time parse
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const [hours, mins] = time.split(':').map(Number);
+  const d = new Date(year, month - 1, day, hours || 0, mins || 0, 0);
+  return d.toISOString();
+}
+
+function splitIsoToDateAndTime(isoStr) {
+  const d = isoStr ? new Date(isoStr) : new Date();
+  if (isNaN(d.getTime())) return getLocalDateTimeParts(0);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const mins = String(d.getMinutes()).padStart(2, '0');
+  return {
+    date: `${year}-${month}-${day}`,
+    time: `${hours}:${mins}`
+  };
+}
+
+// Quick Preset Time Button Handlers
+function setBorrowTimePreset(offsetMinutes = 0) {
+  const { date, time } = getLocalDateTimeParts(offsetMinutes);
+  const dInput = document.getElementById('borrowDateInput');
+  const tInput = document.getElementById('borrowTimeInput');
+  if (dInput) dInput.value = date;
+  if (tInput) tInput.value = time;
+}
+
+function setReturnTimePreset(offsetMinutes = 0) {
+  const { date, time } = getLocalDateTimeParts(offsetMinutes);
+  const dInput = document.getElementById('returnDateInput');
+  const tInput = document.getElementById('returnTimeInput');
+  if (dInput) dInput.value = date;
+  if (tInput) tInput.value = time;
+}
+
+function setEditBorrowTimePreset(offsetMinutes = 0) {
+  const { date, time } = getLocalDateTimeParts(offsetMinutes);
+  const dInput = document.getElementById('editLoanBorrowDatePart');
+  const tInput = document.getElementById('editLoanBorrowTimePart');
+  if (dInput) dInput.value = date;
+  if (tInput) tInput.value = time;
+}
+
+function setEditReturnTimePreset(offsetMinutes = 0) {
+  const { date, time } = getLocalDateTimeParts(offsetMinutes);
+  const dInput = document.getElementById('editLoanReturnDatePart');
+  const tInput = document.getElementById('editLoanReturnTimePart');
+  if (dInput) dInput.value = date;
+  if (tInput) tInput.value = time;
+}
+
+function toInputDateTime(dateVal) {
+  const d = dateVal ? new Date(dateVal) : new Date();
+  if (isNaN(d.getTime())) return '';
+  const offset = d.getTimezoneOffset() * 60000;
+  const local = new Date(d.getTime() - offset);
+  return local.toISOString().slice(0, 16);
+}
+
+function formatThaiDateTime(dateVal) {
+  if (!dateVal) return '-';
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return '-';
+  return d.toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) + ' น.';
+}
+
+// ==================== TOOL & EQUIPMENT LOANS (NON-STOCK) ====================
 let toolLoansFilterStatus = 'ALL';
 let toolLoansSearchQuery = '';
 
 function renderToolLoans(container) {
   const db = appState.db;
-  const loans = db.toolLoans || [];
+  const loans = (db && db.toolLoans) || [];
   const now = Date.now();
   const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
 
-  // คำนวณสถิติ
+  // Sync Master Datalists
+  syncMasterDatalists();
+
+  // Statistics
   const activeLoans = loans.filter(l => l.status === 'BORROWED' || l.status === 'OVERDUE');
   const overdueLoans = loans.filter(l => {
+    if (l.status === 'RETURNED') return false;
     if (l.status === 'OVERDUE') return true;
     if (l.status === 'BORROWED') {
       const bTime = new Date(l.borrowDate).getTime();
@@ -4452,7 +4606,6 @@ function renderToolLoans(container) {
 
 function setToolLoansFilter(status) {
   toolLoansFilterStatus = status;
-  // Update button active state
   ['ALL', 'ACTIVE', 'OVERDUE', 'RETURNED'].forEach(st => {
     const btn = document.getElementById('tlFilter-' + st);
     if (btn) {
@@ -4484,8 +4637,10 @@ function updateToolLoansTable() {
 
   // Filter
   const filtered = loans.filter(loan => {
-    // Status Filter
+    // Overdue condition
     const isOverdue = (loan.status === 'OVERDUE') || (loan.status === 'BORROWED' && (now - new Date(loan.borrowDate).getTime() > TWENTY_FOUR_HOURS));
+    
+    // Status Filter
     if (toolLoansFilterStatus === 'ACTIVE') {
       if (loan.status === 'RETURNED') return false;
     } else if (toolLoansFilterStatus === 'OVERDUE') {
@@ -4524,8 +4679,12 @@ function updateToolLoansTable() {
   tbody.innerHTML = filtered.map(loan => {
     const borrowTime = new Date(loan.borrowDate).getTime();
     const returnTime = loan.actualReturnDate ? new Date(loan.actualReturnDate).getTime() : now;
-    const diffMs = returnTime - borrowTime;
-    const isOverdue = (loan.status === 'OVERDUE') || (loan.status === 'BORROWED' && (now - borrowTime > TWENTY_FOUR_HOURS));
+    
+    // Strictly count from borrowDate and clamp negative duration to 0
+    let diffMs = returnTime - borrowTime;
+    if (isNaN(diffMs) || diffMs < 0) diffMs = 0;
+
+    const isOverdue = (loan.status !== 'RETURNED') && ((loan.status === 'OVERDUE') || (now - borrowTime > TWENTY_FOUR_HOURS));
 
     // Format Duration String
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
@@ -4541,7 +4700,7 @@ function updateToolLoansTable() {
       durationStr = `${diffMins} นาที`;
     }
 
-    // Status Badge
+    // Status Badge & Duration Badge
     let statusBadge = '';
     let durationBadge = '';
     if (loan.status === 'RETURNED') {
@@ -4620,47 +4779,18 @@ function updateToolLoansTable() {
   }).join('');
 }
 
-// Helpers for DateTime format
-function toInputDateTime(dateVal) {
-  const d = dateVal ? new Date(dateVal) : new Date();
-  if (isNaN(d.getTime())) return '';
-  const offset = d.getTimezoneOffset() * 60000;
-  const local = new Date(d.getTime() - offset);
-  return local.toISOString().slice(0, 16);
-}
-
-function formatThaiDateTime(dateVal) {
-  if (!dateVal) return '-';
-  const d = new Date(dateVal);
-  if (isNaN(d.getTime())) return '-';
-  return d.toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) + ' น.';
-}
-
 // Open Borrow Modal
 function openBorrowToolModal() {
   const modal = document.getElementById('borrowToolModal');
   if (!modal) return;
 
+  // Sync Datalists
+  syncMasterDatalists();
+
   const db = appState.db;
   const toolsDatalist = document.getElementById('availableToolsDatalist');
-  const techsDatalist = document.getElementById('techniciansDatalist');
-  const machinesDatalist = document.getElementById('machinesDatalist');
-
-  // Fill Tools Datalist (ทั้งเครื่องมือช่าง และอะไหล่ทั้งหมด)
   if (toolsDatalist && db && db.parts) {
     toolsDatalist.innerHTML = db.parts.map(p => `<option value="${p.partName} (${p.partNumber})">`).join('');
-  }
-
-  // Fill Technicians Datalist
-  if (techsDatalist && db && db.users) {
-    techsDatalist.innerHTML = db.users.map(u => `<option value="${u.name}">`).join('');
-  }
-
-  // Fill Machines Datalist
-  if (machinesDatalist && db && db.machines) {
-    machinesDatalist.innerHTML = db.machines.map(m => `<option value="${m.name} (${m.code})">`).join('') +
-      '<option value="Workshop (ซ่อมบำรุงส่วนกลาง)">' +
-      '<option value="อื่นๆ (ระบุในหมายเหตุ)">';
   }
 
   // Default Values
@@ -4669,11 +4799,13 @@ function openBorrowToolModal() {
   const toolCodeInput = document.getElementById('borrowToolCodeInput');
   if (toolCodeInput) toolCodeInput.value = 'CUSTOM';
   const borrowerInput = document.getElementById('borrowerNameInput');
-  if (borrowerInput) borrowerInput.value = (appState.currentUser && appState.currentUser.name) || 'สมชาย ใจมั่น';
+  if (borrowerInput) borrowerInput.value = (appState.currentUser && appState.currentUser.name) || 'มีนะ';
   const borrowerDept = document.getElementById('borrowerDeptInput');
   if (borrowerDept) borrowerDept.value = (appState.currentUser && appState.currentUser.department) || 'ฝ่ายซ่อมบำรุง';
-  const borrowDateInput = document.getElementById('borrowDateTimeInput');
-  if (borrowDateInput) borrowDateInput.value = toInputDateTime(new Date());
+
+  // Quick preset to Now
+  setBorrowTimePreset(0);
+
   const machineInput = document.getElementById('borrowMachineInput');
   if (machineInput) machineInput.value = '';
   const remarkInput = document.getElementById('borrowRemarkInput');
@@ -4706,19 +4838,24 @@ async function handleSaveBorrowTool(e) {
   const toolCode = document.getElementById('borrowToolCodeInput').value;
   const borrowerName = document.getElementById('borrowerNameInput').value;
   const borrowerDept = document.getElementById('borrowerDeptInput').value;
-  const borrowDateTime = document.getElementById('borrowDateTimeInput').value;
+  
+  // Date & Time Parts
+  const borrowDateVal = document.getElementById('borrowDateInput').value;
+  const borrowTimeVal = document.getElementById('borrowTimeInput').value;
+  const borrowDateTimeIso = parseDateTimePartsToIso(borrowDateVal, borrowTimeVal);
+
   const machineName = document.getElementById('borrowMachineInput').value;
   const remark = document.getElementById('borrowRemarkInput').value;
   const recordedBy = (appState.currentUser && appState.currentUser.name) || 'Store';
 
-  if (!toolNameRaw || !borrowerName || !machineName) {
-    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน', text: 'กรุณากรอกชื่อเครื่องมือ, ผู้ยืม และเครื่องจักรที่นำไปใช้' });
+  if (!toolNameRaw || !borrowerName || !machineName || !borrowDateVal || !borrowTimeVal) {
+    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน', text: 'กรุณากรอกชื่อเครื่องมือ, ผู้ยืม, เครื่องจักร และวันเวลาที่เริ่มยืม' });
     return;
   }
 
   // Clean tool name if it had (PartNo) appended from datalist
   let toolName = toolNameRaw;
-  const pMatch = toolNameRaw.match(/^(.*?)\s*\([A-Z0-9-]+\)$/);
+  const pMatch = toolNameRaw.match(/^(.*?)s*\([A-Z0-9-]+\)$/);
   if (pMatch) toolName = pMatch[1];
 
   try {
@@ -4732,7 +4869,7 @@ async function handleSaveBorrowTool(e) {
         borrowerDept,
         machineId: '-',
         machineName,
-        borrowDate: borrowDateTime || new Date().toISOString(),
+        borrowDate: borrowDateTimeIso,
         remark,
         recordedBy
       })
@@ -4751,7 +4888,7 @@ async function handleSaveBorrowTool(e) {
     Swal.fire({
       icon: 'success',
       title: 'บันทึกการยืมเครื่องมือสำเร็จ',
-      text: `${toolName} ได้รับการบันทึกว่า ${borrowerName} เป็นผู้ยืมไปใช้ที่ ${machineName} (ไม่ตัดสต็อก)`,
+      text: `${toolName} ได้รับการบันทึกว่า ${borrowerName} เป็นผู้ยืมไปใช้ที่ ${machineName} (เริ่มนับเวลา ${formatThaiDateTime(borrowDateTimeIso)})`,
       confirmButtonText: 'ตกลง',
       confirmButtonColor: '#0284c7'
     });
@@ -4775,8 +4912,8 @@ function openReturnToolModal(loanId) {
   const borrowDateDisp = document.getElementById('returnBorrowDateDisplay');
   if (borrowDateDisp) borrowDateDisp.innerText = formatThaiDateTime(loan.borrowDate);
 
-  const returnDateInput = document.getElementById('returnDateTimeInput');
-  if (returnDateInput) returnDateInput.value = toInputDateTime(new Date());
+  // Quick preset return time to Now
+  setReturnTimePreset(0);
 
   document.getElementById('returnRemarkInput').value = '';
 
@@ -4797,7 +4934,12 @@ async function handleSaveReturnTool(e) {
   const loanId = document.getElementById('returnLoanId').value;
   const conditionInput = document.querySelector('input[name="returnCondition"]:checked');
   const returnCondition = conditionInput ? conditionInput.value : 'Good';
-  const returnDateTime = document.getElementById('returnDateTimeInput').value;
+
+  // Date & Time Parts
+  const returnDateVal = document.getElementById('returnDateInput').value;
+  const returnTimeVal = document.getElementById('returnTimeInput').value;
+  const actualReturnDateIso = parseDateTimePartsToIso(returnDateVal, returnTimeVal);
+
   const returnRemark = document.getElementById('returnRemarkInput').value;
   const receivedBy = (appState.currentUser && appState.currentUser.name) || 'Store';
 
@@ -4809,7 +4951,7 @@ async function handleSaveReturnTool(e) {
         loanId,
         returnCondition,
         returnRemark,
-        actualReturnDate: returnDateTime || new Date().toISOString(),
+        actualReturnDate: actualReturnDateIso,
         receivedBy
       })
     });
@@ -4831,7 +4973,7 @@ async function handleSaveReturnTool(e) {
     Swal.fire({
       icon: 'success',
       title: 'บันทึกการส่งคืนเครื่องมือสำเร็จ',
-      text: `รับคืนเครื่องมือเรียบร้อยแล้ว (สภาพ: ${condThai}) วันเวลา: ${formatThaiDateTime(returnDateTime || new Date())}`,
+      text: `รับคืนเครื่องมือเรียบร้อยแล้ว (สภาพ: ${condThai}) คืนเมื่อ: ${formatThaiDateTime(actualReturnDateIso)}`,
       confirmButtonText: 'ตกลง',
       confirmButtonColor: '#10b981'
     });
@@ -4840,8 +4982,7 @@ async function handleSaveReturnTool(e) {
   }
 }
 
-// ==================== EDIT TOOL LOAN MODAL ====================
-
+// Open Edit Tool Loan Modal
 function openEditToolLoanModal(loanId) {
   const modal = document.getElementById('editToolLoanModal');
   if (!modal || !appState.db || !appState.db.toolLoans) return;
@@ -4849,13 +4990,7 @@ function openEditToolLoanModal(loanId) {
   const loan = appState.db.toolLoans.find(l => l.id === loanId);
   if (!loan) return;
 
-  // Fill machines datalist if not filled
-  const machinesDatalist = document.getElementById('machinesDatalist');
-  if (machinesDatalist && appState.db.machines && machinesDatalist.children.length === 0) {
-    machinesDatalist.innerHTML = appState.db.machines.map(m => `<option value="${m.name} (${m.code})">`).join('') +
-      '<option value="Workshop (ซ่อมบำรุงส่วนกลาง)">' +
-      '<option value="อื่นๆ (ระบุในหมายเหตุ)">';
-  }
+  syncMasterDatalists();
 
   document.getElementById('editLoanId').value = loan.id;
   document.getElementById('editLoanIdDisplay').value = loan.id;
@@ -4864,13 +4999,19 @@ function openEditToolLoanModal(loanId) {
   document.getElementById('editLoanBorrowerName').value = loan.borrowerName;
   document.getElementById('editLoanBorrowerDept').value = loan.borrowerDept || 'ฝ่ายซ่อมบำรุง';
   document.getElementById('editLoanMachineName').value = loan.machineName || '';
-  document.getElementById('editLoanBorrowDate').value = toInputDateTime(loan.borrowDate);
+
+  // Split Borrow Date & Time
+  const bParts = splitIsoToDateAndTime(loan.borrowDate);
+  document.getElementById('editLoanBorrowDatePart').value = bParts.date;
+  document.getElementById('editLoanBorrowTimePart').value = bParts.time;
 
   const statusSelect = document.getElementById('editLoanStatusSelect');
   statusSelect.value = loan.status === 'RETURNED' ? 'RETURNED' : 'BORROWED';
 
-  const returnDateInput = document.getElementById('editLoanReturnDate');
-  returnDateInput.value = loan.actualReturnDate ? toInputDateTime(loan.actualReturnDate) : toInputDateTime(new Date());
+  // Split Return Date & Time
+  const rParts = splitIsoToDateAndTime(loan.actualReturnDate);
+  document.getElementById('editLoanReturnDatePart').value = rParts.date;
+  document.getElementById('editLoanReturnTimePart').value = rParts.time;
 
   const conditionSelect = document.getElementById('editLoanReturnCondition');
   conditionSelect.value = loan.returnCondition || 'Good';
@@ -4912,15 +5053,30 @@ async function handleSaveEditToolLoan(e) {
   const borrowerName = document.getElementById('editLoanBorrowerName').value;
   const borrowerDept = document.getElementById('editLoanBorrowerDept').value;
   const machineName = document.getElementById('editLoanMachineName').value;
-  const borrowDate = document.getElementById('editLoanBorrowDate').value;
+
+  // Recombine borrow date & time
+  const bDate = document.getElementById('editLoanBorrowDatePart').value;
+  const bTime = document.getElementById('editLoanBorrowTimePart').value;
+  const borrowDate = parseDateTimePartsToIso(bDate, bTime);
+
   const status = document.getElementById('editLoanStatusSelect').value;
-  const actualReturnDate = status === 'RETURNED' ? document.getElementById('editLoanReturnDate').value : null;
-  const returnCondition = status === 'RETURNED' ? document.getElementById('editLoanReturnCondition').value : null;
+  
+  let actualReturnDate = null;
+  let returnCondition = null;
+  let returnRemark = '';
+
+  if (status === 'RETURNED') {
+    const rDate = document.getElementById('editLoanReturnDatePart').value;
+    const rTime = document.getElementById('editLoanReturnTimePart').value;
+    actualReturnDate = parseDateTimePartsToIso(rDate, rTime);
+    returnCondition = document.getElementById('editLoanReturnCondition').value;
+    returnRemark = document.getElementById('editLoanReturnRemark').value;
+  }
+
   const remark = document.getElementById('editLoanBorrowRemark').value;
-  const returnRemark = status === 'RETURNED' ? document.getElementById('editLoanReturnRemark').value : '';
   const editedBy = (appState.currentUser && appState.currentUser.name) || 'Store';
 
-  if (!toolName || !borrowerName || !machineName || !borrowDate) {
+  if (!toolName || !borrowerName || !machineName || !bDate || !bTime) {
     Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน', text: 'กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน' });
     return;
   }
@@ -4937,9 +5093,9 @@ async function handleSaveEditToolLoan(e) {
         borrowerDept,
         machineId: '-',
         machineName,
-        borrowDate: new Date(borrowDate).toISOString(),
+        borrowDate,
         status,
-        actualReturnDate: actualReturnDate ? new Date(actualReturnDate).toISOString() : null,
+        actualReturnDate,
         returnCondition,
         remark,
         returnRemark,
@@ -5020,3 +5176,570 @@ async function confirmDeleteToolLoan() {
   }
 }
 
+// ==================== MASTER DATA MANAGEMENT (DEVELOPER ONLY) ====================
+let masterDataSubTab = 'personnel'; // 'personnel' or 'machines'
+let personnelSearchQuery = '';
+let machinesSearchQuery = '';
+
+function renderMasterData(container) {
+  // STRICT ACCESS CHECK: Only Develop role is permitted
+  if (!appState.currentUser || appState.currentUser.role !== 'Develop') {
+    container.innerHTML = `
+      <div class="p-8 text-center bg-white rounded-2xl border border-rose-200 shadow-sm max-w-xl mx-auto my-12">
+        <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🔒</div>
+        <h2 class="text-lg font-bold text-slate-900 mb-1">เฉพาะสิทธิ์ User Developer เท่านั้น</h2>
+        <p class="text-xs text-slate-500 mb-5">เมนูจัดการข้อมูลหลัก (Master Data) ทั้งบุคลากรและเครื่องจักร สงวนไว้สำหรับผู้พัฒนาระบบ (Develop) เท่านั้น</p>
+        <button onclick="changeUserRole('Develop')" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-md shadow-purple-500/20">
+          💻 สลับเป็น User Developer เพื่อเข้าใช้งาน
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  const db = appState.db;
+  const personnel = (db && db.personnel) || [];
+  const machines = (db && db.machines) || [];
+
+  container.innerHTML = `
+    <div class="space-y-6">
+      
+      <!-- Top Title & Action Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+        <div>
+          <div class="flex items-center space-x-2.5">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-purple-500/20">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            </div>
+            <div>
+              <h1 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center space-x-2">
+                <span>จัดการบุคลากร & เครื่องจักร (Master Data)</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-mono font-bold">DEVELOPER ONLY</span>
+              </h1>
+              <p class="text-xs text-slate-500">จัดการรายชื่อช่าง/ผู้ปฏิบัติงาน และเครื่องจักร/จุดใช้งาน เพื่อใช้เป็นตัวเลือกอัตโนมัติในทุกหน้าจอ</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Master Data Tabs -->
+        <div class="flex items-center space-x-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+          <button onclick="setMasterDataSubTab('personnel')" id="mdTab-personnel" 
+                  class="px-4 py-2 rounded-lg text-xs font-bold transition ${masterDataSubTab === 'personnel' ? 'bg-white text-purple-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
+            👥 บุคลากร / ช่าง (${personnel.length})
+          </button>
+          <button onclick="setMasterDataSubTab('machines')" id="mdTab-machines" 
+                  class="px-4 py-2 rounded-lg text-xs font-bold transition ${masterDataSubTab === 'machines' ? 'bg-white text-amber-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
+            ⚙️ เครื่องจักร & จุดใช้งาน (${machines.length})
+          </button>
+        </div>
+      </div>
+
+      <!-- Content Container -->
+      <div id="masterDataContent">
+        <!-- Rendered based on sub-tab -->
+      </div>
+
+    </div>
+  `;
+
+  renderMasterDataSubContent();
+}
+
+function setMasterDataSubTab(tab) {
+  masterDataSubTab = tab;
+  const btnP = document.getElementById('mdTab-personnel');
+  const btnM = document.getElementById('mdTab-machines');
+  if (btnP && btnM) {
+    if (tab === 'personnel') {
+      btnP.className = 'px-4 py-2 rounded-lg text-xs font-bold transition bg-white text-purple-700 shadow-sm';
+      btnM.className = 'px-4 py-2 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900';
+    } else {
+      btnP.className = 'px-4 py-2 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900';
+      btnM.className = 'px-4 py-2 rounded-lg text-xs font-bold transition bg-white text-amber-700 shadow-sm';
+    }
+  }
+  renderMasterDataSubContent();
+}
+
+function renderMasterDataSubContent() {
+  const container = document.getElementById('masterDataContent');
+  if (!container || !appState.db) return;
+
+  if (masterDataSubTab === 'personnel') {
+    renderPersonnelList(container);
+  } else {
+    renderMachinesList(container);
+  }
+}
+
+// ---------------- Personnel Sub-view ----------------
+function renderPersonnelList(container) {
+  const personnel = appState.db.personnel || [];
+  
+  // Filter
+  const filtered = personnel.filter(p => {
+    if (personnelSearchQuery) {
+      const q = personnelSearchQuery.toLowerCase();
+      const match = (p.name && p.name.toLowerCase().includes(q)) ||
+                    (p.department && p.department.toLowerCase().includes(q)) ||
+                    (p.roleTitle && p.roleTitle.toLowerCase().includes(q)) ||
+                    (p.phone && p.phone.includes(q)) ||
+                    (p.id && p.id.toLowerCase().includes(q));
+      if (!match) return false;
+    }
+    return true;
+  });
+
+  container.innerHTML = `
+    <div class="space-y-4">
+      <!-- Search & Add Button -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="relative flex-1 max-w-md">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </span>
+          <input type="text" value="${personnelSearchQuery}" oninput="personnelSearchQuery = this.value; renderPersonnelList(document.getElementById('masterDataContent'))" 
+                 placeholder="ค้นหาชื่อช่าง, แผนก, ตำแหน่ง หรือเบอร์โทร..." 
+                 class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-purple-500 focus:outline-none transition">
+        </div>
+        <button onclick="openPersonnelModal()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center space-x-2 transition active:scale-95">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+          <span>+ เพิ่มบุคลากร / ช่างใหม่</span>
+        </button>
+      </div>
+
+      <!-- Personnel Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[11px]">
+                <th class="p-3.5">รหัส</th>
+                <th class="p-3.5">ชื่อ - นามสกุล</th>
+                <th class="p-3.5">แผนก / ฝ่าย</th>
+                <th class="p-3.5">ตำแหน่ง</th>
+                <th class="p-3.5">เบอร์ติดต่อ</th>
+                <th class="p-3.5">สถานะ</th>
+                <th class="p-3.5 text-center">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-slate-700">
+              ${filtered.length === 0 ? `
+                <tr>
+                  <td colspan="7" class="p-8 text-center text-slate-400">
+                    ไม่พบข้อมูลบุคลากรตามที่ค้นหา
+                  </td>
+                </tr>
+              ` : filtered.map(p => `
+                <tr class="hover:bg-purple-50/30 transition">
+                  <td class="p-3.5 font-mono font-bold text-purple-700">${p.id}</td>
+                  <td class="p-3.5 font-bold text-slate-900">${p.name}</td>
+                  <td class="p-3.5">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-800 text-[11px] font-medium">
+                      ${p.department || '-'}
+                    </span>
+                  </td>
+                  <td class="p-3.5 text-slate-600">${p.roleTitle || '-'}</td>
+                  <td class="p-3.5 font-mono text-slate-600">${p.phone || '-'}</td>
+                  <td class="p-3.5">
+                    ${p.active !== false 
+                      ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">🟢 กำลังปฏิบัติงาน</span>'
+                      : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">🔴 พ้นสภาพ/ย้าย</span>'
+                    }
+                  </td>
+                  <td class="p-3.5 text-center whitespace-nowrap">
+                    <div class="flex items-center justify-center space-x-1.5">
+                      <button onclick="openPersonnelModal('${p.id}')" 
+                              class="px-2.5 py-1 bg-slate-100 hover:bg-purple-50 hover:text-purple-700 text-slate-700 font-semibold rounded-lg text-xs border border-slate-300 transition flex items-center space-x-1 active:scale-95">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                        <span>แก้ไข</span>
+                      </button>
+                      <button onclick="confirmDeletePersonnel('${p.id}')" 
+                              class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold rounded-lg text-xs border border-rose-200 transition flex items-center space-x-1 active:scale-95">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        <span>ลบ</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ---------------- Machines Sub-view ----------------
+function renderMachinesList(container) {
+  const machines = appState.db.machines || [];
+
+  // Filter
+  const filtered = machines.filter(m => {
+    if (machinesSearchQuery) {
+      const q = machinesSearchQuery.toLowerCase();
+      const match = (m.code && m.code.toLowerCase().includes(q)) ||
+                    (m.name && m.name.toLowerCase().includes(q)) ||
+                    (m.location && m.location.toLowerCase().includes(q)) ||
+                    (m.department && m.department.toLowerCase().includes(q));
+      if (!match) return false;
+    }
+    return true;
+  });
+
+  container.innerHTML = `
+    <div class="space-y-4">
+      <!-- Search & Add Button -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="relative flex-1 max-w-md">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </span>
+          <input type="text" value="${machinesSearchQuery}" oninput="machinesSearchQuery = this.value; renderMachinesList(document.getElementById('masterDataContent'))" 
+                 placeholder="ค้นหารหัสเครื่องจักร, ชื่อเครื่องจักร, จุดติดตั้ง หรือแผนก..." 
+                 class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-amber-500 focus:outline-none transition">
+        </div>
+        <button onclick="openMachineModal()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center space-x-2 transition active:scale-95">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+          <span>+ เพิ่มเครื่องจักร / จุดใช้งานใหม่</span>
+        </button>
+      </div>
+
+      <!-- Machines Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[11px]">
+                <th class="p-3.5">รหัสเครื่องจักร</th>
+                <th class="p-3.5">ชื่อเครื่องจักร / จุดใช้งาน</th>
+                <th class="p-3.5">ตำแหน่ง / ไลน์ผลิต</th>
+                <th class="p-3.5">แผนกที่ดูแล</th>
+                <th class="p-3.5">สถานะ</th>
+                <th class="p-3.5 text-center">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-slate-700">
+              ${filtered.length === 0 ? `
+                <tr>
+                  <td colspan="6" class="p-8 text-center text-slate-400">
+                    ไม่พบข้อมูลเครื่องจักรตามที่ค้นหา
+                  </td>
+                </tr>
+              ` : filtered.map(m => `
+                <tr class="hover:bg-amber-50/30 transition">
+                  <td class="p-3.5 font-mono font-bold text-amber-800">${m.code}</td>
+                  <td class="p-3.5 font-bold text-slate-900">${m.name}</td>
+                  <td class="p-3.5">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-800 text-[11px] font-medium">
+                      ${m.location || '-'}
+                    </span>
+                  </td>
+                  <td class="p-3.5 text-slate-600">${m.department || '-'}</td>
+                  <td class="p-3.5">
+                    ${m.active !== false 
+                      ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">🟢 พร้อมใช้งาน</span>'
+                      : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">🔴 ปิดซ่อม/ระงับ</span>'
+                    }
+                  </td>
+                  <td class="p-3.5 text-center whitespace-nowrap">
+                    <div class="flex items-center justify-center space-x-1.5">
+                      <button onclick="openMachineModal('${m.code}')" 
+                              class="px-2.5 py-1 bg-slate-100 hover:bg-amber-50 hover:text-amber-800 text-slate-700 font-semibold rounded-lg text-xs border border-slate-300 transition flex items-center space-x-1 active:scale-95">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                        <span>แก้ไข</span>
+                      </button>
+                      <button onclick="confirmDeleteMachine('${m.code}')" 
+                              class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold rounded-lg text-xs border border-rose-200 transition flex items-center space-x-1 active:scale-95">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        <span>ลบ</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ---------------- Personnel Modal Handlers ----------------
+function openPersonnelModal(id = null) {
+  const modal = document.getElementById('personnelModal');
+  if (!modal) return;
+
+  const titleEl = document.getElementById('personnelModalTitle');
+  const idInput = document.getElementById('personnelId');
+  const nameInput = document.getElementById('personnelNameInput');
+  const deptInput = document.getElementById('personnelDeptInput');
+  const roleInput = document.getElementById('personnelRoleTitleInput');
+  const phoneInput = document.getElementById('personnelPhoneInput');
+  const activeSelect = document.getElementById('personnelActiveSelect');
+
+  if (id && appState.db && appState.db.personnel) {
+    const p = appState.db.personnel.find(x => x.id === id);
+    if (p) {
+      if (titleEl) titleEl.innerText = `แก้ไขข้อมูลบุคลากร (${p.name})`;
+      idInput.value = p.id;
+      nameInput.value = p.name;
+      deptInput.value = p.department || 'ฝ่ายซ่อมบำรุง';
+      roleInput.value = p.roleTitle || '';
+      phoneInput.value = p.phone || '';
+      activeSelect.value = p.active !== false ? 'true' : 'false';
+    }
+  } else {
+    if (titleEl) titleEl.innerText = 'เพิ่มบุคลากร / ช่างใหม่';
+    idInput.value = '';
+    nameInput.value = '';
+    deptInput.value = 'ฝ่ายซ่อมบำรุง';
+    roleInput.value = '';
+    phoneInput.value = '';
+    activeSelect.value = 'true';
+  }
+
+  modal.classList.remove('hidden');
+}
+
+function closePersonnelModal() {
+  const modal = document.getElementById('personnelModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function handleSavePersonnel(e) {
+  e.preventDefault();
+  const id = document.getElementById('personnelId').value;
+  const name = document.getElementById('personnelNameInput').value.trim();
+  const department = document.getElementById('personnelDeptInput').value.trim();
+  const roleTitle = document.getElementById('personnelRoleTitleInput').value.trim();
+  const phone = document.getElementById('personnelPhoneInput').value.trim();
+  const active = document.getElementById('personnelActiveSelect').value === 'true';
+  const updatedBy = (appState.currentUser && appState.currentUser.name) || 'Developer';
+
+  if (!name || !department) {
+    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน', text: 'กรุณากรอกชื่อ-นามสกุล และแผนกของบุคลากร' });
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/personnel/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id,
+        name,
+        department,
+        roleTitle,
+        phone,
+        active,
+        updatedBy
+      })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'เกิดข้อผิดพลาดในการบันทึกบุคลากร');
+
+    closePersonnelModal();
+
+    // Refresh DB
+    const dbRes = await fetch('/api/db');
+    appState.db = await dbRes.json();
+    syncMasterDatalists();
+    renderMasterDataSubContent();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'บันทึกข้อมูลบุคลากรสำเร็จ',
+      text: `บันทึกข้อมูลคุณ ${name} เรียบร้อยแล้ว (อัปเดตลงตัวเลือกอัตโนมัติ)`,
+      confirmButtonText: 'ตกลง',
+      confirmButtonColor: '#9333ea'
+    });
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
+  }
+}
+
+async function confirmDeletePersonnel(id) {
+  const p = (appState.db.personnel || []).find(x => x.id === id);
+  const name = p ? p.name : id;
+  const deletedBy = (appState.currentUser && appState.currentUser.name) || 'Developer';
+
+  const confirmResult = await Swal.fire({
+    title: 'ยืนยันการลบข้อมูลบุคลากร?',
+    text: `ต้องการลบ "${name}" (${id}) ใช่หรือไม่? ข้อมูลนี้จะถูกบันทึกลงใน Audit Log`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'ใช่, ลบข้อมูล',
+    cancelButtonText: 'ยกเลิก'
+  });
+
+  if (!confirmResult.isConfirmed) return;
+
+  try {
+    const res = await fetch('/api/personnel/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, deletedBy })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'เกิดข้อผิดพลาดในการลบข้อมูล');
+
+    // Refresh DB
+    const dbRes = await fetch('/api/db');
+    appState.db = await dbRes.json();
+    syncMasterDatalists();
+    renderMasterDataSubContent();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'ลบข้อมูลสำเร็จ',
+      text: `ลบข้อมูลคุณ ${name} เรียบร้อยแล้ว`,
+      confirmButtonText: 'ตกลง',
+      confirmButtonColor: '#10b981'
+    });
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
+  }
+}
+
+// ---------------- Machine Modal Handlers ----------------
+function openMachineModal(code = null) {
+  const modal = document.getElementById('machineModal');
+  if (!modal) return;
+
+  const titleEl = document.getElementById('machineModalTitle');
+  const codeInput = document.getElementById('machineCodeInput');
+  const nameInput = document.getElementById('machineNameInput');
+  const locInput = document.getElementById('machineLocationInput');
+  const deptInput = document.getElementById('machineDeptInput');
+  const activeSelect = document.getElementById('machineActiveSelect');
+
+  if (code && appState.db && appState.db.machines) {
+    const m = appState.db.machines.find(x => x.code === code);
+    if (m) {
+      if (titleEl) titleEl.innerText = `แก้ไขข้อมูลเครื่องจักร (${m.code})`;
+      codeInput.value = m.code;
+      codeInput.readOnly = true;
+      codeInput.classList.add('bg-slate-100', 'cursor-not-allowed');
+      nameInput.value = m.name;
+      locInput.value = m.location || '';
+      deptInput.value = m.department || 'Maintenance';
+      activeSelect.value = m.active !== false ? 'true' : 'false';
+    }
+  } else {
+    if (titleEl) titleEl.innerText = 'เพิ่มเครื่องจักร / จุดใช้งานใหม่';
+    codeInput.value = '';
+    codeInput.readOnly = false;
+    codeInput.classList.remove('bg-slate-100', 'cursor-not-allowed');
+    nameInput.value = '';
+    locInput.value = '';
+    deptInput.value = 'Maintenance';
+    activeSelect.value = 'true';
+  }
+
+  modal.classList.remove('hidden');
+}
+
+function closeMachineModal() {
+  const modal = document.getElementById('machineModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function handleSaveMachine(e) {
+  e.preventDefault();
+  const code = document.getElementById('machineCodeInput').value.trim().toUpperCase();
+  const name = document.getElementById('machineNameInput').value.trim();
+  const location = document.getElementById('machineLocationInput').value.trim();
+  const department = document.getElementById('machineDeptInput').value.trim();
+  const active = document.getElementById('machineActiveSelect').value === 'true';
+  const updatedBy = (appState.currentUser && appState.currentUser.name) || 'Developer';
+
+  if (!code || !name) {
+    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน', text: 'กรุณากรอกรหัสและชื่อเครื่องจักร' });
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/machines/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code,
+        name,
+        location,
+        department,
+        active,
+        updatedBy
+      })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'เกิดข้อผิดพลาดในการบันทึกเครื่องจักร');
+
+    closeMachineModal();
+
+    // Refresh DB
+    const dbRes = await fetch('/api/db');
+    appState.db = await dbRes.json();
+    syncMasterDatalists();
+    renderMasterDataSubContent();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'บันทึกเครื่องจักรสำเร็จ',
+      text: `บันทึกเครื่องจักร ${name} (${code}) เรียบร้อยแล้ว (อัปเดตลงตัวเลือกอัตโนมัติ)`,
+      confirmButtonText: 'ตกลง',
+      confirmButtonColor: '#d97706'
+    });
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
+  }
+}
+
+async function confirmDeleteMachine(code) {
+  const m = (appState.db.machines || []).find(x => x.code === code);
+  const name = m ? m.name : code;
+  const deletedBy = (appState.currentUser && appState.currentUser.name) || 'Developer';
+
+  const confirmResult = await Swal.fire({
+    title: 'ยืนยันการลบเครื่องจักร?',
+    text: `ต้องการลบเครื่องจักร "${name}" (${code}) ใช่หรือไม่? ข้อมูลนี้จะถูกบันทึกลงใน Audit Log`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'ใช่, ลบเครื่องจักร',
+    cancelButtonText: 'ยกเลิก'
+  });
+
+  if (!confirmResult.isConfirmed) return;
+
+  try {
+    const res = await fetch('/api/machines/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, deletedBy })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'เกิดข้อผิดพลาดในการลบเครื่องจักร');
+
+    // Refresh DB
+    const dbRes = await fetch('/api/db');
+    appState.db = await dbRes.json();
+    syncMasterDatalists();
+    renderMasterDataSubContent();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'ลบเครื่องจักรสำเร็จ',
+      text: `ลบเครื่องจักร ${name} (${code}) เรียบร้อยแล้ว`,
+      confirmButtonText: 'ตกลง',
+      confirmButtonColor: '#10b981'
+    });
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
+  }
+}
