@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: maintenance-stock-varopakorn
+    env: node
+    plan: free
+    region: singapore
+    buildCommand: npm install --omit=dev
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 20.10.0
+      - key: PORT
+        value: 10000

@@ -1,0 +1,22 @@
+{
+  "name": "maintenance-stock-varopakorn",
+  "version": "1.0.0",
+  "description": "Maintenance Spare Parts Inventory Management System - Tool Room",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo 'Build complete'"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "inventory",
+    "maintenance",
+    "spare-parts",
+    "factory",
+    "tool-room"
+  ],
+  "author": "Antigravity Engineering",
+  "license": "ISC"
+}
