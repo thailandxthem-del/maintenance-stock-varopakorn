@@ -1,6 +1,6 @@
 {
-  "version": 1789453791100,
-  "lastUpdated": "2026-09-15T06:29:51.100Z",
+  "version": 1789455829530,
+  "lastUpdated": "2026-09-15T07:03:49.530Z",
   "users": [
     {
       "id": "U-001",
@@ -13687,6 +13687,69 @@
   ],
   "auditLogs": [
     {
+      "id": "AUD-EMP-DEL-1789455829530",
+      "timestamp": "2026-09-15 07:03:49",
+      "user": "Developer",
+      "action": "PERSONNEL_DELETE",
+      "partNumber": "EMP-9181",
+      "reason": "ลบรายชื่อบุคลากร: สมเกียรติ ช่างซ่อม (หัวหน้า) (EMP-9181) เหตุผล: ปรับปรุงรายชื่อบุคลากร",
+      "reference": "EMP-9181"
+    },
+    {
+      "id": "AUD-MC-DEL-1789455829503",
+      "timestamp": "2026-09-15 07:03:49",
+      "user": "Developer",
+      "action": "MACHINE_DELETE",
+      "partNumber": "TEST-MC-01",
+      "reason": "ลบเครื่องจักร: เครื่องทดสอบความเที่ยงตรงสูง (TEST-MC-01) เหตุผล: ปรับปรุงรายการเครื่องจักร",
+      "reference": "TEST-MC-01"
+    },
+    {
+      "id": "AUD-RET-1789455829437",
+      "timestamp": "2026-09-15 07:03:49",
+      "user": "สโตร์ช่าง",
+      "action": "TOOL_RETURN",
+      "partNumber": "TL-TEST-01",
+      "reason": "คืนเครื่องมือ: ประแจปอนด์ดิจิทัล (Digital Torque Wrench) (สภาพ: Good) คืนโดย สมเกียรติ ช่างซ่อม (หัวหน้า)",
+      "reference": "LN-829404"
+    },
+    {
+      "id": "AUD-LN-1789455829404",
+      "timestamp": "2026-09-15 07:03:49",
+      "user": "สโตร์ช่าง",
+      "action": "TOOL_BORROW",
+      "partNumber": "TL-TEST-01",
+      "reason": "ยืมเครื่องมือ: ประแจปอนด์ดิจิทัล (Digital Torque Wrench) โดย สมเกียรติ ช่างซ่อม (หัวหน้า) (ไปใช้ที่: เครื่องทดสอบความเที่ยงตรงสูง)",
+      "reference": "LN-829404"
+    },
+    {
+      "id": "AUD-MC-1789455829282",
+      "timestamp": "2026-09-15 07:03:49",
+      "user": "Developer",
+      "action": "MACHINE_SAVE",
+      "partNumber": "TEST-MC-01",
+      "reason": "บันทึกข้อมูลเครื่องจักร: เครื่องทดสอบความเที่ยงตรงสูง (TEST-MC-01)",
+      "reference": "TEST-MC-01"
+    },
+    {
+      "id": "AUD-EMP-1789455829242",
+      "timestamp": "2026-09-15 07:03:49",
+      "user": "Developer",
+      "action": "PERSONNEL_UPDATE",
+      "partNumber": "EMP-9181",
+      "reason": "บันทึกข้อมูลบุคลากร: สมเกียรติ ช่างซ่อม (หัวหน้า) (ฝ่ายซ่อมบำรุง)",
+      "reference": "EMP-9181"
+    },
+    {
+      "id": "AUD-EMP-1789455829190",
+      "timestamp": "2026-09-15 07:03:49",
+      "user": "Developer",
+      "action": "PERSONNEL_CREATE",
+      "partNumber": "EMP-9181",
+      "reason": "บันทึกข้อมูลบุคลากร: สมเกียรติ ช่างซ่อม (ฝ่ายซ่อมบำรุง)",
+      "reference": "EMP-9181"
+    },
+    {
       "id": "AUD-EMP-DEL-1789453791100",
       "timestamp": "2026-09-15 06:29:51",
       "user": "Developer",
@@ -14531,6 +14594,23 @@
     }
   ],
   "toolLoans": [
+    {
+      "id": "LN-829404",
+      "toolCode": "TL-TEST-01",
+      "toolName": "ประแจปอนด์ดิจิทัล (Digital Torque Wrench)",
+      "borrowerName": "สมเกียรติ ช่างซ่อม (หัวหน้า)",
+      "borrowerDept": "ฝ่ายซ่อมบำรุง",
+      "machineId": "TEST-MC-01",
+      "machineName": "เครื่องทดสอบความเที่ยงตรงสูง",
+      "borrowDate": "2026-09-15T06:33:49.292Z",
+      "actualReturnDate": "2026-09-15T07:03:49.416Z",
+      "status": "RETURNED",
+      "returnCondition": "Good",
+      "remark": "ทดสอบการนับเวลาเริ่มยืมแบบระบุเวลาย้อนหลัง",
+      "recordedBy": "สโตร์ช่าง",
+      "returnRemark": "สภาพปกติ ตรวจเช็คครบ",
+      "receivedBy": "สโตร์ช่าง"
+    },
     {
       "id": "LN-790980",
       "toolCode": "TL-TEST-01",

@@ -1486,7 +1486,10 @@ function renderStockIn(container, prefillPartCode = '') {
           <!-- Receiver -->
           <div>
             <label class="block font-semibold text-slate-700 mb-1">ผู้รับอะไหล่ (Receiver)</label>
-            <input type="text" id="inReceiver" value="${appState.currentUser.name}" class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none">
+            <select id="inReceiverSelect" onchange="onStockInReceiverChange(this)" class="w-full border border-slate-300 rounded-lg p-2 bg-white font-medium cursor-pointer">
+              ${getPersonnelSelectOptions(appState.currentUser.name)}
+            </select>
+            <input type="text" id="inReceiver" value="${appState.currentUser.name}" placeholder="หรือพิมพ์ชื่อผู้รับเอง..." class="hidden mt-1.5 w-full border border-slate-300 rounded-lg p-2 text-xs">
           </div>
 
           <!-- Remark -->
@@ -1549,7 +1552,9 @@ async function handleStockInSubmit(e) {
   const partNumber = document.getElementById('inPartNumber').value;
   const quantity = parseFloat(document.getElementById('inQty').value);
   const unitCost = parseFloat(document.getElementById('inUnitCost').value) || 0;
-  const receiver = document.getElementById('inReceiver').value;
+  const inRecSel = document.getElementById('inReceiverSelect');
+  const inRecInp = document.getElementById('inReceiver');
+  const receiver = (inRecSel && inRecSel.value !== '__CUSTOM__' && inRecSel.value) ? inRecSel.value : (inRecInp ? inRecInp.value.trim() : '');
   const remark = document.getElementById('inRemark').value;
 
   if (!partNumber || isNaN(quantity) || quantity <= 0) {
@@ -1647,13 +1652,19 @@ function renderStockIssue(container, prefillPartCode = '') {
           <!-- Requester -->
           <div>
             <label class="block font-semibold text-slate-700 mb-1">ช่างผู้ขอเบิก (Requester) <span class="text-rose-500">*</span></label>
-            <input type="text" id="outRequester" required placeholder="ชื่อช่างเทคนิคผู้เบิก" class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none">
+            <select id="outRequesterSelect" onchange="onStockIssueRequesterChange(this)" required class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none bg-white font-medium cursor-pointer">
+              ${getPersonnelSelectOptions()}
+            </select>
+            <input type="text" id="outRequester" placeholder="หรือพิมพ์ชื่อช่างผู้เบิกเอง..." class="hidden mt-1.5 w-full border border-slate-300 rounded-lg p-2 text-xs focus:border-sky-500 focus:outline-none">
           </div>
 
           <!-- Used For / Machine (Simple text) -->
           <div class="sm:col-span-2">
             <label class="block font-semibold text-slate-700 mb-1">นำไปใช้กับงานใด / เครื่องจักรใด (Used For) <span class="text-rose-500">*</span></label>
-            <input type="text" id="outUsedFor" required placeholder="เช่น ซ่อมปั๊มน้ำ, เปลี่ยนถ่ายน้ำมัน, งานซ่อมทั่วไป, เครื่องกลึง 1" class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none">
+            <select id="outUsedForSelect" onchange="onStockIssueUsedForChange(this)" required class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none bg-white font-medium cursor-pointer">
+              ${getMachineSelectOptions()}
+            </select>
+            <input type="text" id="outUsedFor" placeholder="หรือพิมพ์ระบุจุดใช้งาน/ชื่องานเอง..." class="hidden mt-1.5 w-full border border-slate-300 rounded-lg p-2 text-xs focus:border-sky-500 focus:outline-none">
           </div>
 
           <!-- Issued By -->
@@ -1735,8 +1746,13 @@ async function handleStockIssueSubmit(e) {
   e.preventDefault();
   const partNumber = document.getElementById('outPartNumber').value;
   const quantity = parseFloat(document.getElementById('outQty').value);
-  const requester = document.getElementById('outRequester').value;
-  const usedFor = document.getElementById('outUsedFor').value;
+  const outReqSel = document.getElementById('outRequesterSelect');
+  const outReqInp = document.getElementById('outRequester');
+  const requester = (outReqSel && outReqSel.value !== '__CUSTOM__' && outReqSel.value) ? outReqSel.value : (outReqInp ? outReqInp.value.trim() : '');
+
+  const outUsedSel = document.getElementById('outUsedForSelect');
+  const outUsedInp = document.getElementById('outUsedFor');
+  const usedFor = (outUsedSel && outUsedSel.value !== '__CUSTOM__' && outUsedSel.value) ? outUsedSel.value : (outUsedInp ? outUsedInp.value.trim() : '');
   const issuedBy = document.getElementById('outIssuedBy').value;
   const remark = document.getElementById('outRemark').value;
 
@@ -1852,7 +1868,10 @@ function renderStockReturn(container) {
 
           <div>
             <label class="block font-semibold text-slate-700 mb-1">ผู้ส่งคืน (Returned By) <span class="text-rose-500">*</span></label>
-            <input type="text" id="retReturnedBy" required placeholder="ชื่อช่างผู้คืน" class="w-full border border-slate-300 rounded-lg p-2">
+            <select id="retReturnedBySelect" onchange="onStockReturnByChange(this)" required class="w-full border border-slate-300 rounded-lg p-2 bg-white font-medium cursor-pointer">
+              ${getPersonnelSelectOptions()}
+            </select>
+            <input type="text" id="retReturnedBy" placeholder="หรือพิมพ์ชื่อช่างผู้คืนเอง..." class="hidden mt-1.5 w-full border border-slate-300 rounded-lg p-2 text-xs">
           </div>
 
           <div>
@@ -1906,7 +1925,9 @@ async function handleStockReturnSubmit(e) {
   const condition = document.getElementById('retCondition').value;
   const originalIssueNo = document.getElementById('retOrigIssue').value;
   const workOrder = document.getElementById('retWorkOrder').value;
-  const returnedBy = document.getElementById('retReturnedBy').value;
+  const retBySel = document.getElementById('retReturnedBySelect');
+  const retByInp = document.getElementById('retReturnedBy');
+  const returnedBy = (retBySel && retBySel.value !== '__CUSTOM__' && retBySel.value) ? retBySel.value : (retByInp ? retByInp.value.trim() : '');
   const receivedBy = document.getElementById('retReceivedBy').value;
   const remark = document.getElementById('retRemark').value;
 
@@ -4298,17 +4319,184 @@ function exportMovementsToExcel() {
 
 // ==================== 19. TOOL & EQUIPMENT LOANS (ยืม-คืนเครื่องมือ ไม่ตัดสต็อก) ====================
 
-// ==================== MASTER DATALISTS SYNC ====================
+// ==================== MASTER DATALISTS & DROPDOWN HELPERS ====================
+
+// Options Generator for Personnel (used in Tool Loans, Stock Issue, Stock Return, Stock In)
+function getPersonnelSelectOptions(selectedName = '') {
+  const personnel = (appState.db && appState.db.personnel) || [];
+  const users = (appState.db && appState.db.users) || [];
+  let options = '<option value="">-- เลือกรายชื่อช่าง / บุคลากร --</option>';
+
+  personnel.forEach(p => {
+    const isSel = p.name === selectedName ? 'selected' : '';
+    const deptInfo = p.department ? ` (${p.department})` : (p.roleTitle ? ` (${p.roleTitle})` : '');
+    options += `<option value="${p.name}" data-dept="${p.department || ''}" ${isSel}>${p.name}${deptInfo}</option>`;
+  });
+
+  users.forEach(u => {
+    if (!personnel.some(p => p.name === u.name)) {
+      const isSel = u.name === selectedName ? 'selected' : '';
+      options += `<option value="${u.name}" data-dept="${u.department || ''}" ${isSel}>${u.name} (${u.role})</option>`;
+    }
+  });
+
+  options += '<option value="__CUSTOM__">✏️ พิมพ์ชื่ออื่น (ไม่ได้อยู่ในรายชื่อ)...</option>';
+  return options;
+}
+
+// Options Generator for Machines (used in Tool Loans, Stock Issue)
+function getMachineSelectOptions(selectedMachine = '') {
+  const machines = (appState.db && appState.db.machines) || [];
+  let options = '<option value="">-- เลือกเครื่องจักร / จุดใช้งาน --</option>';
+
+  machines.forEach(m => {
+    const val = `${m.name} (${m.code})`;
+    const isSel = (val === selectedMachine || m.name === selectedMachine || m.code === selectedMachine) ? 'selected' : '';
+    options += `<option value="${val}" data-dept="${m.dept || m.department || ''}" ${isSel}>${m.name} (${m.code})</option>`;
+  });
+
+  const wsSel = (selectedMachine && selectedMachine.includes('Workshop')) ? 'selected' : '';
+  options += `<option value="Workshop (ซ่อมบำรุงส่วนกลาง)" ${wsSel}>Workshop (ซ่อมบำรุงส่วนกลาง)</option>`;
+  options += '<option value="__CUSTOM__">✏️ ระบุเครื่องจักร/จุดใช้งานอื่น...</option>';
+  return options;
+}
+
+// Dropdown Change Handlers
+function onBorrowerSelectChange(selectEl) {
+  const customInput = document.getElementById('borrowerNameInput');
+  const deptInput = document.getElementById('borrowerDeptInput');
+  if (selectEl.value === '__CUSTOM__') {
+    if (customInput) {
+      customInput.classList.remove('hidden');
+      customInput.value = '';
+      customInput.focus();
+    }
+  } else {
+    if (customInput) {
+      customInput.classList.add('hidden');
+      customInput.value = selectEl.value;
+    }
+    const selectedOpt = selectEl.options[selectEl.selectedIndex];
+    if (selectedOpt && selectedOpt.dataset.dept && deptInput) {
+      deptInput.value = selectedOpt.dataset.dept;
+    }
+  }
+}
+
+function onBorrowMachineSelectChange(selectEl) {
+  const customInput = document.getElementById('borrowMachineInput');
+  if (selectEl.value === '__CUSTOM__') {
+    if (customInput) {
+      customInput.classList.remove('hidden');
+      customInput.value = '';
+      customInput.focus();
+    }
+  } else {
+    if (customInput) {
+      customInput.classList.add('hidden');
+      customInput.value = selectEl.value;
+    }
+  }
+}
+
+function onEditLoanBorrowerSelectChange(selectEl) {
+  const customInput = document.getElementById('editLoanBorrowerName');
+  const deptInput = document.getElementById('editLoanBorrowerDept');
+  if (selectEl.value === '__CUSTOM__') {
+    if (customInput) {
+      customInput.classList.remove('hidden');
+      customInput.value = '';
+      customInput.focus();
+    }
+  } else {
+    if (customInput) {
+      customInput.classList.add('hidden');
+      customInput.value = selectEl.value;
+    }
+    const selectedOpt = selectEl.options[selectEl.selectedIndex];
+    if (selectedOpt && selectedOpt.dataset.dept && deptInput) {
+      deptInput.value = selectedOpt.dataset.dept;
+    }
+  }
+}
+
+function onEditLoanMachineSelectChange(selectEl) {
+  const customInput = document.getElementById('editLoanMachineName');
+  if (selectEl.value === '__CUSTOM__') {
+    if (customInput) {
+      customInput.classList.remove('hidden');
+      customInput.value = '';
+      customInput.focus();
+    }
+  } else {
+    if (customInput) {
+      customInput.classList.add('hidden');
+      customInput.value = selectEl.value;
+    }
+  }
+}
+
+function onStockIssueRequesterChange(selectEl) {
+  const inp = document.getElementById('outRequester');
+  if (!inp) return;
+  if (selectEl.value === '__CUSTOM__') {
+    inp.classList.remove('hidden');
+    inp.value = '';
+    inp.focus();
+  } else {
+    inp.classList.add('hidden');
+    inp.value = selectEl.value;
+  }
+}
+
+function onStockIssueUsedForChange(selectEl) {
+  const inp = document.getElementById('outUsedFor');
+  if (!inp) return;
+  if (selectEl.value === '__CUSTOM__') {
+    inp.classList.remove('hidden');
+    inp.value = '';
+    inp.focus();
+  } else {
+    inp.classList.add('hidden');
+    inp.value = selectEl.value;
+  }
+}
+
+function onStockReturnByChange(selectEl) {
+  const inp = document.getElementById('retReturnedBy');
+  if (!inp) return;
+  if (selectEl.value === '__CUSTOM__') {
+    inp.classList.remove('hidden');
+    inp.value = '';
+    inp.focus();
+  } else {
+    inp.classList.add('hidden');
+    inp.value = selectEl.value;
+  }
+}
+
+function onStockInReceiverChange(selectEl) {
+  const inp = document.getElementById('inReceiver');
+  if (!inp) return;
+  if (selectEl.value === '__CUSTOM__') {
+    inp.classList.remove('hidden');
+    inp.value = '';
+    inp.focus();
+  } else {
+    inp.classList.add('hidden');
+    inp.value = selectEl.value;
+  }
+}
+
 function syncMasterDatalists() {
   if (!appState.db) return;
 
   // 1. Sync Personnel Master Datalist
   const pList = document.getElementById('personnelMasterDatalist');
   if (pList) {
-    const personnel = (appState.db.personnel || []).filter(p => p.active !== false);
+    const personnel = appState.db.personnel || [];
     const users = appState.db.users || [];
     let pOptions = personnel.map(p => `<option value="${p.name}">`);
-    // Add users if not already in personnel list
     users.forEach(u => {
       if (!personnel.some(p => p.name === u.name)) {
         pOptions.push(`<option value="${u.name}">`);
@@ -4320,23 +4508,23 @@ function syncMasterDatalists() {
   // 2. Sync Machines Master Datalist
   const mList = document.getElementById('machinesMasterDatalist');
   if (mList) {
-    const machines = (appState.db.machines || []).filter(m => m.active !== false);
+    const machines = appState.db.machines || [];
     mList.innerHTML = machines.map(m => `<option value="${m.name} (${m.code})">`).join('') +
       '<option value="Workshop (ซ่อมบำรุงส่วนกลาง)">' +
       '<option value="อื่นๆ (ระบุในหมายเหตุ)">';
   }
 
-  // 3. Sync Technicians Datalist (used in Tool Loans & Stock Issue)
+  // 3. Sync Technicians Datalist
   const techsList = document.getElementById('techniciansDatalist');
   if (techsList) {
-    const personnel = (appState.db.personnel || []).filter(p => p.active !== false);
+    const personnel = appState.db.personnel || [];
     techsList.innerHTML = personnel.map(p => `<option value="${p.name}">`).join('');
   }
 
   // 4. Sync Machines Datalist
   const machsList = document.getElementById('machinesDatalist');
   if (machsList) {
-    const machines = (appState.db.machines || []).filter(m => m.active !== false);
+    const machines = appState.db.machines || [];
     machsList.innerHTML = machines.map(m => `<option value="${m.name} (${m.code})">`).join('') +
       '<option value="Workshop (ซ่อมบำรุงส่วนกลาง)">' +
       '<option value="อื่นๆ (ระบุในหมายเหตุ)">';
@@ -4361,7 +4549,6 @@ function getLocalDateTimeParts(offsetMinutes = 0) {
 function parseDateTimePartsToIso(dateStr, timeStr) {
   if (!dateStr) return new Date().toISOString();
   const time = timeStr || '00:00';
-  // Use local time parse
   const [year, month, day] = dateStr.split('-').map(Number);
   const [hours, mins] = time.split(':').map(Number);
   const d = new Date(year, month - 1, day, hours || 0, mins || 0, 0);
@@ -4637,10 +4824,8 @@ function updateToolLoansTable() {
 
   // Filter
   const filtered = loans.filter(loan => {
-    // Overdue condition
-    const isOverdue = (loan.status === 'OVERDUE') || (loan.status === 'BORROWED' && (now - new Date(loan.borrowDate).getTime() > TWENTY_FOUR_HOURS));
+    const isOverdue = (loan.status !== 'RETURNED') && ((loan.status === 'OVERDUE') || (now - new Date(loan.borrowDate).getTime() > TWENTY_FOUR_HOURS));
     
-    // Status Filter
     if (toolLoansFilterStatus === 'ACTIVE') {
       if (loan.status === 'RETURNED') return false;
     } else if (toolLoansFilterStatus === 'OVERDUE') {
@@ -4649,7 +4834,6 @@ function updateToolLoansTable() {
       if (loan.status !== 'RETURNED') return false;
     }
 
-    // Search Query
     if (toolLoansSearchQuery) {
       const q = toolLoansSearchQuery;
       const match = (loan.toolName && loan.toolName.toLowerCase().includes(q)) ||
@@ -4700,7 +4884,6 @@ function updateToolLoansTable() {
       durationStr = `${diffMins} นาที`;
     }
 
-    // Status Badge & Duration Badge
     let statusBadge = '';
     let durationBadge = '';
     if (loan.status === 'RETURNED') {
@@ -4714,7 +4897,6 @@ function updateToolLoansTable() {
       durationBadge = `<span class="text-amber-700 font-mono text-[11px]">ยืมแล้ว ${durationStr}</span>`;
     }
 
-    // Condition / Remark
     let conditionRemark = '';
     if (loan.status === 'RETURNED') {
       let condText = '🟢 สภาพปกติ';
@@ -4784,7 +4966,6 @@ function openBorrowToolModal() {
   const modal = document.getElementById('borrowToolModal');
   if (!modal) return;
 
-  // Sync Datalists
   syncMasterDatalists();
 
   const db = appState.db;
@@ -4793,21 +4974,41 @@ function openBorrowToolModal() {
     toolsDatalist.innerHTML = db.parts.map(p => `<option value="${p.partName} (${p.partNumber})">`).join('');
   }
 
-  // Default Values
+  // Populate Borrower Dropdown from Personnel Master
+  const bSelect = document.getElementById('borrowerNameSelect');
+  const bInput = document.getElementById('borrowerNameInput');
+  const bDept = document.getElementById('borrowerDeptInput');
+  if (bSelect) {
+    bSelect.innerHTML = getPersonnelSelectOptions();
+    bSelect.value = '';
+  }
+  if (bInput) {
+    bInput.value = '';
+    bInput.classList.add('hidden');
+  }
+  if (bDept) bDept.value = 'ฝ่ายซ่อมบำรุง';
+
+  // Populate Machine Dropdown from Machine Master
+  const mSelect = document.getElementById('borrowMachineSelect');
+  const mInput = document.getElementById('borrowMachineInput');
+  if (mSelect) {
+    mSelect.innerHTML = getMachineSelectOptions();
+    mSelect.value = '';
+  }
+  if (mInput) {
+    mInput.value = '';
+    mInput.classList.add('hidden');
+  }
+
+  // Default Tool fields
   const toolNameInput = document.getElementById('borrowToolNameInput');
   if (toolNameInput) toolNameInput.value = '';
   const toolCodeInput = document.getElementById('borrowToolCodeInput');
   if (toolCodeInput) toolCodeInput.value = 'CUSTOM';
-  const borrowerInput = document.getElementById('borrowerNameInput');
-  if (borrowerInput) borrowerInput.value = (appState.currentUser && appState.currentUser.name) || 'มีนะ';
-  const borrowerDept = document.getElementById('borrowerDeptInput');
-  if (borrowerDept) borrowerDept.value = (appState.currentUser && appState.currentUser.department) || 'ฝ่ายซ่อมบำรุง';
 
   // Quick preset to Now
   setBorrowTimePreset(0);
 
-  const machineInput = document.getElementById('borrowMachineInput');
-  if (machineInput) machineInput.value = '';
   const remarkInput = document.getElementById('borrowRemarkInput');
   if (remarkInput) remarkInput.value = '';
   const recordedBy = document.getElementById('borrowRecordedBy');
@@ -4836,26 +5037,33 @@ async function handleSaveBorrowTool(e) {
   e.preventDefault();
   const toolNameRaw = document.getElementById('borrowToolNameInput').value;
   const toolCode = document.getElementById('borrowToolCodeInput').value;
-  const borrowerName = document.getElementById('borrowerNameInput').value;
+  
+  // Borrower from Select or Custom Input
+  const bSelect = document.getElementById('borrowerNameSelect');
+  const bInput = document.getElementById('borrowerNameInput');
+  const borrowerName = (bSelect && bSelect.value !== '__CUSTOM__' && bSelect.value) ? bSelect.value : (bInput ? bInput.value.trim() : '');
   const borrowerDept = document.getElementById('borrowerDeptInput').value;
   
+  // Machine from Select or Custom Input
+  const mSelect = document.getElementById('borrowMachineSelect');
+  const mInput = document.getElementById('borrowMachineInput');
+  const machineName = (mSelect && mSelect.value !== '__CUSTOM__' && mSelect.value) ? mSelect.value : (mInput ? mInput.value.trim() : '');
+
   // Date & Time Parts
   const borrowDateVal = document.getElementById('borrowDateInput').value;
   const borrowTimeVal = document.getElementById('borrowTimeInput').value;
   const borrowDateTimeIso = parseDateTimePartsToIso(borrowDateVal, borrowTimeVal);
 
-  const machineName = document.getElementById('borrowMachineInput').value;
   const remark = document.getElementById('borrowRemarkInput').value;
   const recordedBy = (appState.currentUser && appState.currentUser.name) || 'Store';
 
   if (!toolNameRaw || !borrowerName || !machineName || !borrowDateVal || !borrowTimeVal) {
-    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน', text: 'กรุณากรอกชื่อเครื่องมือ, ผู้ยืม, เครื่องจักร และวันเวลาที่เริ่มยืม' });
+    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน', text: 'กรุณากรอกชื่อเครื่องมือ, เลือกหรือระบุผู้ยืม, เครื่องจักร และวันเวลาที่เริ่มยืม' });
     return;
   }
 
-  // Clean tool name if it had (PartNo) appended from datalist
   let toolName = toolNameRaw;
-  const pMatch = toolNameRaw.match(/^(.*?)s*\([A-Z0-9-]+\)$/);
+  const pMatch = toolNameRaw.match(/^(.*?)\s*\([A-Z0-9-]+\)$/);
   if (pMatch) toolName = pMatch[1];
 
   try {
@@ -4912,12 +5120,9 @@ function openReturnToolModal(loanId) {
   const borrowDateDisp = document.getElementById('returnBorrowDateDisplay');
   if (borrowDateDisp) borrowDateDisp.innerText = formatThaiDateTime(loan.borrowDate);
 
-  // Quick preset return time to Now
   setReturnTimePreset(0);
-
   document.getElementById('returnRemarkInput').value = '';
 
-  // Default condition Good
   const goodRadio = modal.querySelector('input[name="returnCondition"][value="Good"]');
   if (goodRadio) goodRadio.checked = true;
 
@@ -4935,7 +5140,6 @@ async function handleSaveReturnTool(e) {
   const conditionInput = document.querySelector('input[name="returnCondition"]:checked');
   const returnCondition = conditionInput ? conditionInput.value : 'Good';
 
-  // Date & Time Parts
   const returnDateVal = document.getElementById('returnDateInput').value;
   const returnTimeVal = document.getElementById('returnTimeInput').value;
   const actualReturnDateIso = parseDateTimePartsToIso(returnDateVal, returnTimeVal);
@@ -4960,7 +5164,6 @@ async function handleSaveReturnTool(e) {
 
     closeReturnToolModal();
 
-    // Refresh DB
     const dbRes = await fetch('/api/db');
     appState.db = await dbRes.json();
     updateHeaderCounts();
@@ -4996,9 +5199,45 @@ function openEditToolLoanModal(loanId) {
   document.getElementById('editLoanIdDisplay').value = loan.id;
   document.getElementById('editLoanToolName').value = loan.toolName;
   document.getElementById('editLoanToolCode').value = loan.toolCode || 'CUSTOM';
-  document.getElementById('editLoanBorrowerName').value = loan.borrowerName;
+
+  // Borrower Select & Input
+  const bSelect = document.getElementById('editLoanBorrowerSelect');
+  const bInput = document.getElementById('editLoanBorrowerName');
+  if (bSelect) {
+    bSelect.innerHTML = getPersonnelSelectOptions(loan.borrowerName);
+    if (bSelect.value === loan.borrowerName) {
+      if (bInput) {
+        bInput.value = loan.borrowerName;
+        bInput.classList.add('hidden');
+      }
+    } else {
+      bSelect.value = '__CUSTOM__';
+      if (bInput) {
+        bInput.value = loan.borrowerName;
+        bInput.classList.remove('hidden');
+      }
+    }
+  }
   document.getElementById('editLoanBorrowerDept').value = loan.borrowerDept || 'ฝ่ายซ่อมบำรุง';
-  document.getElementById('editLoanMachineName').value = loan.machineName || '';
+
+  // Machine Select & Input
+  const mSelect = document.getElementById('editLoanMachineSelect');
+  const mInput = document.getElementById('editLoanMachineName');
+  if (mSelect) {
+    mSelect.innerHTML = getMachineSelectOptions(loan.machineName);
+    if (mSelect.value === loan.machineName) {
+      if (mInput) {
+        mInput.value = loan.machineName;
+        mInput.classList.add('hidden');
+      }
+    } else {
+      mSelect.value = '__CUSTOM__';
+      if (mInput) {
+        mInput.value = loan.machineName;
+        mInput.classList.remove('hidden');
+      }
+    }
+  }
 
   // Split Borrow Date & Time
   const bParts = splitIsoToDateAndTime(loan.borrowDate);
@@ -5020,7 +5259,6 @@ function openEditToolLoanModal(loanId) {
   document.getElementById('editLoanReturnRemark').value = loan.returnRemark || '';
 
   onEditLoanStatusChange(statusSelect.value);
-
   modal.classList.remove('hidden');
 }
 
@@ -5050,17 +5288,21 @@ async function handleSaveEditToolLoan(e) {
   const loanId = document.getElementById('editLoanId').value;
   const toolName = document.getElementById('editLoanToolName').value;
   const toolCode = document.getElementById('editLoanToolCode').value;
-  const borrowerName = document.getElementById('editLoanBorrowerName').value;
-  const borrowerDept = document.getElementById('editLoanBorrowerDept').value;
-  const machineName = document.getElementById('editLoanMachineName').value;
 
-  // Recombine borrow date & time
+  const bSelect = document.getElementById('editLoanBorrowerSelect');
+  const bInput = document.getElementById('editLoanBorrowerName');
+  const borrowerName = (bSelect && bSelect.value !== '__CUSTOM__' && bSelect.value) ? bSelect.value : (bInput ? bInput.value.trim() : '');
+  const borrowerDept = document.getElementById('editLoanBorrowerDept').value;
+
+  const mSelect = document.getElementById('editLoanMachineSelect');
+  const mInput = document.getElementById('editLoanMachineName');
+  const machineName = (mSelect && mSelect.value !== '__CUSTOM__' && mSelect.value) ? mSelect.value : (mInput ? mInput.value.trim() : '');
+
   const bDate = document.getElementById('editLoanBorrowDatePart').value;
   const bTime = document.getElementById('editLoanBorrowTimePart').value;
   const borrowDate = parseDateTimePartsToIso(bDate, bTime);
 
   const status = document.getElementById('editLoanStatusSelect').value;
-  
   let actualReturnDate = null;
   let returnCondition = null;
   let returnRemark = '';
@@ -5107,7 +5349,6 @@ async function handleSaveEditToolLoan(e) {
 
     closeEditToolLoanModal();
 
-    // Refresh DB
     const dbRes = await fetch('/api/db');
     appState.db = await dbRes.json();
     updateHeaderCounts();
@@ -5158,7 +5399,6 @@ async function confirmDeleteToolLoan() {
 
     closeEditToolLoanModal();
 
-    // Refresh DB
     const dbRes = await fetch('/api/db');
     appState.db = await dbRes.json();
     updateHeaderCounts();
@@ -5182,7 +5422,6 @@ let personnelSearchQuery = '';
 let machinesSearchQuery = '';
 
 function renderMasterData(container) {
-  // STRICT ACCESS CHECK: Only Develop role is permitted
   if (!appState.currentUser || appState.currentUser.role !== 'Develop') {
     container.innerHTML = `
       <div class="p-8 text-center bg-white rounded-2xl border border-rose-200 shadow-sm max-w-xl mx-auto my-12">
@@ -5272,18 +5511,16 @@ function renderMasterDataSubContent() {
   }
 }
 
-// ---------------- Personnel Sub-view ----------------
+// ---------------- Personnel Sub-view (Requirement 3: Removed phone & status) ----------------
 function renderPersonnelList(container) {
   const personnel = appState.db.personnel || [];
   
-  // Filter
   const filtered = personnel.filter(p => {
     if (personnelSearchQuery) {
       const q = personnelSearchQuery.toLowerCase();
       const match = (p.name && p.name.toLowerCase().includes(q)) ||
                     (p.department && p.department.toLowerCase().includes(q)) ||
                     (p.roleTitle && p.roleTitle.toLowerCase().includes(q)) ||
-                    (p.phone && p.phone.includes(q)) ||
                     (p.id && p.id.toLowerCase().includes(q));
       if (!match) return false;
     }
@@ -5299,7 +5536,7 @@ function renderPersonnelList(container) {
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </span>
           <input type="text" value="${personnelSearchQuery}" oninput="personnelSearchQuery = this.value; renderPersonnelList(document.getElementById('masterDataContent'))" 
-                 placeholder="ค้นหาชื่อช่าง, แผนก, ตำแหน่ง หรือเบอร์โทร..." 
+                 placeholder="ค้นหาชื่อช่าง, แผนก หรือตำแหน่งหน้าที่..." 
                  class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-purple-500 focus:outline-none transition">
         </div>
         <button onclick="openPersonnelModal()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center space-x-2 transition active:scale-95">
@@ -5308,7 +5545,7 @@ function renderPersonnelList(container) {
         </button>
       </div>
 
-      <!-- Personnel Table -->
+      <!-- Personnel Table (Without Phone & Status) -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs border-collapse">
@@ -5317,16 +5554,14 @@ function renderPersonnelList(container) {
                 <th class="p-3.5">รหัส</th>
                 <th class="p-3.5">ชื่อ - นามสกุล</th>
                 <th class="p-3.5">แผนก / ฝ่าย</th>
-                <th class="p-3.5">ตำแหน่ง</th>
-                <th class="p-3.5">เบอร์ติดต่อ</th>
-                <th class="p-3.5">สถานะ</th>
+                <th class="p-3.5">ตำแหน่งหน้าที่</th>
                 <th class="p-3.5 text-center">จัดการ</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 text-slate-700">
               ${filtered.length === 0 ? `
                 <tr>
-                  <td colspan="7" class="p-8 text-center text-slate-400">
+                  <td colspan="5" class="p-8 text-center text-slate-400">
                     ไม่พบข้อมูลบุคลากรตามที่ค้นหา
                   </td>
                 </tr>
@@ -5340,22 +5575,15 @@ function renderPersonnelList(container) {
                     </span>
                   </td>
                   <td class="p-3.5 text-slate-600">${p.roleTitle || '-'}</td>
-                  <td class="p-3.5 font-mono text-slate-600">${p.phone || '-'}</td>
-                  <td class="p-3.5">
-                    ${p.active !== false 
-                      ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">🟢 กำลังปฏิบัติงาน</span>'
-                      : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">🔴 พ้นสภาพ/ย้าย</span>'
-                    }
-                  </td>
                   <td class="p-3.5 text-center whitespace-nowrap">
                     <div class="flex items-center justify-center space-x-1.5">
                       <button onclick="openPersonnelModal('${p.id}')" 
-                              class="px-2.5 py-1 bg-slate-100 hover:bg-purple-50 hover:text-purple-700 text-slate-700 font-semibold rounded-lg text-xs border border-slate-300 transition flex items-center space-x-1 active:scale-95">
+                              class="px-2.5 py-1 bg-slate-100 hover:bg-purple-50 hover:text-purple-700 text-slate-700 font-semibold rounded-lg text-xs border border-slate-300 transition flex items-center space-x-1 active:scale-95" title="แก้ไขข้อมูล">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                         <span>แก้ไข</span>
                       </button>
                       <button onclick="confirmDeletePersonnel('${p.id}')" 
-                              class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold rounded-lg text-xs border border-rose-200 transition flex items-center space-x-1 active:scale-95">
+                              class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold rounded-lg text-xs border border-rose-200 transition flex items-center space-x-1 active:scale-95" title="ลบข้อมูล">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         <span>ลบ</span>
                       </button>
@@ -5371,11 +5599,10 @@ function renderPersonnelList(container) {
   `;
 }
 
-// ---------------- Machines Sub-view ----------------
+// ---------------- Machines Sub-view (Requirement 3: Removed status) ----------------
 function renderMachinesList(container) {
   const machines = appState.db.machines || [];
 
-  // Filter
   const filtered = machines.filter(m => {
     if (machinesSearchQuery) {
       const q = machinesSearchQuery.toLowerCase();
@@ -5406,7 +5633,7 @@ function renderMachinesList(container) {
         </button>
       </div>
 
-      <!-- Machines Table -->
+      <!-- Machines Table (Without Status) -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs border-collapse">
@@ -5416,14 +5643,13 @@ function renderMachinesList(container) {
                 <th class="p-3.5">ชื่อเครื่องจักร / จุดใช้งาน</th>
                 <th class="p-3.5">ตำแหน่ง / ไลน์ผลิต</th>
                 <th class="p-3.5">แผนกที่ดูแล</th>
-                <th class="p-3.5">สถานะ</th>
                 <th class="p-3.5 text-center">จัดการ</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 text-slate-700">
               ${filtered.length === 0 ? `
                 <tr>
-                  <td colspan="6" class="p-8 text-center text-slate-400">
+                  <td colspan="5" class="p-8 text-center text-slate-400">
                     ไม่พบข้อมูลเครื่องจักรตามที่ค้นหา
                   </td>
                 </tr>
@@ -5437,21 +5663,15 @@ function renderMachinesList(container) {
                     </span>
                   </td>
                   <td class="p-3.5 text-slate-600">${m.department || '-'}</td>
-                  <td class="p-3.5">
-                    ${m.active !== false 
-                      ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">🟢 พร้อมใช้งาน</span>'
-                      : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800">🔴 ปิดซ่อม/ระงับ</span>'
-                    }
-                  </td>
                   <td class="p-3.5 text-center whitespace-nowrap">
                     <div class="flex items-center justify-center space-x-1.5">
                       <button onclick="openMachineModal('${m.code}')" 
-                              class="px-2.5 py-1 bg-slate-100 hover:bg-amber-50 hover:text-amber-800 text-slate-700 font-semibold rounded-lg text-xs border border-slate-300 transition flex items-center space-x-1 active:scale-95">
+                              class="px-2.5 py-1 bg-slate-100 hover:bg-amber-50 hover:text-amber-800 text-slate-700 font-semibold rounded-lg text-xs border border-slate-300 transition flex items-center space-x-1 active:scale-95" title="แก้ไขข้อมูล">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                         <span>แก้ไข</span>
                       </button>
                       <button onclick="confirmDeleteMachine('${m.code}')" 
-                              class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold rounded-lg text-xs border border-rose-200 transition flex items-center space-x-1 active:scale-95">
+                              class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold rounded-lg text-xs border border-rose-200 transition flex items-center space-x-1 active:scale-95" title="ลบเครื่องจักร">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         <span>ลบ</span>
                       </button>
@@ -5477,8 +5697,6 @@ function openPersonnelModal(id = null) {
   const nameInput = document.getElementById('personnelNameInput');
   const deptInput = document.getElementById('personnelDeptInput');
   const roleInput = document.getElementById('personnelRoleTitleInput');
-  const phoneInput = document.getElementById('personnelPhoneInput');
-  const activeSelect = document.getElementById('personnelActiveSelect');
 
   if (id && appState.db && appState.db.personnel) {
     const p = appState.db.personnel.find(x => x.id === id);
@@ -5488,8 +5706,6 @@ function openPersonnelModal(id = null) {
       nameInput.value = p.name;
       deptInput.value = p.department || 'ฝ่ายซ่อมบำรุง';
       roleInput.value = p.roleTitle || '';
-      phoneInput.value = p.phone || '';
-      activeSelect.value = p.active !== false ? 'true' : 'false';
     }
   } else {
     if (titleEl) titleEl.innerText = 'เพิ่มบุคลากร / ช่างใหม่';
@@ -5497,8 +5713,6 @@ function openPersonnelModal(id = null) {
     nameInput.value = '';
     deptInput.value = 'ฝ่ายซ่อมบำรุง';
     roleInput.value = '';
-    phoneInput.value = '';
-    activeSelect.value = 'true';
   }
 
   modal.classList.remove('hidden');
@@ -5515,8 +5729,6 @@ async function handleSavePersonnel(e) {
   const name = document.getElementById('personnelNameInput').value.trim();
   const department = document.getElementById('personnelDeptInput').value.trim();
   const roleTitle = document.getElementById('personnelRoleTitleInput').value.trim();
-  const phone = document.getElementById('personnelPhoneInput').value.trim();
-  const active = document.getElementById('personnelActiveSelect').value === 'true';
   const updatedBy = (appState.currentUser && appState.currentUser.name) || 'Developer';
 
   if (!name || !department) {
@@ -5533,8 +5745,8 @@ async function handleSavePersonnel(e) {
         name,
         department,
         roleTitle,
-        phone,
-        active,
+        phone: '',
+        active: true,
         updatedBy
       })
     });
@@ -5552,7 +5764,7 @@ async function handleSavePersonnel(e) {
     Swal.fire({
       icon: 'success',
       title: 'บันทึกข้อมูลบุคลากรสำเร็จ',
-      text: `บันทึกข้อมูลคุณ ${name} เรียบร้อยแล้ว (อัปเดตลงตัวเลือกอัตโนมัติ)`,
+      text: `บันทึกข้อมูลคุณ ${name} เรียบร้อยแล้ว (อัปเดตลงตัวเลือกอัตโนมัติในทุกหน้าจอ)`,
       confirmButtonText: 'ตกลง',
       confirmButtonColor: '#9333ea'
     });
@@ -5588,7 +5800,6 @@ async function confirmDeletePersonnel(id) {
     const result = await res.json();
     if (!res.ok) throw new Error(result.error || 'เกิดข้อผิดพลาดในการลบข้อมูล');
 
-    // Refresh DB
     const dbRes = await fetch('/api/db');
     appState.db = await dbRes.json();
     syncMasterDatalists();
@@ -5616,7 +5827,6 @@ function openMachineModal(code = null) {
   const nameInput = document.getElementById('machineNameInput');
   const locInput = document.getElementById('machineLocationInput');
   const deptInput = document.getElementById('machineDeptInput');
-  const activeSelect = document.getElementById('machineActiveSelect');
 
   if (code && appState.db && appState.db.machines) {
     const m = appState.db.machines.find(x => x.code === code);
@@ -5628,7 +5838,6 @@ function openMachineModal(code = null) {
       nameInput.value = m.name;
       locInput.value = m.location || '';
       deptInput.value = m.department || 'Maintenance';
-      activeSelect.value = m.active !== false ? 'true' : 'false';
     }
   } else {
     if (titleEl) titleEl.innerText = 'เพิ่มเครื่องจักร / จุดใช้งานใหม่';
@@ -5638,7 +5847,6 @@ function openMachineModal(code = null) {
     nameInput.value = '';
     locInput.value = '';
     deptInput.value = 'Maintenance';
-    activeSelect.value = 'true';
   }
 
   modal.classList.remove('hidden');
@@ -5655,7 +5863,6 @@ async function handleSaveMachine(e) {
   const name = document.getElementById('machineNameInput').value.trim();
   const location = document.getElementById('machineLocationInput').value.trim();
   const department = document.getElementById('machineDeptInput').value.trim();
-  const active = document.getElementById('machineActiveSelect').value === 'true';
   const updatedBy = (appState.currentUser && appState.currentUser.name) || 'Developer';
 
   if (!code || !name) {
@@ -5672,7 +5879,7 @@ async function handleSaveMachine(e) {
         name,
         location,
         department,
-        active,
+        active: true,
         updatedBy
       })
     });
@@ -5681,7 +5888,6 @@ async function handleSaveMachine(e) {
 
     closeMachineModal();
 
-    // Refresh DB
     const dbRes = await fetch('/api/db');
     appState.db = await dbRes.json();
     syncMasterDatalists();
@@ -5690,7 +5896,7 @@ async function handleSaveMachine(e) {
     Swal.fire({
       icon: 'success',
       title: 'บันทึกเครื่องจักรสำเร็จ',
-      text: `บันทึกเครื่องจักร ${name} (${code}) เรียบร้อยแล้ว (อัปเดตลงตัวเลือกอัตโนมัติ)`,
+      text: `บันทึกเครื่องจักร ${name} (${code}) เรียบร้อยแล้ว (อัปเดตลงตัวเลือกอัตโนมัติในทุกหน้าจอ)`,
       confirmButtonText: 'ตกลง',
       confirmButtonColor: '#d97706'
     });
@@ -5726,7 +5932,6 @@ async function confirmDeleteMachine(code) {
     const result = await res.json();
     if (!res.ok) throw new Error(result.error || 'เกิดข้อผิดพลาดในการลบเครื่องจักร');
 
-    // Refresh DB
     const dbRes = await fetch('/api/db');
     appState.db = await dbRes.json();
     syncMasterDatalists();
