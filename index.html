@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบบริหารจัดการ Stock อะไหล่และวัสดุงานซ่อมบำรุง | Maintenance Spare Parts Inventory</title>
+  
+  <!-- Google Fonts: Sarabun & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Sarabun', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            primary: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0284c7',
+              600: '#0369a1',
+              700: '#075985',
+              800: '#0c4a6e',
+              900: '#082f49',
+            },
+            factory: {
+              dark: '#0f172a',
+              sidebar: '#1e293b',
+              card: '#ffffff',
+              border: '#e2e8f0',
+              accent: '#f59e0b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- External Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    body { font-family: 'Sarabun', 'Inter', sans-serif; }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    
+    @media print {
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+    }
+    .print-only { display: none; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col selection:bg-sky-500 selection:text-white">
+
+  <!-- TOPBAR HEADER -->
+  <header class="no-print bg-slate-900 text-white sticky top-0 z-40 border-b border-slate-800 shadow-sm">
+    <div class="px-4 sm:px-6 py-2.5 flex items-center justify-between">
+      
+      <!-- Brand & Factory Badge -->
+      <div class="flex items-center space-x-3">
+        <button id="sidebarToggle" class="lg:hidden text-slate-300 hover:text-white focus:outline-none p-1.5 rounded hover:bg-slate-800">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-sky-600 to-indigo-500 flex items-center justify-center text-white font-bold shadow-md shadow-sky-900/30">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="font-bold text-base tracking-wide text-white">TOOL ROOM STOCK</span>
+              <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-amber-500 text-slate-950">อะไหล่ & วัสดุสิ้นเปลือง</span>
+              <span id="liveSyncBadge" class="hidden sm:inline-flex items-center space-x-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700 font-mono">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>Live Sync Online</span>
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 hidden sm:block">ระบบจัดการสต็อกอะไหล่เครื่องมือ น็อต ข้อต่อ ซีล และวัสดุสิ้นเปลือง (Tool Room)</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: Global Search Bar -->
+      <div class="flex-1 max-w-md mx-4 hidden md:block">
+        <div class="relative cursor-pointer" onclick="openGlobalSearch()">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </span>
+          <input type="text" readonly placeholder="ค้นหา Item Code, ชื่ออะไหล่, น็อต, ซีล, ตำแหน่งเก็บ... (Ctrl+K)" 
+                 class="w-full pl-9 pr-12 py-1.5 text-xs bg-slate-800/80 border border-slate-700 text-slate-200 rounded-lg cursor-pointer hover:border-sky-500 focus:outline-none transition">
+          <span class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-[10px] text-slate-400 font-mono">Ctrl+K</span>
+        </div>
+      </div>
+
+      <!-- Right: Role Switcher & Quick Actions -->
+      <div class="flex items-center space-x-3">
+        <!-- Quick QR Scan Button -->
+        <button onclick="openQRScanner()" title="สแกน QR Code / Barcode อะไหล่" 
+                class="flex items-center space-x-1.5 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs text-slate-200 transition">
+          <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+          <span class="hidden sm:inline">สแกน QR</span>
+        </button>
+
+        <!-- Notification Bell with Badge -->
+        <button onclick="switchTab('alerts')" class="relative p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition" title="การแจ้งเตือนสต็อก">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <span id="headerAlertCount" class="absolute -top-1 -right-1 bg-rose-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full min-w-[18px] text-center hidden animate-pulse">0</span>
+        </button>
+
+        <!-- Role Switcher -->
+        <div class="flex items-center space-x-1.5 pl-2 border-l border-slate-700">
+          <div class="text-right hidden sm:block">
+            <div id="currentUserLabel" class="text-xs font-semibold text-white leading-tight">สมชาย ใจมั่น</div>
+            <div id="currentRoleBadge" class="text-[10px] text-sky-400 font-medium leading-tight">Store / สโตร์ช่าง</div>
+          </div>
+          <div class="relative">
+            <select id="roleSelector" onchange="changeUserRole(this.value)" 
+                    class="bg-slate-800 text-xs text-slate-200 border border-slate-700 rounded-lg py-1 px-2 focus:outline-none focus:border-sky-500 cursor-pointer font-medium">
+              <option value="Develop">💻 Develop (ผู้พัฒนาระบบ)</option>
+              <option value="Admin">🛡️ Admin (ผู้ดูแล/บันทึก)</option>
+              <option value="Data Editor">✏️ หลังบ้าน (แก้ไขข้อมูลอะไหล่)</option>
+              <option value="Store" selected>👤 สโตร์ช่าง (รับ-เบิกของ)</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside id="sidebar" class="no-print w-64 bg-slate-900 text-slate-300 flex-shrink-0 flex flex-col justify-between border-r border-slate-800 transition-all duration-200 z-30 fixed inset-y-0 left-0 pt-14 lg:pt-0 lg:static lg:translate-x-0 -translate-x-full">
+      <div class="p-3 overflow-y-auto flex-1 space-y-4">
+
+        <!-- DASHBOARD -->
+        <div>
+          <button onclick="switchTab('dashboard')" id="nav-dashboard" 
+                  class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition text-white bg-sky-600 shadow-sm">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            <span>แดชบอร์ด (Dashboard)</span>
+          </button>
+        </div>
+
+        <!-- SECTION: INVENTORY -->
+        <div>
+          <div class="px-3 text-[11px] font-bold tracking-wider text-slate-400 uppercase mb-1">Inventory / คลังอะไหล่</div>
+          <div class="space-y-0.5">
+            <button onclick="switchTab('spare-parts')" id="nav-spare-parts" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+              <span>ฐานข้อมูลอะไหล่ (Master)</span>
+            </button>
+            <button onclick="switchTab('stock-in')" id="nav-stock-in" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+              <div class="flex items-center space-x-3">
+                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>รับอะไหล่เข้า (Stock In)</span>
+              </div>
+              <span class="text-[10px] bg-emerald-950 text-emerald-300 px-1.5 py-0.5 rounded font-mono">+IN</span>
+            </button>
+            <button onclick="switchTab('stock-issue')" id="nav-stock-issue" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+              <div class="flex items-center space-x-3">
+                <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>เบิกอะไหล่ (Stock Issue)</span>
+              </div>
+              <span class="text-[10px] bg-rose-950 text-rose-300 px-1.5 py-0.5 rounded font-mono">-OUT</span>
+            </button>
+            <button onclick="switchTab('stock-return')" id="nav-stock-return" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+              <div class="flex items-center space-x-3">
+                <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                <span>คืนอะไหล่ (Stock Return)</span>
+              </div>
+              <span class="text-[10px] bg-sky-950 text-sky-300 px-1.5 py-0.5 rounded font-mono">RET</span>
+            </button>
+            <button onclick="switchTab('stock-adjustment')" id="nav-stock-adjustment" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+              <div class="flex items-center space-x-3">
+                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                <span>ปรับปรุงยอด (Adjustment)</span>
+              </div>
+              <span class="text-[10px] bg-amber-950 text-amber-300 px-1.5 py-0.5 rounded font-mono">ADJ</span>
+            </button>
+            <button onclick="switchTab('stock-movement')" id="nav-stock-movement" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+              <span>ประวัติเคลื่อนไหว (Ledger)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- SECTION: STOCK CONTROL & MONITORING -->
+        <div>
+          <div class="px-3 text-[11px] font-bold tracking-wider text-slate-400 uppercase mb-1">Control & Monitoring</div>
+          <div class="space-y-0.5">
+            <button onclick="switchTab('locations')" id="nav-locations" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <span>ตำแหน่งจัดเก็บ (Location Map)</span>
+            </button>
+            <button onclick="switchTab('alerts')" id="nav-alerts" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+              <div class="flex items-center space-x-3">
+                <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>ของใกล้หมด (Low Stock Alerts)</span>
+              </div>
+              <span id="navAlertTotal" class="text-[10px] bg-rose-950 text-rose-300 font-bold px-1.5 py-0.5 rounded">0</span>
+            </button>
+            <button onclick="switchTab('purchase-rec')" id="nav-purchase-rec" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+              <div class="flex items-center space-x-3">
+                <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <span>แนะนำสั่งซื้อ (Reorder)</span>
+              </div>
+              <span id="navReorderCount" class="text-[10px] bg-teal-950 text-teal-300 font-bold px-1.5 py-0.5 rounded">0</span>
+            </button>
+            <button onclick="switchTab('analytics')" id="nav-analytics" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+              <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              <span>วิเคราะห์การใช้ (Analytics)</span>
+            </button>
+          </div>
+        </div>
+
+
+
+        <!-- SECTION: REPORTS & ADMIN -->
+        <div>
+          <div class="px-3 text-[11px] font-bold tracking-wider text-slate-400 uppercase mb-1">Reports & System</div>
+          <div class="space-y-0.5">
+            <button onclick="switchTab('reports')" id="nav-reports" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+              <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span>รายงาน 13 ฉบับ (Reports)</span>
+            </button>
+            <button onclick="switchTab('audit-log')" id="nav-audit-log" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              <span>บันทึกระบบ (Audit Log)</span>
+            </button>
+            <button onclick="switchTab('master-data')" id="nav-master-data" class="nav-item admin-only w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+              <span>ข้อมูลหลัก (Master Data)</span>
+            </button>
+            <button onclick="switchTab('users')" id="nav-users" class="nav-item admin-only w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+              <span>ผู้ใช้งาน & สิทธิ์ (Users)</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SIDEBAR FOOTER -->
+      <div class="p-3 bg-slate-950 border-t border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
+        <div>
+          <div class="font-semibold text-slate-300">Tool Room Factory</div>
+          <div>Database: 376 Parts loaded</div>
+        </div>
+        <button onclick="refreshData(true)" title="รีโหลดข้อมูล" class="p-1.5 hover:text-white rounded hover:bg-slate-800 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 overflow-y-auto bg-slate-100 p-4 sm:p-6 lg:p-8">
+      
+      <!-- DYNAMIC CONTENT CONTAINER -->
+      <div id="mainContent" class="max-w-7xl mx-auto space-y-6">
+        <!-- Rendered by app.js -->
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- 1. GLOBAL SEARCH MODAL (Ctrl+K) -->
+  <div id="searchModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-start justify-center pt-20 px-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden transform transition-all">
+      <div class="p-3 border-b border-slate-200 flex items-center space-x-3 bg-slate-50">
+        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" id="globalSearchInput" oninput="handleGlobalSearch(this.value)" placeholder="ค้นหา Part No., ชื่ออะไหล่, สเปก, เครื่องจักร, สถานที่จัดเก็บ..." 
+               class="flex-1 bg-transparent border-none text-sm text-slate-800 focus:outline-none placeholder-slate-400">
+        <button onclick="closeGlobalSearch()" class="text-xs text-slate-400 hover:text-slate-600 px-2 py-1 rounded bg-slate-200">ESC</button>
+      </div>
+      <div id="globalSearchResults" class="max-h-96 overflow-y-auto divide-y divide-slate-100 p-2 text-xs">
+        <div class="p-4 text-center text-slate-400">พิมพ์คำค้นหาเพื่อค้นหาอะไหล่ในสต็อก 376 รายการ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. PART DETAIL MODAL -->
+  <div id="partDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full border border-slate-200 max-h-[90vh] flex flex-col overflow-hidden">
+      <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span id="detailBadgeStatus" class="px-2 py-0.5 rounded text-[11px] font-bold">NORMAL</span>
+          <h3 id="detailPartNumber" class="text-base font-bold font-mono">NA10</h3>
+          <span class="text-xs text-slate-400">|</span>
+          <span id="detailPartName" class="text-xs text-slate-200 truncate max-w-md">Hex Bolt M12</span>
+        </div>
+        <button onclick="closePartDetail()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+      <div id="partDetailBody" class="p-6 overflow-y-auto space-y-4 text-xs">
+        <!-- populated dynamically -->
+      </div>
+      <div class="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <button onclick="openPrintLabelModalFromDetail()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-medium flex items-center space-x-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            <span>พิมพ์ QR/Barcode</span>
+          </button>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button id="btnDetailEdit" onclick="openEditFromDetail()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center space-x-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            <span>แก้ไขข้อมูล</span>
+          </button>
+          <button id="btnDetailIssue" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold">เบิกอะไหล่นี้</button>
+          <button id="btnDetailReceive" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold">รับเข้านี้</button>
+          <button onclick="closePartDetail()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs">ปิด</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. QR / BARCODE SCANNER MODAL -->
+  <div id="scannerModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full border border-slate-200 overflow-hidden">
+      <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+          <h3 class="text-sm font-bold">สแกน QR Code / Barcode อะไหล่</h3>
+        </div>
+        <button onclick="closeQRScanner()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+      
+      <div class="p-4 space-y-4">
+        <!-- Interactive Scanner Box -->
+        <div class="border-2 border-dashed border-sky-400 rounded-lg p-6 text-center bg-sky-50/50 relative overflow-hidden">
+          <div class="animate-pulse flex flex-col items-center justify-center space-y-2">
+            <svg class="w-16 h-16 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+            <div class="text-xs font-semibold text-slate-700">จ่อกล้องหรือยิง Barcode Scanner</div>
+            <div class="text-[11px] text-slate-500">รองรับรหัส เช่น NA10, NC24, TI53, CA46, LC44, LG08, TOOL-001</div>
+          </div>
+          <!-- Red laser scanner line effect -->
+          <div class="absolute inset-x-0 top-1/2 h-0.5 bg-rose-500 shadow-[0_0_8px_#f43f5e] animate-bounce"></div>
+        </div>
+
+        <!-- Quick manual barcode / simulator input -->
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">หรือป้อนรหัส Part Number / Scan Input:</label>
+          <div class="flex space-x-2">
+            <input type="text" id="manualScanInput" placeholder="เช่น NA10, NC24, TI53..." 
+                   onkeydown="if(event.key==='Enter') executeScan(this.value)"
+                   class="flex-1 px-3 py-1.5 border border-slate-300 rounded-lg text-xs uppercase font-mono focus:border-sky-500 focus:outline-none">
+            <button onclick="executeScan(document.getElementById('manualScanInput').value)" 
+                    class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-lg">ค้นหา</button>
+          </div>
+        </div>
+
+        <!-- Quick Demo Chips -->
+        <div>
+          <div class="text-[11px] text-slate-500 mb-1.5 font-medium">คลิกทดสอบสแกนตัวอย่างจริง:</div>
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="executeScan('NA10')" class="px-2 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 rounded text-[11px] font-mono border border-slate-200">NA10 (Bolt M12)</button>
+            <button onclick="executeScan('NC24')" class="px-2 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 rounded text-[11px] font-mono border border-slate-200">NC24 (Socket M12)</button>
+            <button onclick="executeScan('TI53')" class="px-2 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 rounded text-[11px] font-mono border border-slate-200">TI53 (Teflon)</button>
+            <button onclick="executeScan('LC44')" class="px-2 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 rounded text-[11px] font-mono border border-slate-200">LC44 (ใบหินเจียร์ 7")</button>
+            <button onclick="executeScan('TOOL-001')" class="px-2 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 rounded text-[11px] font-mono border border-slate-200">TOOL-001 (มิเตอร์)</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. PRINT LABEL MODAL -->
+  <div id="printLabelModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full border border-slate-200 overflow-hidden">
+      <div class="p-3 bg-slate-900 text-white flex items-center justify-between no-print">
+        <h3 class="text-xs font-bold">พิมพ์ป้าย QR Code / Barcode ประจำช่องจัดเก็บ</h3>
+        <button onclick="closePrintLabel()" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+      
+      <!-- Printable Label Box -->
+      <div id="printableLabelContent" class="p-6 text-center space-y-3 bg-white">
+        <div class="border-2 border-slate-800 rounded-lg p-4 bg-white space-y-2">
+          <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">TOOL ROOM SPARE PART</div>
+          <div id="labelPartNumber" class="text-xl font-bold font-mono text-slate-900">NA10</div>
+          <div id="labelPartName" class="text-xs font-semibold text-slate-800 line-clamp-2">Hex Bolt M12x1.75x50 mm. + N + W</div>
+          
+          <div class="py-2 flex justify-center">
+            <div id="labelQrContainer" class="p-1.5 bg-white border border-slate-200 rounded"></div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-[11px] text-left pt-2 border-t border-slate-200">
+            <div><span class="text-slate-500">Location:</span> <strong id="labelLocation" class="font-mono text-sky-700">A-R01-S01-B01</strong></div>
+            <div><span class="text-slate-500">Min/Max:</span> <strong id="labelMinMax">10 / 100</strong></div>
+            <div><span class="text-slate-500">ราคา/หน่วย:</span> <strong id="labelCost" class="font-mono text-slate-800">฿100</strong></div>
+            <div><span class="text-slate-500">คลัง:</span> <strong class="text-slate-700">Tool Room</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-end space-x-2 no-print">
+        <button onclick="closePrintLabel()" class="px-3 py-1.5 bg-slate-200 text-slate-700 rounded text-xs">ปิด</button>
+        <button onclick="window.print()" class="px-4 py-1.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded text-xs flex items-center space-x-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          <span>สั่งพิมพ์ป้าย (Print)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. EDIT PART MODAL (สำหรับ Admin และ หลังบ้าน Data Editor) -->
+  <div id="editPartModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden">
+      <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-600 text-white">หลังบ้าน</span>
+          <h3 class="text-sm font-bold">แก้ไขรายละเอียดอะไหล่ (Edit Part Details)</h3>
+        </div>
+        <button onclick="closeEditPartModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <form id="editPartForm" onsubmit="handleSavePartEdit(event)" class="p-6 space-y-4 text-xs">
+        <input type="hidden" id="editPartId">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">รหัสอะไหล่ (Item Code / Part No.)</label>
+            <input type="text" id="editPartNumber" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg p-2 font-mono font-bold text-slate-700 cursor-not-allowed">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">ชื่ออะไหล่ / ขนาด / สเปก <span class="text-rose-500">*</span></label>
+            <input type="text" id="editPartName" required class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none font-medium">
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">ตำแหน่งจัดเก็บ (Location) <span class="text-rose-500">*</span></label>
+            <input type="text" id="editLocation" required placeholder="เช่น RACK-A-01, BIN-12" class="w-full border border-slate-300 rounded-lg p-2 font-mono font-bold text-sky-700 focus:border-sky-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">หน่วยนับ (Unit)</label>
+            <input type="text" id="editUnit" placeholder="เช่น ตัว, ชิ้น, เส้น, กล่อง" class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">ยอดสต็อกคงเหลือ (Current Stock)</label>
+            <input type="number" step="any" id="editCurrentStock" required class="w-full border border-slate-300 rounded-lg p-2 font-mono font-bold text-base text-emerald-600 focus:border-sky-500 focus:outline-none">
+            <span class="text-[10px] text-slate-400">หากเปลี่ยนยอด ระบบจะบันทึก Audit Log ปรับยอดอัตโนมัติ</span>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">ราคาต่อหน่วย (Unit Cost - THB)</label>
+            <input type="number" step="any" id="editUnitCost" class="w-full border border-slate-300 rounded-lg p-2 font-mono focus:border-sky-500 focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Min Stock (เตือนสต็อกต่ำ)</label>
+            <input type="number" step="any" id="editMinStock" required class="w-full border border-slate-300 rounded-lg p-2 font-mono focus:border-sky-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Max Stock (เพดานจัดเก็บ)</label>
+            <input type="number" step="any" id="editMaxStock" required class="w-full border border-slate-300 rounded-lg p-2 font-mono focus:border-sky-500 focus:outline-none">
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block font-semibold text-slate-700 mb-1">เหตุผลในการแก้ไขข้อมูล (Audit Reason) <span class="text-rose-500">*</span></label>
+            <input type="text" id="editReason" required placeholder="เช่น นับสต็อกรอบเดือน, ย้ายตำแหน่งวาง, แก้ไขราคาล่าสุด" class="w-full border border-amber-300 bg-amber-50/40 rounded-lg p-2 focus:border-amber-500 focus:outline-none">
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block font-semibold text-slate-700 mb-1">หมายเหตุเพิ่มเติม (Remark)</label>
+            <input type="text" id="editRemark" placeholder="เช่น ขนาดเกลียวมิล, ใช้กับงาน Tool room ทั่วไป" class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-between">
+          <div class="text-[11px] text-slate-500">
+            ผู้แก้ไข: <strong id="editOperatorName" class="text-indigo-600">หลังบ้าน</strong>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button type="button" onclick="closeEditPartModal()" class="px-3.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold">ยกเลิก</button>
+            <button type="submit" class="px-5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-sm flex items-center space-x-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <span>บันทึกการแก้ไข</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 6. USER EDIT MODAL (สำหรับ Develop และ Admin) -->
+  <div id="userEditModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden">
+      <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500 text-slate-950 font-mono">USER PROFILE</span>
+          <h3 id="userModalTitle" class="text-sm font-bold">แก้ไขข้อมูลผู้ใช้งาน (User Management)</h3>
+        </div>
+        <button onclick="closeUserModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <form id="userEditForm" onsubmit="handleSaveUser(event)" class="p-6 space-y-4 text-xs">
+        <input type="hidden" id="editUserId">
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">User ID</label>
+          <input type="text" id="userDisplayId" readonly placeholder="สร้างอัตโนมัติ" class="w-full bg-slate-100 border border-slate-300 rounded-lg p-2 font-mono font-bold text-slate-600 cursor-not-allowed">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">ชื่อ-นามสกุล ผู้ใช้งาน <span class="text-rose-500">*</span></label>
+          <input type="text" id="editUserName" required placeholder="เช่น สมชาย ใจมั่น, Developer" class="w-full border border-slate-300 rounded-lg p-2 font-medium text-slate-900 focus:border-sky-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">บทบาท / สิทธิ์การใช้งาน (Role) <span class="text-rose-500">*</span></label>
+          <select id="editUserRole" required class="w-full border border-slate-300 rounded-lg p-2 font-medium focus:border-sky-500 focus:outline-none">
+            <option value="Develop">💻 Develop (ผู้พัฒนาระบบ - สิทธิ์สูงสุด จัดการ User และแก้ไขได้ทั้งหมด)</option>
+            <option value="Admin">🛡️ Admin (ผู้ดูแล/บันทึก)</option>
+            <option value="Data Editor">✏️ หลังบ้าน (แก้ไขข้อมูลอะไหล่)</option>
+            <option value="Store">👤 สโตร์ช่าง (รับ-เบิกของ)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">แผนก / หน้าที่ (Department / Title)</label>
+          <input type="text" id="editUserDept" placeholder="เช่น Tool Room Store, IT, Maintenance" class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">อีเมล (Email)</label>
+            <input type="email" id="editUserEmail" placeholder="user@factory.com" class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">เบอร์โทรศัพท์ (Phone)</label>
+            <input type="text" id="editUserPhone" placeholder="เช่น 081-xxx-xxxx" class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">สถานะผู้ใช้งาน</label>
+          <select id="editUserActive" class="w-full border border-slate-300 rounded-lg p-2 font-medium focus:border-sky-500 focus:outline-none">
+            <option value="true">🟢 เปิดใช้งาน (Active)</option>
+            <option value="false">🔴 ปิดใช้งาน (Inactive)</option>
+          </select>
+        </div>
+
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-end space-x-2">
+          <button type="button" onclick="closeUserModal()" class="px-3.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold">ยกเลิก</button>
+          <button type="submit" class="px-5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold shadow-sm flex items-center space-x-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span>บันทึกข้อมูลผู้ใช้งาน</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC (with Cache Busting) -->
+  <script src="/js/app.js?v=2.5.1"></script>
+</body>
+</html>
