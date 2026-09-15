@@ -763,13 +763,18 @@ const server = http.createServer(async (req, res) => {
         if (!db.toolLoans) db.toolLoans = [];
         const body = await readRequestBody(req);
 
-        const { toolCode, toolName, borrowerName, borrowerDept, machineId, machineName, remark, recordedBy } = body;
+        const { toolCode, toolName, borrowerName, borrowerDept, machineId, machineName, borrowDate, remark, recordedBy } = body;
         if (!toolName || !borrowerName) {
           return sendJSON(res, 400, { error: 'กรุณาระบุชื่อเครื่องมือและชื่อผู้ยืม' });
         }
 
         const loanId = `LN-${Date.now().toString().slice(-6)}`;
         const nowIso = new Date().toISOString();
+        let loanBorrowDate = nowIso;
+        if (borrowDate) {
+          const parsedDate = new Date(borrowDate);
+          if (!isNaN(parsedDate.getTime())) loanBorrowDate = parsedDate.toISOString();
+        }
 
         const newLoan = {
           id: loanId,
@@ -779,7 +784,7 @@ const server = http.createServer(async (req, res) => {
           borrowerDept: borrowerDept ? borrowerDept.trim() : 'ฝ่ายซ่อมบำรุง',
           machineId: machineId || '-',
           machineName: machineName || '-',
-          borrowDate: nowIso,
+          borrowDate: loanBorrowDate,
           actualReturnDate: null,
           status: 'BORROWED',
           returnCondition: null,
@@ -816,7 +821,7 @@ const server = http.createServer(async (req, res) => {
         if (!db.toolLoans) db.toolLoans = [];
         const body = await readRequestBody(req);
 
-        const { loanId, returnCondition, returnRemark, receivedBy } = body;
+        const { loanId, returnCondition, returnRemark, actualReturnDate, receivedBy } = body;
         if (!loanId) {
           return sendJSON(res, 400, { error: 'กรุณาระบุรหัสรายการยืม' });
         }
@@ -827,7 +832,13 @@ const server = http.createServer(async (req, res) => {
         }
 
         const nowIso = new Date().toISOString();
-        loan.actualReturnDate = nowIso;
+        let returnDateIso = nowIso;
+        if (actualReturnDate) {
+          const parsed = new Date(actualReturnDate);
+          if (!isNaN(parsed.getTime())) returnDateIso = parsed.toISOString();
+        }
+
+        loan.actualReturnDate = returnDateIso;
         loan.status = 'RETURNED';
         loan.returnCondition = returnCondition || 'Good'; // Good (ปกติ), Damaged (ชำรุด), Lost (สูญหาย)
         loan.returnRemark = returnRemark ? returnRemark.trim() : '';
@@ -853,6 +864,94 @@ const server = http.createServer(async (req, res) => {
           message: `บันทึกการส่งคืนเครื่องมือสำเร็จ: ${loan.toolName} (สภาพ: ${returnCondition || 'ปกติ'})`,
           loan
         });
+      }
+
+      if (pathname === '/api/tool-loans/update' && method === 'POST') {
+        const db = readDB();
+        if (!db.toolLoans) db.toolLoans = [];
+        const body = await readRequestBody(req);
+        const { loanId, toolCode, toolName, borrowerName, borrowerDept, machineId, machineName, borrowDate, status, actualReturnDate, returnCondition, returnRemark, remark, editedBy } = body;
+
+        if (!loanId) {
+          return sendJSON(res, 400, { error: 'กรุณาระบุรหัสรายการยืม' });
+        }
+        const loan = db.toolLoans.find(l => l.id === loanId);
+        if (!loan) {
+          return sendJSON(res, 404, { error: 'ไม่พบรายการยืมนี้' });
+        }
+
+        if (toolName) loan.toolName = toolName.trim();
+        if (toolCode !== undefined) loan.toolCode = toolCode ? toolCode.trim() : 'CUSTOM';
+        if (borrowerName) loan.borrowerName = borrowerName.trim();
+        if (borrowerDept !== undefined) loan.borrowerDept = borrowerDept ? borrowerDept.trim() : 'ฝ่ายซ่อมบำรุง';
+        if (machineId !== undefined) loan.machineId = machineId;
+        if (machineName !== undefined) loan.machineName = machineName;
+        if (borrowDate) {
+          const parsed = new Date(borrowDate);
+          if (!isNaN(parsed.getTime())) loan.borrowDate = parsed.toISOString();
+        }
+        if (status) {
+          loan.status = status;
+          if (status === 'BORROWED') {
+            loan.actualReturnDate = null;
+          }
+        }
+        if (actualReturnDate) {
+          const parsed = new Date(actualReturnDate);
+          if (!isNaN(parsed.getTime())) loan.actualReturnDate = parsed.toISOString();
+        }
+        if (returnCondition !== undefined) loan.returnCondition = returnCondition;
+        if (returnRemark !== undefined) loan.returnRemark = returnRemark ? returnRemark.trim() : '';
+        if (remark !== undefined) loan.remark = remark ? remark.trim() : '';
+
+        const nowIso = new Date().toISOString();
+        if (!db.auditLogs) db.auditLogs = [];
+        db.auditLogs.unshift({
+          id: `AUD-MOD-LN-${Date.now()}`,
+          timestamp: nowIso.replace('T', ' ').substring(0, 19),
+          user: editedBy || 'Store',
+          action: 'TOOL_EDIT',
+          partNumber: loan.toolCode || '-',
+          reason: `แก้ไขข้อมูลรายการยืมเครื่องมือ: ${loan.toolName} (${loan.id})`,
+          reference: loan.id
+        });
+
+        saveDB(db);
+        broadcastEvent('TOOL_LOAN_UPDATE', { loan, action: 'UPDATE' });
+        return sendJSON(res, 200, { success: true, message: `แก้ไขข้อมูลรายการ ${loan.id} สำเร็จ`, loan });
+      }
+
+      if (pathname === '/api/tool-loans/delete' && method === 'POST') {
+        const db = readDB();
+        if (!db.toolLoans) db.toolLoans = [];
+        const body = await readRequestBody(req);
+        const { loanId, deletedBy, reason } = body;
+
+        if (!loanId) {
+          return sendJSON(res, 400, { error: 'กรุณาระบุรหัสรายการยืมที่ต้องการลบ' });
+        }
+        const idx = db.toolLoans.findIndex(l => l.id === loanId);
+        if (idx === -1) {
+          return sendJSON(res, 404, { error: 'ไม่พบรายการยืมนี้' });
+        }
+
+        const [removed] = db.toolLoans.splice(idx, 1);
+
+        const nowIso = new Date().toISOString();
+        if (!db.auditLogs) db.auditLogs = [];
+        db.auditLogs.unshift({
+          id: `AUD-DEL-LN-${Date.now()}`,
+          timestamp: nowIso.replace('T', ' ').substring(0, 19),
+          user: deletedBy || 'Store',
+          action: 'TOOL_DELETE',
+          partNumber: removed.toolCode || '-',
+          reason: `ลบรายการยืมเครื่องมือ: ${removed.toolName} (${removed.id}) เหตุผล: ${reason || 'ลบรายการโดยผู้ใช้'}`,
+          reference: removed.id
+        });
+
+        saveDB(db);
+        broadcastEvent('TOOL_LOAN_UPDATE', { loanId, action: 'DELETE' });
+        return sendJSON(res, 200, { success: true, message: `ลบรายการ ${removed.id} สำเร็จ` });
       }
 
       return sendJSON(res, 404, { error: 'API endpoint not found' });

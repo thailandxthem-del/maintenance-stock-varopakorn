@@ -4583,7 +4583,7 @@ function updateToolLoansTable() {
           </span>
         </td>
         <td class="p-3.5 text-slate-600 font-mono text-[11px]">
-          ${new Date(loan.borrowDate).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}
+          ${formatThaiDateTime(loan.borrowDate)}
         </td>
         <td class="p-3.5 font-medium">
           ${durationBadge}
@@ -4595,21 +4595,45 @@ function updateToolLoansTable() {
           ${conditionRemark}
         </td>
         <td class="p-3.5 text-center whitespace-nowrap">
-          ${loan.status !== 'RETURNED' ? `
-            <button onclick="openReturnToolModal('${loan.id}')" 
-                    class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow-sm flex items-center space-x-1 transition mx-auto active:scale-95">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-              <span>รับคืน</span>
+          <div class="flex items-center justify-center space-x-1.5">
+            ${loan.status !== 'RETURNED' ? `
+              <button onclick="openReturnToolModal('${loan.id}')" 
+                      class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow-sm flex items-center space-x-1 transition active:scale-95" title="บันทึกรับคืน">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span>รับคืน</span>
+              </button>
+            ` : `
+              <div class="text-left leading-tight mr-1">
+                <div class="text-[10px] text-emerald-700 font-bold font-mono">คืนเมื่อ:</div>
+                <div class="text-[11px] text-slate-700 font-mono">${formatThaiDateTime(loan.actualReturnDate)}</div>
+              </div>
+            `}
+            <button onclick="openEditToolLoanModal('${loan.id}')" 
+                    class="px-2 py-1 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 font-semibold rounded-lg text-xs border border-slate-300 transition flex items-center space-x-1 active:scale-95" title="แก้ไขข้อมูลรายการนี้">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              <span>แก้ไข</span>
             </button>
-          ` : `
-            <span class="text-[11px] text-slate-400 font-mono">
-              คืนเมื่อ: ${new Date(loan.actualReturnDate).toLocaleDateString('th-TH', { dateStyle: 'short' })}
-            </span>
-          `}
+          </div>
         </td>
       </tr>
     `;
   }).join('');
+}
+
+// Helpers for DateTime format
+function toInputDateTime(dateVal) {
+  const d = dateVal ? new Date(dateVal) : new Date();
+  if (isNaN(d.getTime())) return '';
+  const offset = d.getTimezoneOffset() * 60000;
+  const local = new Date(d.getTime() - offset);
+  return local.toISOString().slice(0, 16);
+}
+
+function formatThaiDateTime(dateVal) {
+  if (!dateVal) return '-';
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return '-';
+  return d.toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) + ' น.';
 }
 
 // Open Borrow Modal
@@ -4620,12 +4644,11 @@ function openBorrowToolModal() {
   const db = appState.db;
   const toolsDatalist = document.getElementById('availableToolsDatalist');
   const techsDatalist = document.getElementById('techniciansDatalist');
-  const machineSelect = document.getElementById('borrowMachineSelect');
+  const machinesDatalist = document.getElementById('machinesDatalist');
 
   // Fill Tools Datalist (ทั้งเครื่องมือช่าง และอะไหล่ทั้งหมด)
   if (toolsDatalist && db && db.parts) {
-    const toolItems = db.parts.map(p => `<option value="${p.partName} (${p.partNumber})">`).join('');
-    toolsDatalist.innerHTML = toolItems;
+    toolsDatalist.innerHTML = db.parts.map(p => `<option value="${p.partName} (${p.partNumber})">`).join('');
   }
 
   // Fill Technicians Datalist
@@ -4633,12 +4656,11 @@ function openBorrowToolModal() {
     techsDatalist.innerHTML = db.users.map(u => `<option value="${u.name}">`).join('');
   }
 
-  // Fill Machine Select
-  if (machineSelect && db && db.machines) {
-    machineSelect.innerHTML = '<option value="">-- เลือกเครื่องจักร --</option>' + 
-      db.machines.map(m => `<option value="${m.code}">${m.name} (${m.code})</option>`).join('') +
-      '<option value="Workshop">Workshop / ซ่อมบำรุงส่วนกลาง</option>' +
-      '<option value="Other">อื่นๆ (ระบุในหมายเหตุ)</option>';
+  // Fill Machines Datalist
+  if (machinesDatalist && db && db.machines) {
+    machinesDatalist.innerHTML = db.machines.map(m => `<option value="${m.name} (${m.code})">`).join('') +
+      '<option value="Workshop (ซ่อมบำรุงส่วนกลาง)">' +
+      '<option value="อื่นๆ (ระบุในหมายเหตุ)">';
   }
 
   // Default Values
@@ -4650,6 +4672,10 @@ function openBorrowToolModal() {
   if (borrowerInput) borrowerInput.value = (appState.currentUser && appState.currentUser.name) || 'สมชาย ใจมั่น';
   const borrowerDept = document.getElementById('borrowerDeptInput');
   if (borrowerDept) borrowerDept.value = (appState.currentUser && appState.currentUser.department) || 'ฝ่ายซ่อมบำรุง';
+  const borrowDateInput = document.getElementById('borrowDateTimeInput');
+  if (borrowDateInput) borrowDateInput.value = toInputDateTime(new Date());
+  const machineInput = document.getElementById('borrowMachineInput');
+  if (machineInput) machineInput.value = '';
   const remarkInput = document.getElementById('borrowRemarkInput');
   if (remarkInput) remarkInput.value = '';
   const recordedBy = document.getElementById('borrowRecordedBy');
@@ -4680,14 +4706,13 @@ async function handleSaveBorrowTool(e) {
   const toolCode = document.getElementById('borrowToolCodeInput').value;
   const borrowerName = document.getElementById('borrowerNameInput').value;
   const borrowerDept = document.getElementById('borrowerDeptInput').value;
-  const machineSelect = document.getElementById('borrowMachineSelect');
-  const machineId = machineSelect.value;
-  const machineName = machineSelect.options[machineSelect.selectedIndex]?.text || machineId;
+  const borrowDateTime = document.getElementById('borrowDateTimeInput').value;
+  const machineName = document.getElementById('borrowMachineInput').value;
   const remark = document.getElementById('borrowRemarkInput').value;
   const recordedBy = (appState.currentUser && appState.currentUser.name) || 'Store';
 
-  if (!toolNameRaw || !borrowerName || !machineId) {
-    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน', text: 'กรุณากรอกชื่อเครื่องมือ, ผู้ยืม และเลือกเครื่องจักร' });
+  if (!toolNameRaw || !borrowerName || !machineName) {
+    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน', text: 'กรุณากรอกชื่อเครื่องมือ, ผู้ยืม และเครื่องจักรที่นำไปใช้' });
     return;
   }
 
@@ -4705,8 +4730,9 @@ async function handleSaveBorrowTool(e) {
         toolName,
         borrowerName,
         borrowerDept,
-        machineId,
+        machineId: '-',
         machineName,
+        borrowDate: borrowDateTime || new Date().toISOString(),
         remark,
         recordedBy
       })
@@ -4746,6 +4772,12 @@ function openReturnToolModal(loanId) {
   document.getElementById('returnToolDisplay').innerText = `${loan.toolName} (${loan.toolCode || 'CUSTOM'})`;
   document.getElementById('returnBorrowerDisplay').innerText = loan.borrowerName;
   document.getElementById('returnMachineDisplay').innerText = loan.machineName || '-';
+  const borrowDateDisp = document.getElementById('returnBorrowDateDisplay');
+  if (borrowDateDisp) borrowDateDisp.innerText = formatThaiDateTime(loan.borrowDate);
+
+  const returnDateInput = document.getElementById('returnDateTimeInput');
+  if (returnDateInput) returnDateInput.value = toInputDateTime(new Date());
+
   document.getElementById('returnRemarkInput').value = '';
 
   // Default condition Good
@@ -4765,6 +4797,7 @@ async function handleSaveReturnTool(e) {
   const loanId = document.getElementById('returnLoanId').value;
   const conditionInput = document.querySelector('input[name="returnCondition"]:checked');
   const returnCondition = conditionInput ? conditionInput.value : 'Good';
+  const returnDateTime = document.getElementById('returnDateTimeInput').value;
   const returnRemark = document.getElementById('returnRemarkInput').value;
   const receivedBy = (appState.currentUser && appState.currentUser.name) || 'Store';
 
@@ -4776,6 +4809,7 @@ async function handleSaveReturnTool(e) {
         loanId,
         returnCondition,
         returnRemark,
+        actualReturnDate: returnDateTime || new Date().toISOString(),
         receivedBy
       })
     });
@@ -4797,7 +4831,7 @@ async function handleSaveReturnTool(e) {
     Swal.fire({
       icon: 'success',
       title: 'บันทึกการส่งคืนเครื่องมือสำเร็จ',
-      text: `รับคืนเครื่องมือเรียบร้อยแล้ว (สภาพ: ${condThai})`,
+      text: `รับคืนเครื่องมือเรียบร้อยแล้ว (สภาพ: ${condThai}) วันเวลา: ${formatThaiDateTime(returnDateTime || new Date())}`,
       confirmButtonText: 'ตกลง',
       confirmButtonColor: '#10b981'
     });
@@ -4805,3 +4839,184 @@ async function handleSaveReturnTool(e) {
     Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
   }
 }
+
+// ==================== EDIT TOOL LOAN MODAL ====================
+
+function openEditToolLoanModal(loanId) {
+  const modal = document.getElementById('editToolLoanModal');
+  if (!modal || !appState.db || !appState.db.toolLoans) return;
+
+  const loan = appState.db.toolLoans.find(l => l.id === loanId);
+  if (!loan) return;
+
+  // Fill machines datalist if not filled
+  const machinesDatalist = document.getElementById('machinesDatalist');
+  if (machinesDatalist && appState.db.machines && machinesDatalist.children.length === 0) {
+    machinesDatalist.innerHTML = appState.db.machines.map(m => `<option value="${m.name} (${m.code})">`).join('') +
+      '<option value="Workshop (ซ่อมบำรุงส่วนกลาง)">' +
+      '<option value="อื่นๆ (ระบุในหมายเหตุ)">';
+  }
+
+  document.getElementById('editLoanId').value = loan.id;
+  document.getElementById('editLoanIdDisplay').value = loan.id;
+  document.getElementById('editLoanToolName').value = loan.toolName;
+  document.getElementById('editLoanToolCode').value = loan.toolCode || 'CUSTOM';
+  document.getElementById('editLoanBorrowerName').value = loan.borrowerName;
+  document.getElementById('editLoanBorrowerDept').value = loan.borrowerDept || 'ฝ่ายซ่อมบำรุง';
+  document.getElementById('editLoanMachineName').value = loan.machineName || '';
+  document.getElementById('editLoanBorrowDate').value = toInputDateTime(loan.borrowDate);
+
+  const statusSelect = document.getElementById('editLoanStatusSelect');
+  statusSelect.value = loan.status === 'RETURNED' ? 'RETURNED' : 'BORROWED';
+
+  const returnDateInput = document.getElementById('editLoanReturnDate');
+  returnDateInput.value = loan.actualReturnDate ? toInputDateTime(loan.actualReturnDate) : toInputDateTime(new Date());
+
+  const conditionSelect = document.getElementById('editLoanReturnCondition');
+  conditionSelect.value = loan.returnCondition || 'Good';
+
+  document.getElementById('editLoanBorrowRemark').value = loan.remark || '';
+  document.getElementById('editLoanReturnRemark').value = loan.returnRemark || '';
+
+  onEditLoanStatusChange(statusSelect.value);
+
+  modal.classList.remove('hidden');
+}
+
+function onEditLoanStatusChange(status) {
+  const returnDateContainer = document.getElementById('editLoanReturnDateContainer');
+  const returnConditionContainer = document.getElementById('editLoanConditionContainer');
+  const returnRemarkContainer = document.getElementById('editLoanReturnRemarkContainer');
+
+  if (status === 'RETURNED') {
+    if (returnDateContainer) returnDateContainer.classList.remove('hidden');
+    if (returnConditionContainer) returnConditionContainer.classList.remove('hidden');
+    if (returnRemarkContainer) returnRemarkContainer.classList.remove('hidden');
+  } else {
+    if (returnDateContainer) returnDateContainer.classList.add('hidden');
+    if (returnConditionContainer) returnConditionContainer.classList.add('hidden');
+    if (returnRemarkContainer) returnRemarkContainer.classList.add('hidden');
+  }
+}
+
+function closeEditToolLoanModal() {
+  const modal = document.getElementById('editToolLoanModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function handleSaveEditToolLoan(e) {
+  e.preventDefault();
+  const loanId = document.getElementById('editLoanId').value;
+  const toolName = document.getElementById('editLoanToolName').value;
+  const toolCode = document.getElementById('editLoanToolCode').value;
+  const borrowerName = document.getElementById('editLoanBorrowerName').value;
+  const borrowerDept = document.getElementById('editLoanBorrowerDept').value;
+  const machineName = document.getElementById('editLoanMachineName').value;
+  const borrowDate = document.getElementById('editLoanBorrowDate').value;
+  const status = document.getElementById('editLoanStatusSelect').value;
+  const actualReturnDate = status === 'RETURNED' ? document.getElementById('editLoanReturnDate').value : null;
+  const returnCondition = status === 'RETURNED' ? document.getElementById('editLoanReturnCondition').value : null;
+  const remark = document.getElementById('editLoanBorrowRemark').value;
+  const returnRemark = status === 'RETURNED' ? document.getElementById('editLoanReturnRemark').value : '';
+  const editedBy = (appState.currentUser && appState.currentUser.name) || 'Store';
+
+  if (!toolName || !borrowerName || !machineName || !borrowDate) {
+    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน', text: 'กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน' });
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/tool-loans/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        loanId,
+        toolName,
+        toolCode,
+        borrowerName,
+        borrowerDept,
+        machineId: '-',
+        machineName,
+        borrowDate: new Date(borrowDate).toISOString(),
+        status,
+        actualReturnDate: actualReturnDate ? new Date(actualReturnDate).toISOString() : null,
+        returnCondition,
+        remark,
+        returnRemark,
+        editedBy
+      })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'เกิดข้อผิดพลาดในการบันทึก');
+
+    closeEditToolLoanModal();
+
+    // Refresh DB
+    const dbRes = await fetch('/api/db');
+    appState.db = await dbRes.json();
+    updateHeaderCounts();
+    renderToolLoans(document.getElementById('mainContent'));
+
+    Swal.fire({
+      icon: 'success',
+      title: 'แก้ไขข้อมูลสำเร็จ',
+      text: `อัปเดตข้อมูลรายการยืมเครื่องมือ ${toolName} เรียบร้อยแล้ว`,
+      confirmButtonText: 'ตกลง',
+      confirmButtonColor: '#0284c7'
+    });
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
+  }
+}
+
+async function confirmDeleteToolLoan() {
+  const loanId = document.getElementById('editLoanId').value;
+  const toolName = document.getElementById('editLoanToolName').value;
+  const deletedBy = (appState.currentUser && appState.currentUser.name) || 'Store';
+
+  const confirmResult = await Swal.fire({
+    title: 'ยืนยันการลบรายการยืม?',
+    text: `ต้องการลบรายการยืมเครื่องมือ "${toolName}" (${loanId}) ใช่หรือไม่? ข้อมูลนี้จะถูกบันทึกลงใน Audit Log`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'ใช่, ลบรายการ',
+    cancelButtonText: 'ยกเลิก'
+  });
+
+  if (!confirmResult.isConfirmed) return;
+
+  try {
+    const res = await fetch('/api/tool-loans/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        loanId,
+        deletedBy,
+        reason: 'ลบรายการโดยผู้ใช้ผ่านหน้าจอแก้ไข'
+      })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'เกิดข้อผิดพลาดในการลบ');
+
+    closeEditToolLoanModal();
+
+    // Refresh DB
+    const dbRes = await fetch('/api/db');
+    appState.db = await dbRes.json();
+    updateHeaderCounts();
+    renderToolLoans(document.getElementById('mainContent'));
+
+    Swal.fire({
+      icon: 'success',
+      title: 'ลบรายการสำเร็จ',
+      text: `ลบรายการ ${loanId} เรียบร้อยแล้ว`,
+      confirmButtonText: 'ตกลง',
+      confirmButtonColor: '#10b981'
+    });
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
+  }
+}
+

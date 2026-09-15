@@ -1,6 +1,6 @@
 {
-  "version": 1789447113974,
-  "lastUpdated": "2026-09-15T04:38:33.974Z",
+  "version": 1789451276738,
+  "lastUpdated": "2026-09-15T05:47:56.738Z",
   "users": [
     {
       "id": "U-001",
@@ -13679,6 +13679,42 @@
     }
   ],
   "auditLogs": [
+    {
+      "id": "AUD-DEL-LN-1789451276738",
+      "timestamp": "2026-09-15 05:47:56",
+      "user": "Admin Test",
+      "action": "TOOL_DELETE",
+      "partNumber": "MM01",
+      "reason": "ลบรายการยืมเครื่องมือ: ปากกา (อัปเดตสเปก) (LN-276519) เหตุผล: ทดสอบการลบรายการ",
+      "reference": "LN-276519"
+    },
+    {
+      "id": "AUD-MOD-LN-1789451276662",
+      "timestamp": "2026-09-15 05:47:56",
+      "user": "Admin Test",
+      "action": "TOOL_EDIT",
+      "partNumber": "MM01",
+      "reason": "แก้ไขข้อมูลรายการยืมเครื่องมือ: ปากกา (อัปเดตสเปก) (LN-276519)",
+      "reference": "LN-276519"
+    },
+    {
+      "id": "AUD-RET-1789451276616",
+      "timestamp": "2026-09-15 05:47:56",
+      "user": "หัวหน้าช่าง",
+      "action": "TOOL_RETURN",
+      "partNumber": "MM01",
+      "reason": "คืนเครื่องมือ: ปากกา (สภาพ: Good) คืนโดย เกรียงไกร ช่างไฟฟ้า",
+      "reference": "LN-276519"
+    },
+    {
+      "id": "AUD-LN-1789451276519",
+      "timestamp": "2026-09-15 05:47:56",
+      "user": "สโตร์ช่าง",
+      "action": "TOOL_BORROW",
+      "partNumber": "MM01",
+      "reason": "ยืมเครื่องมือ: ปากกา โดย เกรียงไกร ช่างไฟฟ้า (ไปใช้ที่: Cold Mill 1 (CM-01))",
+      "reference": "LN-276519"
+    },
     {
       "id": "AUD-RET-1789447113974",
       "timestamp": "2026-09-15 04:38:33",
