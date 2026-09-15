@@ -4,7 +4,13 @@ const path = require('path');
 const url = require('url');
 
 const PORT = process.env.PORT || 3000;
-const DB_PATH = path.join(__dirname, 'data', 'inventory_db.json');
+function getDBPath() {
+  const rootPath = path.join(__dirname, 'inventory_db.json');
+  const dataPath = path.join(__dirname, 'data', 'inventory_db.json');
+  if (fs.existsSync(rootPath)) return rootPath;
+  return dataPath;
+}
+const DB_PATH = getDBPath();
 
 // MIME types for static files
 const MIME_TYPES = {
@@ -735,10 +741,20 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  // Static File Serving
-  let filePath = path.join(__dirname, 'public', pathname === '/' ? 'index.html' : pathname);
-  if (!fs.existsSync(filePath)) {
-    filePath = path.join(__dirname, 'public', 'index.html');
+  // Static File Serving (supports both root and public/ layouts)
+  const cleanPath = pathname === '/' ? 'index.html' : pathname.replace(/^\//, '');
+  const candidatePaths = [
+    path.join(__dirname, 'public', cleanPath),
+    path.join(__dirname, cleanPath),
+    path.join(__dirname, path.basename(cleanPath)),
+    path.join(__dirname, 'public', 'index.html'),
+    path.join(__dirname, 'index.html')
+  ];
+  let filePath = candidatePaths.find(p => fs.existsSync(p) && fs.statSync(p).isFile());
+  if (!filePath) {
+    filePath = fs.existsSync(path.join(__dirname, 'public', 'index.html'))
+      ? path.join(__dirname, 'public', 'index.html')
+      : path.join(__dirname, 'index.html');
   }
 
   const extname = path.extname(filePath).toLowerCase();
