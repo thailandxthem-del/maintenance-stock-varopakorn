@@ -1,3 +1,12 @@
+
+// Helper to check if a part is classified as a Tool & Equipment
+function isPartTool(part) {
+  if (!part) return false;
+  if (part.categoryType === 'Tool' || part.itemType === 'Tool') return true;
+  if (part.category === 'Tool') return true;
+  return false;
+}
+
 /**
  * Maintenance Spare Parts Inventory Management System
  * Core Client Application Logic
@@ -1023,8 +1032,17 @@ function updateSparePartsTable() {
           <span>${p.partNumber}</span>
         </td>
         <td class="p-3">
-          <div class="font-semibold text-slate-800">${p.partName}</div>
-          <div class="text-[11px] text-slate-400 truncate max-w-xs">${p.specification || p.description || '-'}</div>
+          <div class="flex items-center space-x-1.5">
+            <span class="font-semibold text-slate-800">${p.partName}</span>
+            ${isPartTool(p) 
+              ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">🧰 เครื่องมือ</span>`
+              : `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200">📦 อะไหล่</span>`
+            }
+          </div>
+          <div class="text-[11px] text-slate-400 truncate max-w-xs mt-0.5">
+            ${isPartTool(p) ? `สภาพ: ${p.toolCondition === 'Needs Repair' ? '🟡 ชำรุด/รอซ่อม' : (p.toolCondition === 'Decommissioned' ? '🔴 ปลดระวาง' : '🟢 พร้อมใช้งาน')} | ` : ''}
+            ${p.specification || p.description || '-'}
+          </div>
         </td>
         <td class="p-3">
           <span class="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-sky-50 text-sky-800 border border-sky-200">
@@ -1125,6 +1143,19 @@ function openEditPartModal(partId) {
   document.getElementById('editMaxStock').value = part.maxStock !== undefined ? part.maxStock : 50;
   document.getElementById('editRemark').value = part.remark || '';
   document.getElementById('editReason').value = '';
+  // Populate Category Type and Tool Condition
+  const catType = part.categoryType || (part.category === 'Tool' || part.itemType === 'Tool' ? 'Tool' : 'Spare Part');
+  const catSel = document.getElementById('editPartCategoryType');
+  if (catSel) catSel.value = catType;
+
+  const toolCondSel = document.getElementById('editToolCondition');
+  if (toolCondSel) toolCondSel.value = part.toolCondition || 'Operational';
+
+  const condContainer = document.getElementById('editToolConditionContainer');
+  if (condContainer) {
+    condContainer.classList.toggle('hidden', catType !== 'Tool');
+  }
+
   document.getElementById('editOperatorName').innerText = `${appState.currentUser.name} (${appState.currentUser.title})`;
 
   document.getElementById('editPartModal').classList.remove('hidden');
@@ -1154,25 +1185,30 @@ async function handleSavePartEdit(e) {
   }
 
   try {
-    const res = await fetch('/api/parts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id,
-        partNumber,
-        partName,
-        location,
-        unit,
-        currentStock,
-        unitCost,
-        minStock,
-        maxStock,
-        reorderPoint: Math.round(minStock * 1.5),
-        remark,
-        editReason,
-        editedBy: appState.currentUser.name
-      })
-    });
+      const catType = (document.getElementById('editPartCategoryType') ? document.getElementById('editPartCategoryType').value : 'Spare Part');
+      const toolCond = (catType === 'Tool' && document.getElementById('editToolCondition')) ? document.getElementById('editToolCondition').value : null;
+
+      const res = await fetch('/api/parts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          partNumber,
+          partName,
+          categoryType: catType,
+          toolCondition: toolCond,
+          location,
+          unit,
+          currentStock,
+          unitCost,
+          minStock,
+          maxStock,
+          reorderPoint: Math.round(minStock * 1.5),
+          remark,
+          editReason,
+          editedBy: appState.currentUser.name
+        })
+      });
 
     const result = await res.json();
     if (res.ok && result.success) {
@@ -1405,160 +1441,279 @@ function setupSearchablePartPicker(containerId, config) {
 }
 
 
-// ==================== 3. STOCK IN MODULE (STREAMLINED TOOL ROOM) ====================
+
+// ==================== 3. STOCK IN MODULE (MULTI-ITEM BATCH UP TO 10 ITEMS) ====================
+let batchStockInItems = [];
 
 function renderStockIn(container, prefillPartCode = '') {
   const parts = appState.db.parts || [];
   const autoTransNo = `IN-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${String(Math.floor(Math.random()*9000)+1000)}`;
 
+  // Initialize with 1 row (pre-filled if provided)
+  batchStockInItems = [
+    { partNumber: prefillPartCode || '', qty: 1, unitCost: '' }
+  ];
+
+  if (prefillPartCode) {
+    const p = parts.find(x => x.partNumber === prefillPartCode);
+    if (p && p.unitCost) {
+      batchStockInItems[0].unitCost = p.unitCost;
+    }
+  }
+
   container.innerHTML = `
-    <div class="max-w-3xl mx-auto space-y-6">
+    <div class="max-w-5xl mx-auto space-y-6">
       
-      <!-- Card Header -->
+      <!-- Header -->
       <div class="bg-gradient-to-r from-emerald-900 to-slate-900 p-6 rounded-2xl text-white shadow-md border border-emerald-800 flex items-center justify-between">
         <div>
-          <div class="text-xs text-emerald-400 font-semibold uppercase tracking-wider">Tool Room Inbound</div>
-          <h1 class="text-xl font-bold">บันทึกรับอะไหล่เข้าคลัง (Stock In)</h1>
-          <p class="text-xs text-slate-300 mt-1">รับอะไหล่เข้าห้อง Tool Room อย่างรวดเร็ว ตรวจนับจำนวน และเพิ่มสต็อกอัตโนมัติ</p>
+          <div class="text-xs text-emerald-400 font-semibold uppercase tracking-wider">Tool Room Inbound (Multi-Item Batch)</div>
+          <h1 class="text-xl font-bold">บันทึกรับอะไหล่เข้าคลัง (Stock In Voucher)</h1>
+          <p class="text-xs text-slate-300 mt-1">รับอะไหล่เข้าคลังพร้อมกันได้ 1 - 10 รายการในใบรับเดียว บันทึกต้นทุนและอัปเดตสต็อกเรียลไทม์</p>
         </div>
-        <div class="p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-xl">
-          <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="flex flex-col items-end">
+          <span class="text-[11px] text-emerald-300 font-mono font-semibold">เลขที่เอกสารรับเข้า:</span>
+          <span class="text-sm font-mono font-bold text-white bg-emerald-800/60 px-2.5 py-1 rounded-lg border border-emerald-700 mt-0.5">${autoTransNo}</span>
         </div>
       </div>
 
-      <!-- Form Card -->
-      <form id="stockInForm" onsubmit="handleStockInSubmit(event)" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+      <!-- Main Voucher Form -->
+      <form onsubmit="handleStockInSubmit(event)" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-          <!-- Trans No -->
+        <!-- Header Metadata: Receiver, Date, Remark -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs">
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Transaction No. (เลขอ้างอิงอัตโนมัติ)</label>
-            <input type="text" id="inTransNo" value="${autoTransNo}" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg p-2 font-mono font-bold text-slate-700 cursor-not-allowed">
+            <label class="block font-semibold text-slate-700 mb-1">วันที่และเวลาที่รับเข้า <span class="text-rose-500">*</span></label>
+            <input type="datetime-local" id="inReceivedDate" required value="${new Date().toISOString().slice(0, 16)}" 
+                   class="w-full border border-slate-300 rounded-lg p-2 font-mono bg-white focus:border-emerald-500 focus:outline-none">
           </div>
 
-          <!-- Date -->
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">วัน-เวลา ที่รับเข้า <span class="text-rose-500">*</span></label>
-            <input type="datetime-local" id="inDate" required value="${new Date().toISOString().slice(0, 16)}" class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none">
-          </div>
-
-          <!-- Part Selection (Searchable Combobox) -->
-          <div id="inPartPickerContainer" class="sm:col-span-2"></div>
-
-          <!-- Current Stock Info Badge -->
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">ยอดคงเหลือปัจจุบัน</label>
-            <div id="inCurrentStockDisplay" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-mono text-sm font-bold text-slate-800">
-              -
-            </div>
-          </div>
-
-          <!-- Location Target -->
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">ตำแหน่งเก็บประจำอะไหล่</label>
-            <input type="text" id="inLocation" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg p-2 font-mono font-bold text-sky-700 cursor-not-allowed">
-          </div>
-
-          <!-- Quantity -->
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">จำนวนที่รับเข้า (Received Quantity) <span class="text-rose-500">*</span></label>
-            <input type="number" id="inQty" min="1" step="any" required placeholder="0" oninput="calculateInTotal()" class="w-full border border-slate-300 rounded-lg p-2 font-mono font-bold text-base text-emerald-600 focus:border-sky-500 focus:outline-none">
-          </div>
-
-          <!-- Unit -->
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">หน่วยนับ (Unit)</label>
-            <input type="text" id="inUnit" value="ชิ้น" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg p-2">
-          </div>
-
-          <!-- Unit Cost (Optional) -->
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">ราคาต่อหน่วย (Unit Cost - THB, ไม่บังคับ)</label>
-            <input type="number" id="inUnitCost" step="any" placeholder="0.00" oninput="calculateInTotal()" class="w-full border border-slate-300 rounded-lg p-2 font-mono focus:border-sky-500 focus:outline-none">
-          </div>
-
-          <!-- Total Cost -->
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">มูลค่ารวม (Total Cost - THB)</label>
-            <input type="text" id="inTotalCost" readonly value="฿ 0.00" class="w-full bg-slate-100 border border-slate-300 rounded-lg p-2 font-mono font-bold text-slate-800">
-          </div>
-
-          <!-- Receiver -->
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">ผู้รับอะไหล่ (Receiver)</label>
-            <select id="inReceiverSelect" onchange="onStockInReceiverChange(this)" class="w-full border border-slate-300 rounded-lg p-2 bg-white font-medium cursor-pointer">
+            <label class="block font-semibold text-slate-700 mb-1">ผู้รับอะไหล่ (Receiver) <span class="text-rose-500">*</span></label>
+            <select id="inReceiverSelect" required 
+                    class="w-full border border-slate-300 rounded-lg p-2 bg-white font-medium focus:border-emerald-500 focus:outline-none cursor-pointer">
               ${getPersonnelSelectOptions(appState.currentUser.name)}
             </select>
-            <input type="text" id="inReceiver" value="${appState.currentUser.name}" placeholder="หรือพิมพ์ชื่อผู้รับเอง..." class="hidden mt-1.5 w-full border border-slate-300 rounded-lg p-2 text-xs">
           </div>
 
-          <!-- Remark -->
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">หมายเหตุ (Remark)</label>
-            <input type="text" id="inRemark" placeholder="ระบุเพิ่มเติม เช่น ล็อตใหม่, ส่งจากโกดังหลัก..." class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none">
+            <label class="block font-semibold text-slate-700 mb-1">หมายเหตุเอกสารรับเข้า (Voucher Remark)</label>
+            <input type="text" id="inVoucherRemark" placeholder="เช่น ล็อตสั่งซื้อ PO-102, ส่งจากโกดังกลาง..." 
+                   class="w-full border border-slate-300 rounded-lg p-2 bg-white focus:border-emerald-500 focus:outline-none">
+          </div>
+        </div>
+
+        <!-- Items Table Section -->
+        <div>
+          <div class="flex items-center justify-between mb-2.5">
+            <div class="flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <h2 class="text-sm font-bold text-slate-800">รายการอะไหล่ที่รับเข้า (Items to Receive)</h2>
+              <span id="inTotalItemsBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-mono font-bold">1 / 10 รายการ</span>
+            </div>
+            <button type="button" onclick="addStockInRow()" id="btnAddStockInRow" 
+                    class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg text-xs font-bold transition flex items-center space-x-1 active:scale-95">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>+ เพิ่มรายการ (สูงสุด 10 รายการ)</span>
+            </button>
           </div>
 
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-100 border-b border-slate-200 text-slate-700 font-semibold uppercase text-[11px]">
+                  <th class="p-2.5 text-center w-10">#</th>
+                  <th class="p-2.5 min-w-[240px]">รหัส / รายการอะไหล่ <span class="text-rose-500">*</span></th>
+                  <th class="p-2.5 w-28">ตำแหน่งเก็บ</th>
+                  <th class="p-2.5 w-24 text-center">คงเหลือเดิม</th>
+                  <th class="p-2.5 w-28 text-center">จำนวนรับเข้า <span class="text-rose-500">*</span></th>
+                  <th class="p-2.5 w-28 text-right">ราคา/หน่วย (฿)</th>
+                  <th class="p-2.5 w-32 text-right">มูลค่ารวม (฿)</th>
+                  <th class="p-2.5 text-center w-12">ลบ</th>
+                </tr>
+              </thead>
+              <tbody id="stockInItemsTableBody" class="divide-y divide-slate-100">
+                <!-- Rows rendered by updateStockInItemsTable -->
+              </tbody>
+              <tfoot>
+                <tr class="bg-slate-50 font-bold border-t border-slate-200 text-slate-800">
+                  <td colspan="4" class="p-3 text-right">สรุปยอดรวมทั้งใบรับ:</td>
+                  <td id="inTotalQtySumDisplay" class="p-3 text-center font-mono text-emerald-700 text-sm">0 ชิ้น</td>
+                  <td class="p-3 text-right text-[11px] text-slate-500">มูลค่ารวมทั้งหมด:</td>
+                  <td id="inGrandTotalDisplay" class="p-3 text-right font-mono text-emerald-700 text-base">฿ 0.00</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </div>
 
         <!-- Submit Button Area -->
-        <div class="pt-4 border-t border-slate-200 flex items-center justify-end space-x-3">
-          <button type="button" onclick="switchTab('spare-parts')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition">
-            ยกเลิก
-          </button>
-          <button type="submit" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-md flex items-center space-x-1.5 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-            <span>ยืนยันการรับเข้า (Confirm Stock In)</span>
-          </button>
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-between">
+          <div class="text-xs text-slate-500">
+            * สต็อกจะถูกปรับเพิ่มทันทีหลังกดยืนยัน และระบบจะลงบันทึกประวัติความเคลื่อนไหว (Ledger) สำหรับทุกรายการในใบเดียว
+          </div>
+          <div class="flex items-center space-x-3">
+            <button type="button" onclick="switchTab('spare-parts')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition">
+              ยกเลิก
+            </button>
+            <button type="submit" id="btnSubmitStockIn" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 flex items-center space-x-1.5 transition transform active:scale-95">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <span>ยืนยันการรับเข้าคลัง (Confirm Batch Stock In)</span>
+            </button>
+          </div>
         </div>
 
       </form>
     </div>
   `;
 
-  // ติดตั้ง Searchable Combobox สำหรับเลือกอะไหล่
-  setupSearchablePartPicker('inPartPickerContainer', {
-    hiddenInputId: 'inPartNumber',
-    initialValue: prefillPartCode,
-    required: true,
-    label: 'เลือกอะไหล่ที่รับเข้า (Item Code / Name)',
-    placeholder: '🔍 พิมพ์ค้นหา Item Code หรือ ชื่ออะไหล่ เช่น น็อต, ซีล, ปะเก็น, 01-01...',
-    onChange: (code) => onStockInPartChange(code)
-  });
+  updateStockInItemsTable();
 }
 
-function onStockInPartChange(code) {
-  const part = (appState.db.parts || []).find(p => p.partNumber === code);
-  if (part) {
-    document.getElementById('inCurrentStockDisplay').innerHTML = `
-      <span class="text-slate-900">${part.currentStock}</span> ${part.unit}
-      <span class="text-[11px] text-slate-400 font-normal">(@ ${part.location})</span>
+function updateStockInItemsTable() {
+  const tbody = document.getElementById('stockInItemsTableBody');
+  if (!tbody) return;
+
+  const parts = appState.db.parts || [];
+  const partsOptionsHtml = parts.map(p => {
+    return `<option value="${p.partNumber}">${p.partNumber} : ${p.partName} (สต็อกเดิม: ${p.currentStock || 0} ${p.unit || 'ชิ้น'})</option>`;
+  }).join('');
+
+  let grandTotal = 0;
+  let totalPieces = 0;
+
+  tbody.innerHTML = batchStockInItems.map((item, index) => {
+    const part = parts.find(p => p.partNumber === item.partNumber) || null;
+    const qty = parseFloat(item.qty) || 0;
+    const unitCost = item.unitCost !== '' && !isNaN(parseFloat(item.unitCost)) ? parseFloat(item.unitCost) : (part && part.unitCost ? part.unitCost : 0);
+    const lineTotal = qty * unitCost;
+    grandTotal += lineTotal;
+    totalPieces += qty;
+
+    return `
+      <tr class="hover:bg-slate-50/80 transition">
+        <td class="p-2.5 text-center font-mono font-bold text-slate-500">${index + 1}</td>
+        
+        <td class="p-2.5">
+          <select onchange="onStockInPartRowChange(${index}, this.value)" required 
+                  class="w-full border border-slate-300 rounded-lg p-2 bg-white font-medium text-xs focus:border-emerald-500 focus:outline-none cursor-pointer">
+            <option value="">-- เลือกอะไหล่ที่รับเข้า --</option>
+            ${parts.map(p => {
+              const isSel = p.partNumber === item.partNumber ? 'selected' : '';
+              return `<option value="${p.partNumber}" ${isSel}>${p.partNumber} : ${p.partName} (คงเหลือ: ${p.currentStock || 0} ${p.unit || 'ชิ้น'})</option>`;
+            }).join('')}
+          </select>
+        </td>
+
+        <td class="p-2.5 font-mono text-sky-700 font-semibold">
+          ${part ? (part.location || '-') : '-'}
+        </td>
+
+        <td class="p-2.5 text-center font-mono font-bold text-slate-700">
+          ${part ? `${part.currentStock || 0} ${part.unit || 'ชิ้น'}` : '-'}
+        </td>
+
+        <td class="p-2.5 text-center">
+          <div class="flex items-center justify-center space-x-1">
+            <input type="number" min="0.1" step="any" required 
+                   value="${item.qty || 1}" 
+                   oninput="onStockInQtyCostRowChange(${index}, this.value, null)"
+                   class="w-20 border border-slate-300 rounded-lg p-1.5 text-center font-mono font-bold text-emerald-600 focus:border-emerald-500 focus:outline-none">
+            <span class="text-[11px] text-slate-500">${part ? (part.unit || 'ชิ้น') : 'ชิ้น'}</span>
+          </div>
+        </td>
+
+        <td class="p-2.5 text-right">
+          <input type="number" min="0" step="any" placeholder="0.00" 
+                 value="${item.unitCost !== undefined ? item.unitCost : ''}" 
+                 oninput="onStockInQtyCostRowChange(${index}, null, this.value)"
+                 class="w-24 border border-slate-300 rounded-lg p-1.5 text-right font-mono focus:border-emerald-500 focus:outline-none">
+        </td>
+
+        <td class="p-2.5 text-right font-mono font-bold text-slate-800">
+          ฿ ${lineTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </td>
+
+        <td class="p-2.5 text-center">
+          <button type="button" onclick="removeStockInRow(${index})" 
+                  title="ลบรายการนี้" 
+                  class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </td>
+      </tr>
     `;
-    document.getElementById('inUnit').value = part.unit || 'ชิ้น';
-    document.getElementById('inUnitCost').value = part.unitCost || '';
-    document.getElementById('inLocation').value = part.location || '-';
-    calculateInTotal();
+  }).join('');
+
+  // Update summary badges
+  const totalItemsBadge = document.getElementById('inTotalItemsBadge');
+  if (totalItemsBadge) totalItemsBadge.innerText = `${batchStockInItems.length} / 10 รายการ`;
+
+  const totalQtySumDisplay = document.getElementById('inTotalQtySumDisplay');
+  if (totalQtySumDisplay) totalQtySumDisplay.innerText = `${totalPieces} ชิ้น`;
+
+  const grandTotalDisplay = document.getElementById('inGrandTotalDisplay');
+  if (grandTotalDisplay) grandTotalDisplay.innerText = `฿ ${grandTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const addBtn = document.getElementById('btnAddStockInRow');
+  if (addBtn) {
+    addBtn.disabled = batchStockInItems.length >= 10;
+    addBtn.classList.toggle('opacity-50', batchStockInItems.length >= 10);
+    addBtn.classList.toggle('cursor-not-allowed', batchStockInItems.length >= 10);
   }
 }
 
-function calculateInTotal() {
-  const qty = parseFloat(document.getElementById('inQty').value) || 0;
-  const cost = parseFloat(document.getElementById('inUnitCost').value) || 0;
-  const total = qty * cost;
-  document.getElementById('inTotalCost').value = `฿ ${total.toLocaleString('th-TH', { minimumFractionDigits: 2 })}`;
+function onStockInPartRowChange(index, partNumber) {
+  if (!batchStockInItems[index]) return;
+  batchStockInItems[index].partNumber = partNumber;
+  const part = (appState.db.parts || []).find(p => p.partNumber === partNumber);
+  if (part && (batchStockInItems[index].unitCost === '' || batchStockInItems[index].unitCost === undefined)) {
+    batchStockInItems[index].unitCost = part.unitCost || '';
+  }
+  updateStockInItemsTable();
+}
+
+function onStockInQtyCostRowChange(index, qtyVal, costVal) {
+  if (!batchStockInItems[index]) return;
+  if (qtyVal !== null) batchStockInItems[index].qty = parseFloat(qtyVal) || 0;
+  if (costVal !== null) batchStockInItems[index].unitCost = costVal;
+  updateStockInItemsTable();
+}
+
+function addStockInRow() {
+  if (batchStockInItems.length >= 10) {
+    Swal.fire('จำกัดจำนวนรายการ', 'สามารถทำรายการรับเข้าได้สูงสุดครั้งละไม่เกิน 10 รายการต่อ 1 ใบรับ', 'info');
+    return;
+  }
+  batchStockInItems.push({ partNumber: '', qty: 1, unitCost: '' });
+  updateStockInItemsTable();
+}
+
+function removeStockInRow(index) {
+  if (batchStockInItems.length <= 1) {
+    batchStockInItems[0] = { partNumber: '', qty: 1, unitCost: '' };
+  } else {
+    batchStockInItems.splice(index, 1);
+  }
+  updateStockInItemsTable();
 }
 
 async function handleStockInSubmit(e) {
   e.preventDefault();
-  const partNumber = document.getElementById('inPartNumber').value;
-  const quantity = parseFloat(document.getElementById('inQty').value);
-  const unitCost = parseFloat(document.getElementById('inUnitCost').value) || 0;
   const inRecSel = document.getElementById('inReceiverSelect');
-  const inRecInp = document.getElementById('inReceiver');
-  const receiver = (inRecSel && inRecSel.value !== '__CUSTOM__' && inRecSel.value) ? inRecSel.value : (inRecInp ? inRecInp.value.trim() : '');
-  const remark = document.getElementById('inRemark').value;
+  const receiver = inRecSel ? inRecSel.value : '';
+  const remark = (document.getElementById('inVoucherRemark') ? document.getElementById('inVoucherRemark').value : '').trim();
 
-  if (!partNumber || isNaN(quantity) || quantity <= 0) {
-    Swal.fire('ข้อผิดพลาด', 'กรุณาระบุรหัสอะไหล่และจำนวนที่มากกว่า 0', 'warning');
+  if (!receiver) {
+    Swal.fire('กรุณาระบุข้อมูล', 'กรุณาเลือกผู้รับอะไหล่จากรายชื่อบุคลากร', 'warning');
+    return;
+  }
+
+  // Validate items
+  const validItems = batchStockInItems.filter(it => it.partNumber && parseFloat(it.qty) > 0);
+  if (validItems.length === 0) {
+    Swal.fire('ไม่มีรายการอะไหล่', 'กรุณาเลือกอะไหล่และระบุจำนวนรับเข้าอย่างน้อย 1 รายการ', 'warning');
     return;
   }
 
@@ -1566,14 +1721,24 @@ async function handleStockInSubmit(e) {
     const res = await fetch('/api/stock-in', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ partNumber, quantity, unitCost, receiver, remark })
+      body: JSON.stringify({
+        items: validItems.map(it => ({
+          partNumber: it.partNumber,
+          quantity: parseFloat(it.qty),
+          unitCost: it.unitCost !== '' && !isNaN(parseFloat(it.unitCost)) ? parseFloat(it.unitCost) : null
+        })),
+        receiver,
+        remark
+      })
     });
+
     const result = await res.json();
     if (res.ok && result.success) {
       Swal.fire({
         icon: 'success',
-        title: 'รับอะไหล่เข้าสำเร็จ!',
-        text: result.message,
+        title: 'รับอะไหล่เข้าคลังสำเร็จ!',
+        html: `<p class="font-semibold text-slate-800">${result.message}</p>
+               <p class="text-xs text-slate-500 mt-2 font-mono">เลขที่เอกสาร: ${result.transactionNo}</p>`,
         confirmButtonText: 'ตกลง'
       }).then(() => {
         refreshData();
@@ -1587,204 +1752,370 @@ async function handleStockInSubmit(e) {
   }
 }
 
-// ==================== 4. STOCK ISSUE MODULE (STREAMLINED TOOL ROOM) ====================
+
+
+// ==================== 4. STOCK ISSUE MODULE (MULTI-ITEM BATCH UP TO 10 ITEMS & TOOL BLOCK) ====================
+let batchIssueItems = [];
 
 function renderStockIssue(container, prefillPartCode = '') {
   const parts = appState.db.parts || [];
   const autoTransNo = `ISS-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${String(Math.floor(Math.random()*9000)+1000)}`;
 
+  // Initialize with 1 row (pre-filled if provided)
+  batchIssueItems = [
+    { partNumber: prefillPartCode || '', qty: 1 }
+  ];
+
   container.innerHTML = `
-    <div class="max-w-3xl mx-auto space-y-6">
+    <div class="max-w-5xl mx-auto space-y-6">
       
       <!-- Header -->
       <div class="bg-gradient-to-r from-rose-900 to-slate-900 p-6 rounded-2xl text-white shadow-md border border-rose-800 flex items-center justify-between">
         <div>
-          <div class="text-xs text-rose-400 font-semibold uppercase tracking-wider">Tool Room Outbound</div>
-          <h1 class="text-xl font-bold">บันทึกเบิกอะไหล่ / วัสดุใช้งาน (Stock Issue)</h1>
-          <p class="text-xs text-slate-300 mt-1">เบิกอะไหล่ น็อต ซีล หรือเครื่องมือช่างไปใช้งาน พร้อมระบบป้องกันการเบิกเกินสต็อก</p>
+          <div class="text-xs text-rose-400 font-semibold uppercase tracking-wider">Tool Room Outbound (Multi-Item Batch)</div>
+          <h1 class="text-xl font-bold">บันทึกเบิกอะไหล่ / วัสดุใช้งาน (Stock Issue Voucher)</h1>
+          <p class="text-xs text-slate-300 mt-1">เบิกอะไหล่หลายรายการพร้อมกันได้ 1 - 10 รายการในใบเบิกเดียว พร้อมระบบบล็อกเครื่องมือและเช็คสต็อกเรียลไทม์</p>
         </div>
-        <div class="p-3 bg-rose-500/20 border border-rose-500/30 rounded-xl">
-          <svg class="w-8 h-8 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="flex flex-col items-end">
+          <span class="text-[11px] text-rose-300 font-mono font-semibold">เลขที่ใบเบิก:</span>
+          <span class="text-sm font-mono font-bold text-white bg-rose-800/60 px-2.5 py-1 rounded-lg border border-rose-700 mt-0.5">${autoTransNo}</span>
         </div>
       </div>
 
-      <!-- Form -->
-      <form id="stockIssueForm" onsubmit="handleStockIssueSubmit(event)" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+      <!-- Main Voucher Form -->
+      <form onsubmit="handleStockIssueSubmit(event)" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+        <!-- Header Metadata: Requester, Used For, Issued By, Remark -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs">
           
-          <!-- Trans No -->
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">Issue No. (เลขที่ใบเบิก)</label>
-            <input type="text" id="outTransNo" value="${autoTransNo}" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg p-2 font-mono font-bold text-slate-700 cursor-not-allowed">
-          </div>
-
-          <!-- Date -->
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">วัน-เวลา ที่เบิก <span class="text-rose-500">*</span></label>
-            <input type="datetime-local" id="outDate" required value="${new Date().toISOString().slice(0, 16)}" class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none">
-          </div>
-
-          <!-- Part Selection (Searchable Combobox) -->
-          <div id="outPartPickerContainer" class="sm:col-span-2"></div>
-
-          <!-- Available Stock Box -->
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">สต็อกคงเหลือปัจจุบัน</label>
-            <div id="outAvailableStockBox" class="p-2 border border-slate-200 bg-slate-50 rounded-lg font-mono font-bold text-sm text-slate-800">
-              -
-            </div>
-          </div>
-
-          <!-- Quantity -->
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">จำนวนที่ขอเบิก (Quantity) <span class="text-rose-500">*</span></label>
-            <input type="number" id="outQty" min="1" step="any" required placeholder="0" oninput="checkIssueLimit()" class="w-full border border-slate-300 rounded-lg p-2 font-mono font-bold text-base text-rose-600 focus:border-sky-500 focus:outline-none">
-            <div id="outQtyWarning" class="text-[11px] text-rose-600 font-semibold mt-1 hidden">⚠️ จำนวนเบิกเกินสต็อกคงเหลือ!</div>
-          </div>
-
-          <!-- Unit -->
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">หน่วยนับ (Unit)</label>
-            <input type="text" id="outUnit" readonly value="ชิ้น" class="w-full bg-slate-100 border border-slate-300 rounded-lg p-2">
-          </div>
-
-          <!-- Requester -->
           <div>
             <label class="block font-semibold text-slate-700 mb-1">ช่างผู้ขอเบิก (Requester) <span class="text-rose-500">*</span></label>
-            <select id="outRequesterSelect" onchange="onStockIssueRequesterChange(this)" required class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none bg-white font-medium cursor-pointer">
+            <select id="outRequesterSelect" required 
+                    class="w-full border border-slate-300 rounded-lg p-2 bg-white font-medium focus:border-rose-500 focus:outline-none cursor-pointer">
               ${getPersonnelSelectOptions()}
             </select>
-            <input type="text" id="outRequester" placeholder="หรือพิมพ์ชื่อช่างผู้เบิกเอง..." class="hidden mt-1.5 w-full border border-slate-300 rounded-lg p-2 text-xs focus:border-sky-500 focus:outline-none">
           </div>
 
-          <!-- Used For / Machine (Simple text) -->
-          <div class="sm:col-span-2">
-            <label class="block font-semibold text-slate-700 mb-1">นำไปใช้กับงานใด / เครื่องจักรใด (Used For) <span class="text-rose-500">*</span></label>
-            <select id="outUsedForSelect" onchange="onStockIssueUsedForChange(this)" required class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none bg-white font-medium cursor-pointer">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">เครื่องจักร / จุดใช้งาน (Used For) <span class="text-rose-500">*</span></label>
+            <select id="outUsedForSelect" required 
+                    class="w-full border border-slate-300 rounded-lg p-2 bg-white font-medium focus:border-rose-500 focus:outline-none cursor-pointer">
               ${getMachineSelectOptions()}
             </select>
-            <input type="text" id="outUsedFor" placeholder="หรือพิมพ์ระบุจุดใช้งาน/ชื่องานเอง..." class="hidden mt-1.5 w-full border border-slate-300 rounded-lg p-2 text-xs focus:border-sky-500 focus:outline-none">
           </div>
 
-          <!-- Issued By -->
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">เจ้าหน้าที่ผู้จ่าย (Issued By)</label>
-            <input type="text" id="outIssuedBy" value="${appState.currentUser.name}" class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none">
+            <label class="block font-semibold text-slate-700 mb-1">เจ้าหน้าที่ผู้จ่าย (Issued By) <span class="text-rose-500">*</span></label>
+            <select id="outIssuedBySelect" required 
+                    class="w-full border border-slate-300 rounded-lg p-2 bg-white font-medium focus:border-rose-500 focus:outline-none cursor-pointer">
+              ${getPersonnelSelectOptions(appState.currentUser.name)}
+            </select>
           </div>
 
-          <!-- Remark -->
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">หมายเหตุเพิ่มเติม</label>
-            <input type="text" id="outRemark" placeholder="ระบุเพิ่มเติมถ้ามี..." class="w-full border border-slate-300 rounded-lg p-2 focus:border-sky-500 focus:outline-none">
+            <label class="block font-semibold text-slate-700 mb-1">หมายเหตุใบเบิก (Remark)</label>
+            <input type="text" id="outVoucherRemark" placeholder="ระบุเหตุผล หรือจ็อบงานซ่อม..." 
+                   class="w-full border border-slate-300 rounded-lg p-2 bg-white focus:border-rose-500 focus:outline-none">
           </div>
 
         </div>
 
-        <!-- Submit Button -->
-        <div class="pt-4 border-t border-slate-200 flex items-center justify-end space-x-3">
-          <button type="button" onclick="switchTab('spare-parts')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition">
-            ยกเลิก
-          </button>
-          <button type="submit" id="btnSubmitIssue" class="px-6 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-md flex items-center space-x-1.5 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span>ยืนยันการเบิกอะไหล่ (Confirm Issue)</span>
-          </button>
+        <!-- Items Table Section -->
+        <div>
+          <div class="flex items-center justify-between mb-2.5">
+            <div class="flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              <h2 class="text-sm font-bold text-slate-800">รายการอะไหล่ที่ขอเบิก (Items to Issue)</h2>
+              <span id="issueTotalItemsBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-mono font-bold">1 / 10 รายการ</span>
+            </div>
+            <button type="button" onclick="addStockIssueRow()" id="btnAddStockIssueRow" 
+                    class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg text-xs font-bold transition flex items-center space-x-1 active:scale-95">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>+ เพิ่มรายการ (สูงสุด 10 รายการ)</span>
+            </button>
+          </div>
+
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-100 border-b border-slate-200 text-slate-700 font-semibold uppercase text-[11px]">
+                  <th class="p-2.5 text-center w-10">#</th>
+                  <th class="p-2.5 min-w-[280px]">รหัส / รายการอะไหล่ (ห้ามเบิกเครื่องมือ) <span class="text-rose-500">*</span></th>
+                  <th class="p-2.5 w-28">ตำแหน่งเก็บ</th>
+                  <th class="p-2.5 w-32 text-center">คงเหลือในคลัง</th>
+                  <th class="p-2.5 w-36 text-center">จำนวนที่ขอเบิก <span class="text-rose-500">*</span></th>
+                  <th class="p-2.5 min-w-[150px]">สถานะสต็อก / แจ้งเตือน</th>
+                  <th class="p-2.5 text-center w-12">ลบ</th>
+                </tr>
+              </thead>
+              <tbody id="stockIssueItemsTableBody" class="divide-y divide-slate-100">
+                <!-- Rows rendered by updateStockIssueItemsTable -->
+              </tbody>
+              <tfoot>
+                <tr class="bg-slate-50 font-bold border-t border-slate-200 text-slate-800">
+                  <td colspan="4" class="p-3 text-right">ยอดรวมจำนวนที่ขอเบิกทั้งหมด:</td>
+                  <td id="issueTotalQtySumDisplay" class="p-3 text-center font-mono text-rose-700 text-sm">0 ชิ้น</td>
+                  <td colspan="2"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- Submit Button Area -->
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-between">
+          <div class="text-xs text-slate-500">
+            * ระบบจะตัดยอดสต็อกคงเหลือทันทีสำหรับทุกรายการ และป้องกันการเบิกเกินยอดสต็อกที่มีอยู่
+          </div>
+          <div class="flex items-center space-x-3">
+            <button type="button" onclick="switchTab('dashboard')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition">
+              ยกเลิก
+            </button>
+            <button type="submit" id="btnSubmitIssue" class="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md shadow-rose-600/20 flex items-center space-x-1.5 transition transform active:scale-95">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>ยืนยันการเบิกอะไหล่ (Confirm Batch Issue)</span>
+            </button>
+          </div>
         </div>
 
       </form>
-
     </div>
   `;
 
-  // ติดตั้ง Searchable Combobox สำหรับเลือกอะไหล่ที่ต้องการเบิก
-  setupSearchablePartPicker('outPartPickerContainer', {
-    hiddenInputId: 'outPartNumber',
-    initialValue: prefillPartCode,
-    required: true,
-    label: 'เลือกอะไหล่ที่ต้องการเบิก (ค้นหาด้วย Item Code หรือ ชื่ออะไหล่)',
-    placeholder: '🔍 พิมพ์ค้นหา Item Code หรือ ชื่ออะไหล่ เช่น น็อต, ซีล, ปะเก็น, 01-01...',
-    onChange: (code) => onStockIssuePartChange(code)
-  });
+  updateStockIssueItemsTable();
 }
 
-function onStockIssuePartChange(code) {
-  const part = (appState.db.parts || []).find(p => p.partNumber === code);
-  if (part) {
-    const isLow = part.currentStock <= part.minStock;
-    document.getElementById('outAvailableStockBox').innerHTML = `
-      <span class="text-base ${isLow ? 'text-rose-600' : 'text-slate-900'}">${part.currentStock}</span> ${part.unit}
-      <span class="text-[11px] text-slate-500 block">Min: ${part.minStock} | Reorder: ${part.reorderPoint}</span>
+function updateStockIssueItemsTable() {
+  const tbody = document.getElementById('stockIssueItemsTableBody');
+  if (!tbody) return;
+
+  const parts = appState.db.parts || [];
+  let totalPieces = 0;
+  let hasOverStockIssue = false;
+
+  tbody.innerHTML = batchIssueItems.map((item, index) => {
+    const part = parts.find(p => p.partNumber === item.partNumber) || null;
+    const qty = parseFloat(item.qty) || 0;
+    totalPieces += qty;
+
+    const currentStock = part ? (part.currentStock || 0) : 0;
+    const isOver = part && (qty > currentStock);
+    if (isOver) hasOverStockIssue = true;
+
+    return `
+      <tr class="hover:bg-slate-50/80 transition ${isOver ? 'bg-rose-50/40' : ''}">
+        <td class="p-2.5 text-center font-mono font-bold text-slate-500">${index + 1}</td>
+        
+        <td class="p-2.5">
+          <select onchange="onStockIssuePartRowChange(${index}, this.value)" required 
+                  class="w-full border ${isOver ? 'border-rose-400' : 'border-slate-300'} rounded-lg p-2 bg-white font-medium text-xs focus:border-rose-500 focus:outline-none cursor-pointer">
+            <option value="">-- เลือกอะไหล่ที่ต้องการเบิก --</option>
+            ${parts.map(p => {
+              const isSel = p.partNumber === item.partNumber ? 'selected' : '';
+              const isTool = isPartTool(p);
+              const toolLabel = isTool ? ' 🧰 [เครื่องมือช่าง - ห้ามเบิก]' : '';
+              return `<option value="${p.partNumber}" ${isSel}>${p.partNumber} : ${p.partName} (คงเหลือ: ${p.currentStock || 0} ${p.unit || 'ชิ้น'})${toolLabel}</option>`;
+            }).join('')}
+          </select>
+        </td>
+
+        <td class="p-2.5 font-mono text-sky-700 font-semibold">
+          ${part ? (part.location || '-') : '-'}
+        </td>
+
+        <td class="p-2.5 text-center font-mono font-bold ${part && part.currentStock <= part.minStock ? 'text-rose-600' : 'text-slate-800'}">
+          ${part ? `${part.currentStock || 0} ${part.unit || 'ชิ้น'}` : '-'}
+        </td>
+
+        <td class="p-2.5 text-center">
+          <div class="flex items-center justify-center space-x-1">
+            <input type="number" min="0.1" max="${currentStock}" step="any" required 
+                   value="${item.qty || 1}" 
+                   oninput="onStockIssueQtyRowChange(${index}, this.value)"
+                   class="w-20 border ${isOver ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-slate-300 text-rose-600'} rounded-lg p-1.5 text-center font-mono font-bold focus:border-rose-500 focus:outline-none">
+            <span class="text-[11px] text-slate-500">${part ? (part.unit || 'ชิ้น') : 'ชิ้น'}</span>
+          </div>
+        </td>
+
+        <td class="p-2.5 text-xs">
+          ${part ? (
+            isOver 
+              ? `<span class="text-rose-600 font-bold inline-flex items-center space-x-1">
+                   <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                   <span>เกินสต็อก! มีเพียง ${currentStock}</span>
+                 </span>`
+              : `<span class="text-emerald-600 font-medium">✓ พอจ่าย (คงเหลือใหม่ ${currentStock - qty})</span>`
+          ) : '<span class="text-slate-400">-</span>'}
+        </td>
+
+        <td class="p-2.5 text-center">
+          <button type="button" onclick="removeStockIssueRow(${index})" 
+                  title="ลบรายการนี้" 
+                  class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </td>
+      </tr>
     `;
-    document.getElementById('outUnit').value = part.unit || 'ชิ้น';
-    checkIssueLimit();
+  }).join('');
+
+  // Update summary badges
+  const totalItemsBadge = document.getElementById('issueTotalItemsBadge');
+  if (totalItemsBadge) totalItemsBadge.innerText = `${batchIssueItems.length} / 10 รายการ`;
+
+  const totalQtySumDisplay = document.getElementById('issueTotalQtySumDisplay');
+  if (totalQtySumDisplay) totalQtySumDisplay.innerText = `${totalPieces} ชิ้น`;
+
+  const addBtn = document.getElementById('btnAddStockIssueRow');
+  if (addBtn) {
+    addBtn.disabled = batchIssueItems.length >= 10;
+    addBtn.classList.toggle('opacity-50', batchIssueItems.length >= 10);
+    addBtn.classList.toggle('cursor-not-allowed', batchIssueItems.length >= 10);
+  }
+
+  const submitBtn = document.getElementById('btnSubmitIssue');
+  if (submitBtn) {
+    submitBtn.disabled = hasOverStockIssue;
+    submitBtn.classList.toggle('opacity-50', hasOverStockIssue);
+    submitBtn.classList.toggle('cursor-not-allowed', hasOverStockIssue);
   }
 }
 
-function checkIssueLimit() {
-  const code = document.getElementById('outPartNumber').value;
-  const qty = parseFloat(document.getElementById('outQty').value) || 0;
-  const part = (appState.db.parts || []).find(p => p.partNumber === code);
-  const warn = document.getElementById('outQtyWarning');
-  const btn = document.getElementById('btnSubmitIssue');
+function onStockIssuePartRowChange(index, partNumber) {
+  if (!batchIssueItems[index]) return;
+  const part = (appState.db.parts || []).find(p => p.partNumber === partNumber);
 
-  if (part) {
-    if (qty > part.currentStock) {
-      warn.classList.remove('hidden');
-      warn.innerText = `⚠️ ไม่อนุญาตให้เบิกเกิน! สต็อกมีเพียง ${part.currentStock} ${part.unit}`;
-      btn.disabled = true;
-      btn.classList.add('opacity-50', 'cursor-not-allowed');
-    } else {
-      warn.classList.add('hidden');
-      btn.disabled = false;
-      btn.classList.remove('opacity-50', 'cursor-not-allowed');
-    }
+  // Check Tool Category Blocking
+  if (isPartTool(part)) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'ไม่อนุญาตให้เบิกตัดสต็อก',
+      html: `<p class="font-semibold text-slate-800">"${part.partName}" (${part.partNumber})</p>
+             <p class="mt-2 text-sm text-slate-600">รายการนี้จัดเป็น <strong>"เครื่องมือช่าง & อุปกรณ์"</strong> ไม่อนุญาตให้เบิกตัดสต็อก</p>
+             <p class="mt-2 text-xs text-sky-700 font-semibold">👉 กรุณาใช้เมนู <strong>"ยืม-คืนเครื่องมือและอุปกรณ์"</strong> แทนครับ</p>`,
+      confirmButtonText: 'เข้าใจแล้ว'
+    });
+    batchIssueItems[index].partNumber = '';
+    updateStockIssueItemsTable();
+    return;
   }
+
+  batchIssueItems[index].partNumber = partNumber;
+  updateStockIssueItemsTable();
+}
+
+function onStockIssueQtyRowChange(index, qtyVal) {
+  if (!batchIssueItems[index]) return;
+  batchIssueItems[index].qty = parseFloat(qtyVal) || 0;
+  updateStockIssueItemsTable();
+}
+
+function addStockIssueRow() {
+  if (batchIssueItems.length >= 10) {
+    Swal.fire('จำกัดจำนวนรายการ', 'สามารถทำรายการเบิกได้สูงสุดครั้งละไม่เกิน 10 รายการต่อ 1 ใบเบิก', 'info');
+    return;
+  }
+  batchIssueItems.push({ partNumber: '', qty: 1 });
+  updateStockIssueItemsTable();
+}
+
+function removeStockIssueRow(index) {
+  if (batchIssueItems.length <= 1) {
+    batchIssueItems[0] = { partNumber: '', qty: 1 };
+  } else {
+    batchIssueItems.splice(index, 1);
+  }
+  updateStockIssueItemsTable();
 }
 
 async function handleStockIssueSubmit(e) {
   e.preventDefault();
-  const partNumber = document.getElementById('outPartNumber').value;
-  const quantity = parseFloat(document.getElementById('outQty').value);
   const outReqSel = document.getElementById('outRequesterSelect');
-  const outReqInp = document.getElementById('outRequester');
-  const requester = (outReqSel && outReqSel.value !== '__CUSTOM__' && outReqSel.value) ? outReqSel.value : (outReqInp ? outReqInp.value.trim() : '');
+  const requester = outReqSel ? outReqSel.value : '';
 
   const outUsedSel = document.getElementById('outUsedForSelect');
-  const outUsedInp = document.getElementById('outUsedFor');
-  const usedFor = (outUsedSel && outUsedSel.value !== '__CUSTOM__' && outUsedSel.value) ? outUsedSel.value : (outUsedInp ? outUsedInp.value.trim() : '');
-  const issuedBy = document.getElementById('outIssuedBy').value;
-  const remark = document.getElementById('outRemark').value;
+  const usedFor = outUsedSel ? outUsedSel.value : '';
+
+  const outIssSel = document.getElementById('outIssuedBySelect');
+  const issuedBy = outIssSel ? outIssSel.value : '';
+
+  const remark = (document.getElementById('outVoucherRemark') ? document.getElementById('outVoucherRemark').value : '').trim();
+
+  if (!requester) {
+    Swal.fire('กรุณาระบุข้อมูล', 'กรุณาเลือกช่างผู้ขอเบิกจากรายชื่อบุคลากร', 'warning');
+    return;
+  }
+  if (!usedFor) {
+    Swal.fire('กรุณาระบุข้อมูล', 'กรุณาเลือกเครื่องจักรหรือจุดใช้งาน', 'warning');
+    return;
+  }
+  if (!issuedBy) {
+    Swal.fire('กรุณาระบุข้อมูล', 'กรุณาเลือกเจ้าหน้าที่ผู้จ่ายจากรายชื่อบุคลากร', 'warning');
+    return;
+  }
+
+  // Validate items
+  const validItems = batchIssueItems.filter(it => it.partNumber && parseFloat(it.qty) > 0);
+  if (validItems.length === 0) {
+    Swal.fire('ไม่มีรายการอะไหล่', 'กรุณาเลือกอะไหล่และระบุจำนวนที่ขอเบิกอย่างน้อย 1 รายการ', 'warning');
+    return;
+  }
+
+  // Check any tool item or over-stock
+  const parts = appState.db.parts || [];
+  for (const it of validItems) {
+    const part = parts.find(p => p.partNumber === it.partNumber);
+    if (!part) {
+      Swal.fire('ข้อผิดพลาด', `ไม่พบอะไหล่รหัส ${it.partNumber}`, 'error');
+      return;
+    }
+    if (isPartTool(part)) {
+      Swal.fire('ไม่อนุญาตให้เบิก', `"${part.partName}" เป็นเครื่องมือช่าง ไม่อนุญาตให้เบิกตัดสต็อก`, 'warning');
+      return;
+    }
+    if (parseFloat(it.qty) > (part.currentStock || 0)) {
+      Swal.fire('เบิกเกินยอดคงเหลือ', `"${part.partName}" มีเพียง ${part.currentStock || 0} ${part.unit} แต่ขอเบิก ${it.qty} ${part.unit}`, 'error');
+      return;
+    }
+  }
 
   try {
     const res = await fetch('/api/stock-issue', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ partNumber, quantity, requester, usedFor, issuedBy, remark })
+      body: JSON.stringify({
+        items: validItems.map(it => ({
+          partNumber: it.partNumber,
+          quantity: parseFloat(it.qty)
+        })),
+        requester,
+        usedFor,
+        issuedBy,
+        remark
+      })
     });
+
     const result = await res.json();
     if (res.ok && result.success) {
-      if (result.warning) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'เบิกจ่ายสำเร็จ แต่มีคำเตือนสต็อก!',
-          html: `<p>${result.message}</p><p class="mt-2 text-rose-600 font-bold">${result.warning}</p>`,
-          confirmButtonText: 'รับทราบ'
-        }).then(() => {
-          refreshData();
-          switchTab('dashboard');
-        });
-      } else {
-        Swal.fire({
-          icon: 'success',
-          title: 'เบิกอะไหล่สำเร็จ!',
-          text: result.message,
-          confirmButtonText: 'ตกลง'
-        }).then(() => {
-          refreshData();
-          switchTab('dashboard');
-        });
+      let warningHtml = '';
+      if (result.warnings && result.warnings.length > 0) {
+        warningHtml = `<div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl text-left text-xs text-amber-800 space-y-1">
+          <strong class="text-amber-900 block font-semibold">⚠️ คำเตือนสต็อก:</strong>
+          ${result.warnings.map(w => `<div>• ${w}</div>`).join('')}
+        </div>`;
       }
+
+      Swal.fire({
+        icon: result.warnings ? 'warning' : 'success',
+        title: 'เบิกจ่ายอะไหล่สำเร็จ!',
+        html: `<p class="font-semibold text-slate-800">${result.message}</p>
+               <p class="text-xs text-slate-500 mt-1 font-mono">เลขที่ใบเบิก: ${result.transactionNo}</p>
+               ${warningHtml}`,
+        confirmButtonText: 'ตกลง'
+      }).then(() => {
+        refreshData();
+        switchTab('dashboard');
+      });
     } else {
       Swal.fire('ปฏิเสธการเบิก', result.error || 'ไม่สามารถทำการเบิกอะไหล่ได้', 'error');
     }
@@ -1792,6 +2123,7 @@ async function handleStockIssueSubmit(e) {
     Swal.fire('Error', err.message, 'error');
   }
 }
+
 
 // Quick Stock Helpers
 function quickStockIn(partCode) {
@@ -1868,15 +2200,16 @@ function renderStockReturn(container) {
 
           <div>
             <label class="block font-semibold text-slate-700 mb-1">ผู้ส่งคืน (Returned By) <span class="text-rose-500">*</span></label>
-            <select id="retReturnedBySelect" onchange="onStockReturnByChange(this)" required class="w-full border border-slate-300 rounded-lg p-2 bg-white font-medium cursor-pointer">
+            <select id="retReturnedBySelect" required class="w-full border border-slate-300 rounded-lg p-2 bg-white font-medium cursor-pointer">
               ${getPersonnelSelectOptions()}
             </select>
-            <input type="text" id="retReturnedBy" placeholder="หรือพิมพ์ชื่อช่างผู้คืนเอง..." class="hidden mt-1.5 w-full border border-slate-300 rounded-lg p-2 text-xs">
           </div>
 
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">ผู้รับคืน (Received By)</label>
-            <input type="text" id="retReceivedBy" value="${appState.currentUser.name}" class="w-full border border-slate-300 rounded-lg p-2">
+            <label class="block font-semibold text-slate-700 mb-1">ผู้รับคืน (Received By) <span class="text-rose-500">*</span></label>
+            <select id="retReceivedBySelect" required class="w-full border border-slate-300 rounded-lg p-2 bg-white font-medium cursor-pointer">
+              ${getPersonnelSelectOptions(appState.currentUser.name)}
+            </select> p-2">
           </div>
 
           <div class="sm:col-span-2">
@@ -1926,9 +2259,9 @@ async function handleStockReturnSubmit(e) {
   const originalIssueNo = document.getElementById('retOrigIssue').value;
   const workOrder = document.getElementById('retWorkOrder').value;
   const retBySel = document.getElementById('retReturnedBySelect');
-  const retByInp = document.getElementById('retReturnedBy');
-  const returnedBy = (retBySel && retBySel.value !== '__CUSTOM__' && retBySel.value) ? retBySel.value : (retByInp ? retByInp.value.trim() : '');
-  const receivedBy = document.getElementById('retReceivedBy').value;
+  const returnedBy = retBySel ? retBySel.value : '';
+  const retRecSel = document.getElementById('retReceivedBySelect');
+  const receivedBy = retRecSel ? retRecSel.value : '';
   const remark = document.getElementById('retRemark').value;
 
   try {
@@ -4340,7 +4673,7 @@ function getPersonnelSelectOptions(selectedName = '') {
     }
   });
 
-  options += '<option value="__CUSTOM__">✏️ พิมพ์ชื่ออื่น (ไม่ได้อยู่ในรายชื่อ)...</option>';
+
   return options;
 }
 
@@ -4363,23 +4696,10 @@ function getMachineSelectOptions(selectedMachine = '') {
 
 // Dropdown Change Handlers
 function onBorrowerSelectChange(selectEl) {
-  const customInput = document.getElementById('borrowerNameInput');
   const deptInput = document.getElementById('borrowerDeptInput');
-  if (selectEl.value === '__CUSTOM__') {
-    if (customInput) {
-      customInput.classList.remove('hidden');
-      customInput.value = '';
-      customInput.focus();
-    }
-  } else {
-    if (customInput) {
-      customInput.classList.add('hidden');
-      customInput.value = selectEl.value;
-    }
-    const selectedOpt = selectEl.options[selectEl.selectedIndex];
-    if (selectedOpt && selectedOpt.dataset.dept && deptInput) {
-      deptInput.value = selectedOpt.dataset.dept;
-    }
+  const selectedOpt = selectEl.options[selectEl.selectedIndex];
+  if (selectedOpt && selectedOpt.dataset.dept && deptInput) {
+    deptInput.value = selectedOpt.dataset.dept;
   }
 }
 
@@ -4400,23 +4720,10 @@ function onBorrowMachineSelectChange(selectEl) {
 }
 
 function onEditLoanBorrowerSelectChange(selectEl) {
-  const customInput = document.getElementById('editLoanBorrowerName');
   const deptInput = document.getElementById('editLoanBorrowerDept');
-  if (selectEl.value === '__CUSTOM__') {
-    if (customInput) {
-      customInput.classList.remove('hidden');
-      customInput.value = '';
-      customInput.focus();
-    }
-  } else {
-    if (customInput) {
-      customInput.classList.add('hidden');
-      customInput.value = selectEl.value;
-    }
-    const selectedOpt = selectEl.options[selectEl.selectedIndex];
-    if (selectedOpt && selectedOpt.dataset.dept && deptInput) {
-      deptInput.value = selectedOpt.dataset.dept;
-    }
+  const selectedOpt = selectEl.options[selectEl.selectedIndex];
+  if (selectedOpt && selectedOpt.dataset.dept && deptInput) {
+    deptInput.value = selectedOpt.dataset.dept;
   }
 }
 
@@ -5038,10 +5345,9 @@ async function handleSaveBorrowTool(e) {
   const toolNameRaw = document.getElementById('borrowToolNameInput').value;
   const toolCode = document.getElementById('borrowToolCodeInput').value;
   
-  // Borrower from Select or Custom Input
+  // Borrower strictly from Personnel Master
   const bSelect = document.getElementById('borrowerNameSelect');
-  const bInput = document.getElementById('borrowerNameInput');
-  const borrowerName = (bSelect && bSelect.value !== '__CUSTOM__' && bSelect.value) ? bSelect.value : (bInput ? bInput.value.trim() : '');
+  const borrowerName = (bSelect && bSelect.value) ? bSelect.value.trim() : '';
   const borrowerDept = document.getElementById('borrowerDeptInput').value;
   
   // Machine from Select or Custom Input
@@ -5200,22 +5506,13 @@ function openEditToolLoanModal(loanId) {
   document.getElementById('editLoanToolName').value = loan.toolName;
   document.getElementById('editLoanToolCode').value = loan.toolCode || 'CUSTOM';
 
-  // Borrower Select & Input
+  // Borrower Select (Strict Personnel Master)
   const bSelect = document.getElementById('editLoanBorrowerSelect');
-  const bInput = document.getElementById('editLoanBorrowerName');
   if (bSelect) {
     bSelect.innerHTML = getPersonnelSelectOptions(loan.borrowerName);
-    if (bSelect.value === loan.borrowerName) {
-      if (bInput) {
-        bInput.value = loan.borrowerName;
-        bInput.classList.add('hidden');
-      }
-    } else {
-      bSelect.value = '__CUSTOM__';
-      if (bInput) {
-        bInput.value = loan.borrowerName;
-        bInput.classList.remove('hidden');
-      }
+    if (loan.borrowerName && bSelect.value !== loan.borrowerName) {
+      bSelect.innerHTML += `<option value="${loan.borrowerName}" selected>${loan.borrowerName}</option>`;
+      bSelect.value = loan.borrowerName;
     }
   }
   document.getElementById('editLoanBorrowerDept').value = loan.borrowerDept || 'ฝ่ายซ่อมบำรุง';
@@ -5290,8 +5587,7 @@ async function handleSaveEditToolLoan(e) {
   const toolCode = document.getElementById('editLoanToolCode').value;
 
   const bSelect = document.getElementById('editLoanBorrowerSelect');
-  const bInput = document.getElementById('editLoanBorrowerName');
-  const borrowerName = (bSelect && bSelect.value !== '__CUSTOM__' && bSelect.value) ? bSelect.value : (bInput ? bInput.value.trim() : '');
+  const borrowerName = (bSelect && bSelect.value) ? bSelect.value.trim() : '';
   const borrowerDept = document.getElementById('editLoanBorrowerDept').value;
 
   const mSelect = document.getElementById('editLoanMachineSelect');
@@ -5946,5 +6242,13 @@ async function confirmDeleteMachine(code) {
     });
   } catch (err) {
     Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
+  }
+}
+
+
+function onEditPartCategoryTypeChange(val) {
+  const condContainer = document.getElementById('editToolConditionContainer');
+  if (condContainer) {
+    condContainer.classList.toggle('hidden', val !== 'Tool');
   }
 }

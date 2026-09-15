@@ -101,6 +101,15 @@ function readRequestBody(req) {
   });
 }
 
+
+// Helper to check if a part is classified as a Tool / Equipment
+function isToolItem(part) {
+  if (!part) return false;
+  if (part.categoryType === 'Tool' || part.itemType === 'Tool') return true;
+  if (part.category === 'Tool') return true;
+  return false;
+}
+
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
@@ -215,6 +224,8 @@ const server = http.createServer(async (req, res) => {
           db.parts[existingIdx] = {
             ...oldPart,
             ...payload,
+            categoryType: payload.categoryType || oldPart.categoryType || 'Spare Part',
+            toolCondition: payload.toolCondition !== undefined ? payload.toolCondition : (oldPart.toolCondition || (payload.categoryType === 'Tool' ? 'Operational' : null)),
             currentStock: payload.currentStock !== undefined ? parseFloat(payload.currentStock) : oldPart.currentStock,
             minStock: payload.minStock !== undefined ? parseFloat(payload.minStock) : oldPart.minStock,
             maxStock: payload.maxStock !== undefined ? parseFloat(payload.maxStock) : oldPart.maxStock,
@@ -325,173 +336,249 @@ const server = http.createServer(async (req, res) => {
         });
       }
 
-      // POST /api/stock-in - Receive parts into Tool Room (Streamlined: Fast & Simple)
+      // POST /api/stock-in - Receive parts (Batch support up to 10 items)
       if (pathname === '/api/stock-in' && method === 'POST') {
         const data = await readRequestBody(req);
-        const { partNumber, quantity, unitCost, receiver, remark } = data;
-        const qty = parseFloat(quantity);
+        const { receiver, remark } = data;
 
-        if (!partNumber || isNaN(qty) || qty <= 0) {
-          return sendJSON(res, 400, { error: 'กรุณาระบุรหัสอะไหล่และจำนวนที่ถูกต้อง (> 0)' });
+        // Support both batch items array or single item
+        let rawItems = [];
+        if (data.items && Array.isArray(data.items)) {
+          rawItems = data.items;
+        } else if (data.partNumber) {
+          rawItems = [{ partNumber: data.partNumber, quantity: data.quantity, unitCost: data.unitCost }];
         }
 
-        const part = db.parts.find(p => p.partNumber === partNumber);
-        if (!part) {
-          return sendJSON(res, 404, { error: `ไม่พบอะไหล่รหัส: ${partNumber}` });
+        if (rawItems.length === 0) {
+          return sendJSON(res, 400, { error: 'กรุณาระบุรายการอะไหล่ที่ต้องการรับเข้าอย่างน้อย 1 รายการ' });
+        }
+        if (rawItems.length > 10) {
+          return sendJSON(res, 400, { error: 'สามารถทำรายการรับเข้าได้สูงสุดครั้งละไม่เกิน 10 รายการ' });
         }
 
-        const prevQty = part.currentStock || 0;
-        const newQty = prevQty + qty;
-        part.currentStock = newQty;
-        if (unitCost !== undefined && unitCost !== '' && !isNaN(parseFloat(unitCost))) {
-          part.unitCost = parseFloat(unitCost);
+        // Validate all items first
+        const validatedItems = [];
+        for (let i = 0; i < rawItems.length; i++) {
+          const it = rawItems[i];
+          const qty = parseFloat(it.quantity);
+          if (!it.partNumber || isNaN(qty) || qty <= 0) {
+            return sendJSON(res, 400, { error: `รายการที่ ${i + 1}: รหัสอะไหล่หรือจำนวนรับเข้าไม่ถูกต้อง (> 0)` });
+          }
+          const part = db.parts.find(p => p.partNumber === it.partNumber);
+          if (!part) {
+            return sendJSON(res, 404, { error: `รายการที่ ${i + 1}: ไม่พบอะไหล่รหัส ${it.partNumber} ในระบบ` });
+          }
+          const unitCost = (it.unitCost !== undefined && it.unitCost !== '' && !isNaN(parseFloat(it.unitCost))) ? parseFloat(it.unitCost) : null;
+          validatedItems.push({ part, qty, unitCost });
         }
-        part.lastPurchaseDate = new Date().toISOString().split('T')[0];
 
+        // Process all items in single transaction
         const transNo = `IN-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${String(Date.now()).slice(-4)}`;
         const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
+        const processedResults = [];
 
-        // Add Movement
-        const movItem = {
-          id: `MOV-${Date.now()}`,
-          transactionNo: transNo,
-          date: nowStr,
-          type: 'IN',
-          partNumber: part.partNumber,
-          partName: part.partName,
-          qtyIn: qty,
-          qtyOut: 0,
-          balance: newQty,
-          machine: 'Tool Room',
-          user: receiver || 'เจ้าหน้าที่ห้องอะไหล่',
-          refDoc: 'รับเข้าสโตร์',
-          note: remark || 'รับเข้าห้องอะไหล่ Tool Room'
-        };
-        db.movements.unshift(movItem);
+        for (const item of validatedItems) {
+          const { part, qty, unitCost } = item;
+          const prevQty = part.currentStock || 0;
+          const newQty = prevQty + qty;
+          part.currentStock = newQty;
+          if (unitCost !== null) {
+            part.unitCost = unitCost;
+          }
+          part.lastPurchaseDate = new Date().toISOString().split('T')[0];
 
-        // Add Audit Log
-        const auditItem = {
-          id: `AUD-${Date.now()}`,
-          timestamp: nowStr,
-          user: receiver || 'เจ้าหน้าที่ห้องอะไหล่',
-          action: 'STOCK_IN',
-          partNumber: part.partNumber,
-          previousQty: prevQty,
-          newQty: newQty,
-          difference: qty,
-          reason: `รับอะไหล่เข้าห้อง Tool Room (+${qty} ${part.unit}) ${remark ? '- ' + remark : ''}`,
-          reference: transNo
-        };
-        db.auditLogs.unshift(auditItem);
+          // Add Movement
+          const movItem = {
+            id: `MOV-${Date.now()}-${part.partNumber}`,
+            transactionNo: transNo,
+            date: nowStr,
+            type: 'IN',
+            partNumber: part.partNumber,
+            partName: part.partName,
+            qtyIn: qty,
+            qtyOut: 0,
+            balance: newQty,
+            machine: 'Tool Room',
+            user: receiver || 'เจ้าหน้าที่ห้องอะไหล่',
+            refDoc: `รับเข้าสโตร์ (ชุด ${validatedItems.length} รายการ)`,
+            note: remark || 'รับเข้าห้องอะไหล่ Tool Room'
+          };
+          db.movements.unshift(movItem);
+
+          // Add Audit Log
+          const auditItem = {
+            id: `AUD-${Date.now()}-${part.partNumber}`,
+            timestamp: nowStr,
+            user: receiver || 'เจ้าหน้าที่ห้องอะไหล่',
+            action: 'STOCK_IN',
+            partNumber: part.partNumber,
+            previousQty: prevQty,
+            newQty: newQty,
+            difference: qty,
+            reason: `รับอะไหล่เข้าห้อง Tool Room (+ ${qty} ${part.unit}) ${remark ? '- ' + remark : ''}`,
+            reference: transNo
+          };
+          db.auditLogs.unshift(auditItem);
+
+          processedResults.push({
+            partNumber: part.partNumber,
+            partName: part.partName,
+            qty,
+            unit: part.unit,
+            newBalance: newQty
+          });
+        }
 
         saveDB(db);
         broadcastEvent('STOCK_IN', {
-          partNumber: part.partNumber,
-          partName: part.partName,
-          qtyIn: qty,
-          newBalance: newQty,
+          transactionNo: transNo,
+          itemCount: validatedItems.length,
+          items: processedResults,
           user: receiver || 'เจ้าหน้าที่ห้องอะไหล่'
         });
 
         return sendJSON(res, 200, {
           success: true,
-          message: `รับอะไหล่ ${part.partName} จำนวน +${qty} ${part.unit} สำเร็จ (ยอดคงเหลือใหม่: ${newQty} ${part.unit})`,
+          message: `รับอะไหล่เข้าคลังสำเร็จ ${validatedItems.length} รายการ (เลขที่เอกสาร: ${transNo})`,
           transactionNo: transNo,
-          newBalance: newQty,
-          part
+          itemCount: validatedItems.length,
+          items: processedResults
         });
       }
 
-      // POST /api/stock-issue - Issue parts (Streamlined & fast for Tool Room)
+      // POST /api/stock-issue - Issue parts (Batch support up to 10 items & Tool category blocking)
       if (pathname === '/api/stock-issue' && method === 'POST') {
         const data = await readRequestBody(req);
-        const { partNumber, quantity, requester, usedFor, issuedBy, remark } = data;
-        const qty = parseFloat(quantity);
+        const { requester, usedFor, issuedBy, remark } = data;
 
-        if (!partNumber || isNaN(qty) || qty <= 0) {
-          return sendJSON(res, 400, { error: 'กรุณาระบุรหัสอะไหล่และจำนวนที่ต้องการเบิก (> 0)' });
+        // Support both batch items array or single item
+        let rawItems = [];
+        if (data.items && Array.isArray(data.items)) {
+          rawItems = data.items;
+        } else if (data.partNumber) {
+          rawItems = [{ partNumber: data.partNumber, quantity: data.quantity }];
         }
 
-        const part = db.parts.find(p => p.partNumber === partNumber);
-        if (!part) {
-          return sendJSON(res, 404, { error: `ไม่พบอะไหล่รหัส: ${partNumber}` });
+        if (rawItems.length === 0) {
+          return sendJSON(res, 400, { error: 'กรุณาระบุรายการอะไหล่ที่ต้องการเบิกอย่างน้อย 1 รายการ' });
+        }
+        if (rawItems.length > 10) {
+          return sendJSON(res, 400, { error: 'สามารถทำรายการเบิกได้สูงสุดครั้งละไม่เกิน 10 รายการ' });
         }
 
-        // Rule: Cannot issue more than current stock!
-        const current = part.currentStock || 0;
-        if (qty > current) {
-          return sendJSON(res, 400, {
-            error: `ไม่อนุญาตให้เบิกเกินยอดคงเหลือ! มีอะไหล่อยู่ในสต็อก ${current} ${part.unit} แต่ขอยืม/เบิก ${qty} ${part.unit}`,
-            currentStock: current
+        // Validate all items first
+        const validatedItems = [];
+        for (let i = 0; i < rawItems.length; i++) {
+          const it = rawItems[i];
+          const qty = parseFloat(it.quantity);
+          if (!it.partNumber || isNaN(qty) || qty <= 0) {
+            return sendJSON(res, 400, { error: `รายการที่ ${i + 1}: รหัสอะไหล่หรือจำนวนที่ขอเบิกไม่ถูกต้อง (> 0)` });
+          }
+
+          const part = db.parts.find(p => p.partNumber === it.partNumber);
+          if (!part) {
+            return sendJSON(res, 404, { error: `รายการที่ ${i + 1}: ไม่พบอะไหล่รหัส ${it.partNumber} ในระบบ` });
+          }
+
+          // Rule 1: Tool Category Blocking (Prevent tool issuance via stock-issue)
+          if (isToolItem(part)) {
+            return sendJSON(res, 400, {
+              error: `ไม่อนุญาตให้เบิกตัดสต็อก "${part.partName}" (${part.partNumber}) เนื่องจากจัดเป็น "เครื่องมือช่าง & อุปกรณ์" กรุณาใช้เมนู "ยืม-คืนเครื่องมือ" แทน`,
+              isTool: true
+            });
+          }
+
+          // Rule 2: Cannot issue more than current stock!
+          const current = part.currentStock || 0;
+          if (qty > current) {
+            return sendJSON(res, 400, {
+              error: `รายการ "${part.partName}" (${part.partNumber}) ไม่อนุญาตให้เบิกเกินยอดคงเหลือ! ในสต็อกมีเพียง ${current} ${part.unit} แต่ขอเบิก ${qty} ${part.unit}`,
+              currentStock: current,
+              partNumber: part.partNumber
+            });
+          }
+
+          validatedItems.push({ part, qty });
+        }
+
+        // Process all items in single transaction
+        const transNo = `ISS-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${String(Date.now()).slice(-4)}`;
+        const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
+        const warnings = [];
+        const processedResults = [];
+
+        for (const item of validatedItems) {
+          const { part, qty } = item;
+          const prevQty = part.currentStock || 0;
+          const newQty = prevQty - qty;
+          part.currentStock = newQty;
+          part.lastIssueDate = new Date().toISOString().split('T')[0];
+
+          if (newQty <= 0) {
+            warnings.push(`อะไหล่ ${part.partName} (${part.partNumber}) หมดสต็อกแล้ว (Stock = 0)!`);
+          } else if (newQty <= (part.reorderPoint || 10)) {
+            warnings.push(`อะไหล่ ${part.partName} ถึงจุดสั่งซื้อซ้ำแล้ว (คงเหลือ ${newQty} <= ${part.reorderPoint} ${part.unit})`);
+          } else if (newQty <= (part.minStock || 5)) {
+            warnings.push(`อะไหล่ ${part.partName} ต่ำกว่า Minimum Stock (คงเหลือ ${newQty} <= ${part.minStock} ${part.unit})`);
+          }
+
+          // Add Movement
+          const movItem = {
+            id: `MOV-${Date.now()}-${part.partNumber}`,
+            transactionNo: transNo,
+            date: nowStr,
+            type: 'OUT',
+            partNumber: part.partNumber,
+            partName: part.partName,
+            qtyIn: 0,
+            qtyOut: qty,
+            balance: newQty,
+            machine: usedFor || 'Tool Room Consumable',
+            user: requester ? `${requester} (จ่าย: ${issuedBy || 'Store'})` : (issuedBy || 'Store'),
+            refDoc: usedFor ? `งาน: ${usedFor}` : '-',
+            note: remark || 'เบิกใช้งาน'
+          };
+          db.movements.unshift(movItem);
+
+          // Add Audit Log
+          const auditItem = {
+            id: `AUD-${Date.now()}-${part.partNumber}`,
+            timestamp: nowStr,
+            user: issuedBy || 'Store',
+            action: 'STOCK_ISSUE',
+            partNumber: part.partNumber,
+            previousQty: prevQty,
+            newQty: newQty,
+            difference: -qty,
+            reason: `เบิกใช้งาน (${usedFor || 'งานซ่อมบำรุง'}) โดยช่าง: ${requester || '-'}`,
+            reference: transNo
+          };
+          db.auditLogs.unshift(auditItem);
+
+          processedResults.push({
+            partNumber: part.partNumber,
+            partName: part.partName,
+            qty,
+            unit: part.unit,
+            newBalance: newQty
           });
         }
 
-        const prevQty = current;
-        const newQty = prevQty - qty;
-        part.currentStock = newQty;
-        part.lastIssueDate = new Date().toISOString().split('T')[0];
-
-        let warning = null;
-        if (newQty <= 0) {
-          warning = `คำเตือน: อะไหล่ ${part.partName} (${part.partNumber}) หมดสต็อกแล้ว (Stock = 0)!`;
-        } else if (newQty <= (part.reorderPoint || 10)) {
-          warning = `คำเตือน: อะไหล่ ${part.partName} ถึงจุดสั่งซื้อซ้ำแล้ว (คงเหลือ ${newQty} <= จุดสั่งซื้อ ${part.reorderPoint} ${part.unit})!`;
-        } else if (newQty <= (part.minStock || 5)) {
-          warning = `คำเตือน: อะไหล่ ${part.partName} ต่ำกว่า Minimum Stock (คงเหลือ ${newQty} <= Min ${part.minStock} ${part.unit})!`;
-        }
-
-        const transNo = `ISS-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${String(Date.now()).slice(-4)}`;
-        const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
-
-        // Add Movement
-        const movItem = {
-          id: `MOV-${Date.now()}`,
-          transactionNo: transNo,
-          date: nowStr,
-          type: 'OUT',
-          partNumber: part.partNumber,
-          partName: part.partName,
-          qtyIn: 0,
-          qtyOut: qty,
-          balance: newQty,
-          machine: usedFor || 'Tool Room Consumable',
-          user: requester ? `${requester} (จ่าย: ${issuedBy || 'Store'})` : (issuedBy || 'Store'),
-          refDoc: usedFor ? `งาน: ${usedFor}` : '-',
-          note: remark || 'เบิกใช้งาน'
-        };
-        db.movements.unshift(movItem);
-
-        // Add Audit Log
-        const auditItem = {
-          id: `AUD-${Date.now()}`,
-          timestamp: nowStr,
-          user: issuedBy || 'Store',
-          action: 'STOCK_ISSUE',
-          partNumber: part.partNumber,
-          previousQty: prevQty,
-          newQty: newQty,
-          difference: -qty,
-          reason: `เบิกใช้งาน (${usedFor || 'งานซ่อมบำรุง/งานช่าง'}) โดยช่าง: ${requester || '-'}`,
-          reference: transNo
-        };
-        db.auditLogs.unshift(auditItem);
-
         saveDB(db);
         broadcastEvent('STOCK_ISSUE', {
-          partNumber: part.partNumber,
-          partName: part.partName,
-          qtyOut: qty,
-          newBalance: newQty,
+          transactionNo: transNo,
+          itemCount: validatedItems.length,
+          items: processedResults,
           user: requester || issuedBy || 'Store'
         });
 
         return sendJSON(res, 200, {
           success: true,
-          message: `เบิกอะไหล่ ${part.partName} จำนวน -${qty} ${part.unit} สำเร็จ (คงเหลือ: ${newQty} ${part.unit})`,
+          message: `เบิกจ่ายอะไหล่สำเร็จ ${validatedItems.length} รายการ (เลขที่ใบเบิก: ${transNo})`,
           transactionNo: transNo,
-          newBalance: newQty,
-          warning,
-          part
+          itemCount: validatedItems.length,
+          items: processedResults,
+          warnings: warnings.length > 0 ? warnings : null
         });
       }
 

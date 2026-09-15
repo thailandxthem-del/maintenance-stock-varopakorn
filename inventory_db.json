@@ -1,6 +1,6 @@
 {
-  "version": 1789455829530,
-  "lastUpdated": "2026-09-15T07:03:49.530Z",
+  "version": 1789464125194,
+  "lastUpdated": "2026-09-15T09:22:05.194Z",
   "users": [
     {
       "id": "U-001",
@@ -129,7 +129,7 @@
   "parts": [
     {
       "id": "P-0377",
-      "currentStock": 0,
+      "currentStock": 3,
       "minStock": 5,
       "maxStock": 20,
       "reorderPoint": 8,
@@ -140,11 +140,15 @@
       "partName": "ปากกา",
       "category": "Tool Room Consumables",
       "machineCode": "TOOL-ROOM",
-      "unitCost": 15,
+      "unitCost": 20,
       "remark": "",
       "isCritical": false,
       "editedBy": "วีระ หลังบ้าน",
-      "editReason": "เพิ่มรายการอะไหล่ Tool Room ใหม่"
+      "editReason": "เพิ่มรายการอะไหล่ Tool Room ใหม่",
+      "categoryType": "Spare Part",
+      "toolCondition": null,
+      "lastPurchaseDate": "2026-09-15",
+      "lastIssueDate": "2026-09-15"
     },
     {
       "id": "P-0001",
@@ -164,7 +168,7 @@
       "shelf": "S01",
       "bin": "B03",
       "location": "A-R01-S01-B01",
-      "currentStock": 44,
+      "currentStock": 51,
       "minStock": 20,
       "maxStock": 200,
       "reorderPoint": 15,
@@ -172,15 +176,17 @@
       "criticalityLevel": "C",
       "leadTimeDays": 5,
       "supplier": "หจก. สหอุตสาหกรรมสลักภัณฑ์",
-      "unitCost": 15.5,
+      "unitCost": 35,
       "currency": "THB",
-      "lastPurchaseDate": "2026-09-14",
-      "lastIssueDate": "2026-09-14",
+      "lastPurchaseDate": "2026-09-15",
+      "lastIssueDate": "2026-09-15",
       "status": "Active",
       "imageUrl": "",
       "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
       "editReason": "ปรับปรุงชื่อและราคาโดย Data Editor",
-      "editedBy": "วีระ หลังบ้าน"
+      "editedBy": "วีระ หลังบ้าน",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0002",
@@ -214,7 +220,9 @@
       "lastIssueDate": "2026-09-10",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0003",
@@ -248,7 +256,9 @@
       "lastIssueDate": "2026-09-09",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0004",
@@ -282,7 +292,9 @@
       "lastIssueDate": "2026-09-08",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0005",
@@ -316,7 +328,9 @@
       "lastIssueDate": "2026-09-07",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0006",
@@ -350,7 +364,9 @@
       "lastIssueDate": "2026-09-06",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0007",
@@ -384,7 +400,9 @@
       "lastIssueDate": "2026-09-05",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0008",
@@ -418,7 +436,9 @@
       "lastIssueDate": "2026-09-04",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0009",
@@ -452,7 +472,9 @@
       "lastIssueDate": "2026-09-03",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0010",
@@ -486,7 +508,9 @@
       "lastIssueDate": "2026-09-02",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0011",
@@ -520,7 +544,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0012",
@@ -554,7 +580,9 @@
       "lastIssueDate": "2026-08-31",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0013",
@@ -588,7 +616,9 @@
       "lastIssueDate": "2026-08-30",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0014",
@@ -622,7 +652,9 @@
       "lastIssueDate": "2026-08-29",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0015",
@@ -656,7 +688,9 @@
       "lastIssueDate": "2026-08-28",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0016",
@@ -690,7 +724,9 @@
       "lastIssueDate": "2026-08-27",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0017",
@@ -724,7 +760,9 @@
       "lastIssueDate": "2026-08-26",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0018",
@@ -758,7 +796,9 @@
       "lastIssueDate": "2026-08-25",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0019",
@@ -792,7 +832,9 @@
       "lastIssueDate": "2026-08-24",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0020",
@@ -826,7 +868,9 @@
       "lastIssueDate": "2026-08-23",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0021",
@@ -860,7 +904,9 @@
       "lastIssueDate": "2026-08-22",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0022",
@@ -894,7 +940,9 @@
       "lastIssueDate": "2026-08-21",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0023",
@@ -928,7 +976,9 @@
       "lastIssueDate": "2026-08-20",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0024",
@@ -962,7 +1012,9 @@
       "lastIssueDate": "2026-09-13",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0025",
@@ -996,7 +1048,9 @@
       "lastIssueDate": "2026-09-12",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0026",
@@ -1030,7 +1084,9 @@
       "lastIssueDate": "2026-09-11",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0027",
@@ -1064,7 +1120,9 @@
       "lastIssueDate": "2026-09-10",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0028",
@@ -1098,7 +1156,9 @@
       "lastIssueDate": "2026-09-09",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0029",
@@ -1132,7 +1192,9 @@
       "lastIssueDate": "2026-09-08",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0030",
@@ -1166,7 +1228,9 @@
       "lastIssueDate": "2026-09-07",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0031",
@@ -1200,7 +1264,9 @@
       "lastIssueDate": "2026-09-06",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0032",
@@ -1234,7 +1300,9 @@
       "lastIssueDate": "2026-09-05",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0033",
@@ -1268,7 +1336,9 @@
       "lastIssueDate": "2026-09-04",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0034",
@@ -1302,7 +1372,9 @@
       "lastIssueDate": "2026-09-03",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0035",
@@ -1336,7 +1408,9 @@
       "lastIssueDate": "2026-09-02",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0036",
@@ -1370,7 +1444,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0037",
@@ -1404,7 +1480,9 @@
       "lastIssueDate": "2026-08-31",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0038",
@@ -1438,7 +1516,9 @@
       "lastIssueDate": "2026-08-30",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0039",
@@ -1472,7 +1552,9 @@
       "lastIssueDate": "2026-08-29",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0040",
@@ -1506,7 +1588,9 @@
       "lastIssueDate": "2026-08-28",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0041",
@@ -1540,7 +1624,9 @@
       "lastIssueDate": "2026-08-27",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0042",
@@ -1574,7 +1660,9 @@
       "lastIssueDate": "2026-08-26",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0043",
@@ -1608,7 +1696,9 @@
       "lastIssueDate": "2026-08-25",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0044",
@@ -1642,7 +1732,9 @@
       "lastIssueDate": "2026-08-24",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0045",
@@ -1676,7 +1768,9 @@
       "lastIssueDate": "2026-08-23",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0046",
@@ -1710,7 +1804,9 @@
       "lastIssueDate": "2026-08-22",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0047",
@@ -1744,7 +1840,9 @@
       "lastIssueDate": "2026-09-13",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0048",
@@ -1778,7 +1876,9 @@
       "lastIssueDate": "2026-09-12",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0049",
@@ -1812,7 +1912,9 @@
       "lastIssueDate": "2026-09-11",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0050",
@@ -1846,7 +1948,9 @@
       "lastIssueDate": "2026-09-10",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0051",
@@ -1880,7 +1984,9 @@
       "lastIssueDate": "2026-09-09",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0052",
@@ -1914,7 +2020,9 @@
       "lastIssueDate": "2026-09-08",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0053",
@@ -1948,7 +2056,9 @@
       "lastIssueDate": "2026-09-07",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0054",
@@ -1982,7 +2092,9 @@
       "lastIssueDate": "2026-09-06",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0055",
@@ -2016,7 +2128,9 @@
       "lastIssueDate": "2026-09-05",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0056",
@@ -2050,7 +2164,9 @@
       "lastIssueDate": "2026-09-04",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0057",
@@ -2084,7 +2200,9 @@
       "lastIssueDate": "2026-09-03",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0058",
@@ -2118,7 +2236,9 @@
       "lastIssueDate": "2026-09-02",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0059",
@@ -2152,7 +2272,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0060",
@@ -2186,7 +2308,9 @@
       "lastIssueDate": "2026-08-31",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0061",
@@ -2220,7 +2344,9 @@
       "lastIssueDate": "2026-08-30",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0062",
@@ -2254,7 +2380,9 @@
       "lastIssueDate": "2026-08-29",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0063",
@@ -2288,7 +2416,9 @@
       "lastIssueDate": "2026-08-28",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0064",
@@ -2322,7 +2452,9 @@
       "lastIssueDate": "2026-08-27",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0065",
@@ -2356,7 +2488,9 @@
       "lastIssueDate": "2026-08-26",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0066",
@@ -2390,7 +2524,9 @@
       "lastIssueDate": "2026-08-25",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0067",
@@ -2424,7 +2560,9 @@
       "lastIssueDate": "2026-08-24",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0068",
@@ -2458,7 +2596,9 @@
       "lastIssueDate": "2026-08-23",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0069",
@@ -2492,7 +2632,9 @@
       "lastIssueDate": "2026-08-22",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0070",
@@ -2526,7 +2668,9 @@
       "lastIssueDate": "2026-08-21",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0071",
@@ -2560,7 +2704,9 @@
       "lastIssueDate": "2026-08-20",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0072",
@@ -2594,7 +2740,9 @@
       "lastIssueDate": "2026-09-13",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0073",
@@ -2628,7 +2776,9 @@
       "lastIssueDate": "2026-09-12",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0074",
@@ -2662,7 +2812,9 @@
       "lastIssueDate": "2026-09-11",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0075",
@@ -2696,7 +2848,9 @@
       "lastIssueDate": "2026-09-10",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0076",
@@ -2730,7 +2884,9 @@
       "lastIssueDate": "2026-09-09",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0077",
@@ -2764,7 +2920,9 @@
       "lastIssueDate": "2026-09-08",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0078",
@@ -2798,7 +2956,9 @@
       "lastIssueDate": "2026-09-07",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0079",
@@ -2832,7 +2992,9 @@
       "lastIssueDate": "2026-09-06",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0080",
@@ -2866,7 +3028,9 @@
       "lastIssueDate": "2026-09-05",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0081",
@@ -2900,7 +3064,9 @@
       "lastIssueDate": "2026-09-04",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0082",
@@ -2934,7 +3100,9 @@
       "lastIssueDate": "2026-09-03",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0083",
@@ -2968,7 +3136,9 @@
       "lastIssueDate": "2026-09-02",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0084",
@@ -3002,7 +3172,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0085",
@@ -3036,7 +3208,9 @@
       "lastIssueDate": "2026-08-31",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0086",
@@ -3070,7 +3244,9 @@
       "lastIssueDate": "2026-08-30",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0087",
@@ -3104,7 +3280,9 @@
       "lastIssueDate": "2026-08-29",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0088",
@@ -3138,7 +3316,9 @@
       "lastIssueDate": "2026-08-28",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0089",
@@ -3172,7 +3352,9 @@
       "lastIssueDate": "2026-08-27",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0090",
@@ -3206,7 +3388,9 @@
       "lastIssueDate": "2026-08-26",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0091",
@@ -3240,7 +3424,9 @@
       "lastIssueDate": "2026-08-25",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0092",
@@ -3274,7 +3460,9 @@
       "lastIssueDate": "2026-08-22",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0093",
@@ -3308,7 +3496,9 @@
       "lastIssueDate": "2026-08-21",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0094",
@@ -3342,7 +3532,9 @@
       "lastIssueDate": "2026-08-20",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0095",
@@ -3376,7 +3568,9 @@
       "lastIssueDate": "2026-09-13",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0096",
@@ -3410,7 +3604,9 @@
       "lastIssueDate": "2026-09-12",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0097",
@@ -3444,7 +3640,9 @@
       "lastIssueDate": "2026-09-11",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0098",
@@ -3478,7 +3676,9 @@
       "lastIssueDate": "2026-09-10",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0099",
@@ -3512,7 +3712,9 @@
       "lastIssueDate": "2026-09-09",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0100",
@@ -3546,7 +3748,9 @@
       "lastIssueDate": "2026-09-08",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0101",
@@ -3580,7 +3784,9 @@
       "lastIssueDate": "2026-09-07",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0102",
@@ -3614,7 +3820,9 @@
       "lastIssueDate": "2026-09-06",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0103",
@@ -3648,7 +3856,9 @@
       "lastIssueDate": "2026-09-05",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0104",
@@ -3682,7 +3892,9 @@
       "lastIssueDate": "2026-09-04",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0105",
@@ -3716,7 +3928,9 @@
       "lastIssueDate": "2026-09-03",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0106",
@@ -3750,7 +3964,9 @@
       "lastIssueDate": "2026-09-02",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0107",
@@ -3784,7 +4000,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0108",
@@ -3818,7 +4036,9 @@
       "lastIssueDate": "2026-08-31",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0109",
@@ -3852,7 +4072,9 @@
       "lastIssueDate": "2026-08-30",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0110",
@@ -3886,7 +4108,9 @@
       "lastIssueDate": "2026-08-29",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0111",
@@ -3920,7 +4144,9 @@
       "lastIssueDate": "2026-08-28",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0112",
@@ -3954,7 +4180,9 @@
       "lastIssueDate": "2026-08-27",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0113",
@@ -3988,7 +4216,9 @@
       "lastIssueDate": "2026-08-26",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0114",
@@ -4022,7 +4252,9 @@
       "lastIssueDate": "2026-08-25",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0115",
@@ -4056,7 +4288,9 @@
       "lastIssueDate": "2026-08-24",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0116",
@@ -4090,7 +4324,9 @@
       "lastIssueDate": "2026-08-23",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0117",
@@ -4124,7 +4360,9 @@
       "lastIssueDate": "2026-08-22",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0118",
@@ -4158,7 +4396,9 @@
       "lastIssueDate": "2026-08-21",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0119",
@@ -4192,7 +4432,9 @@
       "lastIssueDate": "2026-08-20",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0120",
@@ -4226,7 +4468,9 @@
       "lastIssueDate": "2026-09-13",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0121",
@@ -4260,7 +4504,9 @@
       "lastIssueDate": "2026-09-12",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0122",
@@ -4294,7 +4540,9 @@
       "lastIssueDate": "2026-09-11",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0123",
@@ -4328,7 +4576,9 @@
       "lastIssueDate": "2026-09-10",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0124",
@@ -4362,7 +4612,9 @@
       "lastIssueDate": "2026-09-09",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0125",
@@ -4396,7 +4648,9 @@
       "lastIssueDate": "2026-09-08",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0126",
@@ -4430,7 +4684,9 @@
       "lastIssueDate": "2026-09-07",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0127",
@@ -4464,7 +4720,9 @@
       "lastIssueDate": "2026-09-06",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0128",
@@ -4498,7 +4756,9 @@
       "lastIssueDate": "2026-09-05",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0129",
@@ -4532,7 +4792,9 @@
       "lastIssueDate": "2026-09-04",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0130",
@@ -4566,7 +4828,9 @@
       "lastIssueDate": "2026-09-03",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0131",
@@ -4600,7 +4864,9 @@
       "lastIssueDate": "2026-09-02",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0132",
@@ -4634,7 +4900,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0133",
@@ -4668,7 +4936,9 @@
       "lastIssueDate": "2026-08-31",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0134",
@@ -4702,7 +4972,9 @@
       "lastIssueDate": "2026-08-30",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0135",
@@ -4736,7 +5008,9 @@
       "lastIssueDate": "2026-08-29",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0136",
@@ -4770,7 +5044,9 @@
       "lastIssueDate": "2026-08-28",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0137",
@@ -4804,7 +5080,9 @@
       "lastIssueDate": "2026-08-25",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0138",
@@ -4838,7 +5116,9 @@
       "lastIssueDate": "2026-08-24",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0139",
@@ -4872,7 +5152,9 @@
       "lastIssueDate": "2026-08-23",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0140",
@@ -4906,7 +5188,9 @@
       "lastIssueDate": "2026-08-22",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0141",
@@ -4940,7 +5224,9 @@
       "lastIssueDate": "2026-08-21",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0142",
@@ -4974,7 +5260,9 @@
       "lastIssueDate": "2026-08-20",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0143",
@@ -5008,7 +5296,9 @@
       "lastIssueDate": "2026-09-13",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0144",
@@ -5042,7 +5332,9 @@
       "lastIssueDate": "2026-09-12",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0145",
@@ -5076,7 +5368,9 @@
       "lastIssueDate": "2026-09-11",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0146",
@@ -5110,7 +5404,9 @@
       "lastIssueDate": "2026-09-10",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0147",
@@ -5144,7 +5440,9 @@
       "lastIssueDate": "2026-09-09",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0148",
@@ -5178,7 +5476,9 @@
       "lastIssueDate": "2026-09-08",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0149",
@@ -5212,7 +5512,9 @@
       "lastIssueDate": "2026-09-07",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0150",
@@ -5246,7 +5548,9 @@
       "lastIssueDate": "2026-09-06",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0151",
@@ -5280,7 +5584,9 @@
       "lastIssueDate": "2026-09-05",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0152",
@@ -5314,7 +5620,9 @@
       "lastIssueDate": "2026-09-04",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0153",
@@ -5348,7 +5656,9 @@
       "lastIssueDate": "2026-09-03",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0154",
@@ -5382,7 +5692,9 @@
       "lastIssueDate": "2026-09-02",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0155",
@@ -5416,7 +5728,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0156",
@@ -5450,7 +5764,9 @@
       "lastIssueDate": "2026-08-31",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0157",
@@ -5484,7 +5800,9 @@
       "lastIssueDate": "2026-08-30",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0158",
@@ -5518,7 +5836,9 @@
       "lastIssueDate": "2026-08-29",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0159",
@@ -5552,7 +5872,9 @@
       "lastIssueDate": "2026-08-28",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0160",
@@ -5586,7 +5908,9 @@
       "lastIssueDate": "2026-08-27",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0161",
@@ -5620,7 +5944,9 @@
       "lastIssueDate": "2026-08-26",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0162",
@@ -5654,7 +5980,9 @@
       "lastIssueDate": "2026-08-25",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0163",
@@ -5688,7 +6016,9 @@
       "lastIssueDate": "2026-08-24",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0164",
@@ -5722,7 +6052,9 @@
       "lastIssueDate": "2026-08-23",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0165",
@@ -5756,7 +6088,9 @@
       "lastIssueDate": "2026-08-22",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0166",
@@ -5790,7 +6124,9 @@
       "lastIssueDate": "2026-08-21",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0167",
@@ -5824,7 +6160,9 @@
       "lastIssueDate": "2026-08-20",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0168",
@@ -5858,7 +6196,9 @@
       "lastIssueDate": "2026-09-13",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0169",
@@ -5892,7 +6232,9 @@
       "lastIssueDate": "2026-09-12",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0170",
@@ -5926,7 +6268,9 @@
       "lastIssueDate": "2026-09-11",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0171",
@@ -5960,7 +6304,9 @@
       "lastIssueDate": "2026-09-10",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0172",
@@ -5994,7 +6340,9 @@
       "lastIssueDate": "2026-09-09",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0173",
@@ -6028,7 +6376,9 @@
       "lastIssueDate": "2026-09-08",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0174",
@@ -6062,7 +6412,9 @@
       "lastIssueDate": "2026-09-07",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0175",
@@ -6096,7 +6448,9 @@
       "lastIssueDate": "2026-09-06",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0176",
@@ -6130,7 +6484,9 @@
       "lastIssueDate": "2026-09-05",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0177",
@@ -6164,7 +6520,9 @@
       "lastIssueDate": "2026-09-04",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0178",
@@ -6198,7 +6556,9 @@
       "lastIssueDate": "2026-09-03",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0179",
@@ -6232,7 +6592,9 @@
       "lastIssueDate": "2026-09-02",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0180",
@@ -6266,7 +6628,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0181",
@@ -6300,7 +6664,9 @@
       "lastIssueDate": "2026-08-31",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0182",
@@ -6334,7 +6700,9 @@
       "lastIssueDate": "2026-08-28",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0183",
@@ -6368,7 +6736,9 @@
       "lastIssueDate": "2026-08-27",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0184",
@@ -6402,7 +6772,9 @@
       "lastIssueDate": "2026-08-26",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0185",
@@ -6436,7 +6808,9 @@
       "lastIssueDate": "2026-08-25",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0186",
@@ -6470,7 +6844,9 @@
       "lastIssueDate": "2026-08-24",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0187",
@@ -6504,7 +6880,9 @@
       "lastIssueDate": "2026-08-23",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0188",
@@ -6538,7 +6916,9 @@
       "lastIssueDate": "2026-08-22",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0189",
@@ -6572,7 +6952,9 @@
       "lastIssueDate": "2026-08-21",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0190",
@@ -6606,7 +6988,9 @@
       "lastIssueDate": "2026-08-20",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0191",
@@ -6640,7 +7024,9 @@
       "lastIssueDate": "2026-09-13",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0192",
@@ -6674,7 +7060,9 @@
       "lastIssueDate": "2026-09-12",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0193",
@@ -6708,7 +7096,9 @@
       "lastIssueDate": "2026-09-11",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0194",
@@ -6742,7 +7132,9 @@
       "lastIssueDate": "2026-09-10",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0195",
@@ -6776,7 +7168,9 @@
       "lastIssueDate": "2026-09-09",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0196",
@@ -6810,7 +7204,9 @@
       "lastIssueDate": "2026-09-08",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0197",
@@ -6844,7 +7240,9 @@
       "lastIssueDate": "2026-09-07",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0198",
@@ -6878,7 +7276,9 @@
       "lastIssueDate": "2026-09-06",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0199",
@@ -6912,7 +7312,9 @@
       "lastIssueDate": "2026-09-05",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0200",
@@ -6946,7 +7348,9 @@
       "lastIssueDate": "2026-09-04",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0201",
@@ -6980,7 +7384,9 @@
       "lastIssueDate": "2026-09-03",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0202",
@@ -7014,7 +7420,9 @@
       "lastIssueDate": "2026-09-02",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0203",
@@ -7048,7 +7456,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0204",
@@ -7082,7 +7492,9 @@
       "lastIssueDate": "2026-08-31",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0205",
@@ -7116,7 +7528,9 @@
       "lastIssueDate": "2026-08-30",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0206",
@@ -7150,7 +7564,9 @@
       "lastIssueDate": "2026-08-29",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0207",
@@ -7184,7 +7600,9 @@
       "lastIssueDate": "2026-08-28",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0208",
@@ -7218,7 +7636,9 @@
       "lastIssueDate": "2026-08-27",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0209",
@@ -7252,7 +7672,9 @@
       "lastIssueDate": "2026-08-26",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0210",
@@ -7286,7 +7708,9 @@
       "lastIssueDate": "2026-08-25",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0211",
@@ -7320,7 +7744,9 @@
       "lastIssueDate": "2026-08-24",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0212",
@@ -7354,7 +7780,9 @@
       "lastIssueDate": "2026-08-23",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0213",
@@ -7388,7 +7816,9 @@
       "lastIssueDate": "2026-08-22",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0214",
@@ -7422,7 +7852,9 @@
       "lastIssueDate": "2026-08-21",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0215",
@@ -7456,7 +7888,9 @@
       "lastIssueDate": "2026-08-20",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0216",
@@ -7490,7 +7924,9 @@
       "lastIssueDate": "2026-09-13",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0217",
@@ -7524,7 +7960,9 @@
       "lastIssueDate": "2026-09-12",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0218",
@@ -7558,7 +7996,9 @@
       "lastIssueDate": "2026-09-11",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0219",
@@ -7592,7 +8032,9 @@
       "lastIssueDate": "2026-09-10",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0220",
@@ -7626,7 +8068,9 @@
       "lastIssueDate": "2026-09-09",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0221",
@@ -7660,7 +8104,9 @@
       "lastIssueDate": "2026-09-08",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0222",
@@ -7694,7 +8140,9 @@
       "lastIssueDate": "2026-09-07",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0223",
@@ -7728,7 +8176,9 @@
       "lastIssueDate": "2026-09-06",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0224",
@@ -7762,7 +8212,9 @@
       "lastIssueDate": "2026-09-05",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0225",
@@ -7796,7 +8248,9 @@
       "lastIssueDate": "2026-09-04",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0226",
@@ -7830,7 +8284,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0227",
@@ -7864,7 +8320,9 @@
       "lastIssueDate": "2026-08-31",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0228",
@@ -7898,7 +8356,9 @@
       "lastIssueDate": "2026-08-30",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0229",
@@ -7932,7 +8392,9 @@
       "lastIssueDate": "2026-08-29",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0230",
@@ -7966,7 +8428,9 @@
       "lastIssueDate": "2026-08-28",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0231",
@@ -8000,7 +8464,9 @@
       "lastIssueDate": "2026-08-27",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0232",
@@ -8034,7 +8500,9 @@
       "lastIssueDate": "2026-08-26",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0233",
@@ -8068,7 +8536,9 @@
       "lastIssueDate": "2026-08-25",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0234",
@@ -8102,7 +8572,9 @@
       "lastIssueDate": "2026-08-24",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0235",
@@ -8136,7 +8608,9 @@
       "lastIssueDate": "2026-08-23",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0236",
@@ -8170,7 +8644,9 @@
       "lastIssueDate": "2026-08-22",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0237",
@@ -8204,7 +8680,9 @@
       "lastIssueDate": "2026-08-21",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0238",
@@ -8238,7 +8716,9 @@
       "lastIssueDate": "2026-08-20",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0239",
@@ -8272,7 +8752,9 @@
       "lastIssueDate": "2026-09-13",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0240",
@@ -8306,7 +8788,9 @@
       "lastIssueDate": "2026-09-12",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0241",
@@ -8340,7 +8824,9 @@
       "lastIssueDate": "2026-09-11",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0242",
@@ -8374,7 +8860,9 @@
       "lastIssueDate": "2026-09-10",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0243",
@@ -8408,7 +8896,9 @@
       "lastIssueDate": "2026-09-09",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0244",
@@ -8442,7 +8932,9 @@
       "lastIssueDate": "2026-09-08",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0245",
@@ -8476,7 +8968,9 @@
       "lastIssueDate": "2026-09-07",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0246",
@@ -8510,7 +9004,9 @@
       "lastIssueDate": "2026-09-06",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0247",
@@ -8544,7 +9040,9 @@
       "lastIssueDate": "2026-09-05",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0248",
@@ -8578,7 +9076,9 @@
       "lastIssueDate": "2026-09-04",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0249",
@@ -8612,7 +9112,9 @@
       "lastIssueDate": "2026-09-03",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0250",
@@ -8646,7 +9148,9 @@
       "lastIssueDate": "2026-09-02",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0251",
@@ -8680,7 +9184,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0252",
@@ -8714,7 +9220,9 @@
       "lastIssueDate": "2026-08-31",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0253",
@@ -8748,7 +9256,9 @@
       "lastIssueDate": "2026-08-30",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0254",
@@ -8782,7 +9292,9 @@
       "lastIssueDate": "2026-08-29",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0255",
@@ -8816,7 +9328,9 @@
       "lastIssueDate": "2026-08-28",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0256",
@@ -8850,7 +9364,9 @@
       "lastIssueDate": "2026-08-27",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0257",
@@ -8884,7 +9400,9 @@
       "lastIssueDate": "2026-08-26",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0258",
@@ -8918,7 +9436,9 @@
       "lastIssueDate": "2026-08-25",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0259",
@@ -8952,7 +9472,9 @@
       "lastIssueDate": "2026-08-24",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0260",
@@ -8986,7 +9508,9 @@
       "lastIssueDate": "2026-08-23",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0261",
@@ -9020,7 +9544,9 @@
       "lastIssueDate": "2026-08-22",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0262",
@@ -9054,7 +9580,9 @@
       "lastIssueDate": "2026-08-21",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0263",
@@ -9088,7 +9616,9 @@
       "lastIssueDate": "2026-08-20",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0264",
@@ -9122,7 +9652,9 @@
       "lastIssueDate": "2026-09-13",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0265",
@@ -9156,7 +9688,9 @@
       "lastIssueDate": "2026-09-12",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0266",
@@ -9190,7 +9724,9 @@
       "lastIssueDate": "2026-09-11",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0267",
@@ -9224,7 +9760,9 @@
       "lastIssueDate": "2026-09-10",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0268",
@@ -9258,7 +9796,9 @@
       "lastIssueDate": "2026-09-09",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0269",
@@ -9292,7 +9832,9 @@
       "lastIssueDate": "2026-09-08",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0270",
@@ -9326,7 +9868,9 @@
       "lastIssueDate": "2026-09-07",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0271",
@@ -9360,7 +9904,9 @@
       "lastIssueDate": "2026-09-06",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0272",
@@ -9394,7 +9940,9 @@
       "lastIssueDate": "2026-09-05",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0273",
@@ -9428,7 +9976,9 @@
       "lastIssueDate": "2026-09-04",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0274",
@@ -9462,7 +10012,9 @@
       "lastIssueDate": "2026-09-03",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0275",
@@ -9496,7 +10048,9 @@
       "lastIssueDate": "2026-09-02",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0276",
@@ -9530,7 +10084,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0277",
@@ -9564,7 +10120,9 @@
       "lastIssueDate": "2026-08-31",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0278",
@@ -9598,7 +10156,9 @@
       "lastIssueDate": "2026-08-30",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0279",
@@ -9632,7 +10192,9 @@
       "lastIssueDate": "2026-08-29",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0280",
@@ -9666,7 +10228,9 @@
       "lastIssueDate": "2026-08-28",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0281",
@@ -9700,7 +10264,9 @@
       "lastIssueDate": "2026-08-27",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0282",
@@ -9734,7 +10300,9 @@
       "lastIssueDate": "2026-08-26",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0283",
@@ -9768,7 +10336,9 @@
       "lastIssueDate": "2026-08-25",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0284",
@@ -9802,7 +10372,9 @@
       "lastIssueDate": "2026-08-24",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0285",
@@ -9836,7 +10408,9 @@
       "lastIssueDate": "2026-08-23",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0286",
@@ -9870,7 +10444,9 @@
       "lastIssueDate": "2026-08-22",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0287",
@@ -9904,7 +10480,9 @@
       "lastIssueDate": "2026-08-21",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0288",
@@ -9938,7 +10516,9 @@
       "lastIssueDate": "2026-08-20",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0289",
@@ -9972,7 +10552,9 @@
       "lastIssueDate": "2026-09-13",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0290",
@@ -10006,7 +10588,9 @@
       "lastIssueDate": "2026-09-12",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0291",
@@ -10040,7 +10624,9 @@
       "lastIssueDate": "2026-09-11",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0292",
@@ -10074,7 +10660,9 @@
       "lastIssueDate": "2026-09-10",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0293",
@@ -10108,7 +10696,9 @@
       "lastIssueDate": "2026-09-09",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0294",
@@ -10142,7 +10732,9 @@
       "lastIssueDate": "2026-09-08",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0295",
@@ -10176,7 +10768,9 @@
       "lastIssueDate": "2026-09-07",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0296",
@@ -10210,7 +10804,9 @@
       "lastIssueDate": "2026-09-06",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0297",
@@ -10244,7 +10840,9 @@
       "lastIssueDate": "2026-09-05",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0298",
@@ -10278,7 +10876,9 @@
       "lastIssueDate": "2026-09-04",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0299",
@@ -10312,7 +10912,9 @@
       "lastIssueDate": "2026-09-03",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0300",
@@ -10346,7 +10948,9 @@
       "lastIssueDate": "2026-09-02",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0301",
@@ -10380,7 +10984,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0302",
@@ -10414,7 +11020,9 @@
       "lastIssueDate": "2026-08-31",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0303",
@@ -10448,7 +11056,9 @@
       "lastIssueDate": "2026-08-30",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0304",
@@ -10482,7 +11092,9 @@
       "lastIssueDate": "2026-08-29",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0305",
@@ -10516,7 +11128,9 @@
       "lastIssueDate": "2026-08-28",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0306",
@@ -10550,7 +11164,9 @@
       "lastIssueDate": "2026-08-27",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0307",
@@ -10584,7 +11200,9 @@
       "lastIssueDate": "2026-08-26",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0308",
@@ -10618,7 +11236,9 @@
       "lastIssueDate": "2026-08-25",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0309",
@@ -10652,7 +11272,9 @@
       "lastIssueDate": "2026-08-24",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0310",
@@ -10686,7 +11308,9 @@
       "lastIssueDate": "2026-08-23",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0311",
@@ -10720,7 +11344,9 @@
       "lastIssueDate": "2026-08-22",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0312",
@@ -10754,7 +11380,9 @@
       "lastIssueDate": "2026-08-21",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0313",
@@ -10788,7 +11416,9 @@
       "lastIssueDate": "2026-08-20",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0314",
@@ -10822,7 +11452,9 @@
       "lastIssueDate": "2026-09-13",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0315",
@@ -10856,7 +11488,9 @@
       "lastIssueDate": "2026-09-12",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0316",
@@ -10890,7 +11524,9 @@
       "lastIssueDate": "2026-09-11",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0317",
@@ -10924,7 +11560,9 @@
       "lastIssueDate": "2026-09-10",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0318",
@@ -10958,7 +11596,9 @@
       "lastIssueDate": "2026-09-09",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0319",
@@ -10992,7 +11632,9 @@
       "lastIssueDate": "2026-09-08",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0320",
@@ -11026,7 +11668,9 @@
       "lastIssueDate": "2026-09-07",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0321",
@@ -11060,7 +11704,9 @@
       "lastIssueDate": "2026-09-06",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0322",
@@ -11094,7 +11740,9 @@
       "lastIssueDate": "2026-09-05",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0323",
@@ -11128,7 +11776,9 @@
       "lastIssueDate": "2026-09-04",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0324",
@@ -11162,7 +11812,9 @@
       "lastIssueDate": "2026-09-03",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0325",
@@ -11196,7 +11848,9 @@
       "lastIssueDate": "2026-09-02",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0326",
@@ -11230,7 +11884,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0327",
@@ -11264,7 +11920,9 @@
       "lastIssueDate": "2026-08-31",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0328",
@@ -11298,7 +11956,9 @@
       "lastIssueDate": "2026-08-30",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0329",
@@ -11332,7 +11992,9 @@
       "lastIssueDate": "2026-08-29",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0330",
@@ -11366,7 +12028,9 @@
       "lastIssueDate": "2026-08-28",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0331",
@@ -11400,7 +12064,9 @@
       "lastIssueDate": "2026-08-27",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0332",
@@ -11434,7 +12100,9 @@
       "lastIssueDate": "2026-08-26",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0333",
@@ -11468,7 +12136,9 @@
       "lastIssueDate": "2026-08-25",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0334",
@@ -11502,7 +12172,9 @@
       "lastIssueDate": "2026-08-24",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0335",
@@ -11536,7 +12208,9 @@
       "lastIssueDate": "2026-08-23",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0336",
@@ -11570,7 +12244,9 @@
       "lastIssueDate": "2026-08-22",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0337",
@@ -11604,7 +12280,9 @@
       "lastIssueDate": "2026-08-21",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0338",
@@ -11638,7 +12316,9 @@
       "lastIssueDate": "2026-08-20",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0339",
@@ -11672,7 +12352,9 @@
       "lastIssueDate": "2026-09-13",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0340",
@@ -11706,7 +12388,9 @@
       "lastIssueDate": "2026-09-12",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0341",
@@ -11740,7 +12424,9 @@
       "lastIssueDate": "2026-09-11",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0342",
@@ -11774,7 +12460,9 @@
       "lastIssueDate": "2026-09-10",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0343",
@@ -11808,7 +12496,9 @@
       "lastIssueDate": "2026-09-09",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0344",
@@ -11842,7 +12532,9 @@
       "lastIssueDate": "2026-09-08",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0345",
@@ -11876,7 +12568,9 @@
       "lastIssueDate": "2026-09-07",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0346",
@@ -11910,7 +12604,9 @@
       "lastIssueDate": "2026-09-06",
       "status": "Active",
       "imageUrl": "",
-      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์"
+      "remark": "อะไหล่มาตรฐานประจำห้องสโตร์",
+      "categoryType": "Spare Part",
+      "toolCondition": null
     },
     {
       "id": "P-0347",
@@ -11944,7 +12640,10 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational",
+      "editReason": "Automated Test for v3.0.0 Tool Category"
     },
     {
       "id": "P-0348",
@@ -11978,7 +12677,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0349",
@@ -12012,7 +12713,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0350",
@@ -12046,7 +12749,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0351",
@@ -12080,7 +12785,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0352",
@@ -12114,7 +12821,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0353",
@@ -12148,7 +12857,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0354",
@@ -12182,7 +12893,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0355",
@@ -12216,7 +12929,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0356",
@@ -12250,7 +12965,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0357",
@@ -12284,7 +13001,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0358",
@@ -12318,7 +13037,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0359",
@@ -12352,7 +13073,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0360",
@@ -12386,7 +13109,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0361",
@@ -12420,7 +13145,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0362",
@@ -12454,7 +13181,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0363",
@@ -12488,7 +13217,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0364",
@@ -12522,7 +13253,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0365",
@@ -12556,7 +13289,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0366",
@@ -12590,7 +13325,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0367",
@@ -12624,7 +13361,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0368",
@@ -12658,7 +13397,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0369",
@@ -12692,7 +13433,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0370",
@@ -12726,7 +13469,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0371",
@@ -12760,7 +13505,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0372",
@@ -12794,7 +13541,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0373",
@@ -12828,7 +13577,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0374",
@@ -12862,7 +13613,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0375",
@@ -12896,7 +13649,9 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     },
     {
       "id": "P-0376",
@@ -12930,10 +13685,72 @@
       "lastIssueDate": "2026-09-01",
       "status": "Active",
       "imageUrl": "",
-      "remark": "เครื่องมือประจำ Tool Room"
+      "remark": "เครื่องมือประจำ Tool Room",
+      "categoryType": "Tool",
+      "toolCondition": "Operational"
     }
   ],
   "movements": [
+    {
+      "id": "MOV-1789464125194-NA10",
+      "transactionNo": "ISS-20260915-5193",
+      "date": "2026-09-15 09:22:05",
+      "type": "OUT",
+      "partNumber": "NA10",
+      "partName": "Hex Bolt M12x1.75x50 mm. + N + W (Tool Room Standard)",
+      "qtyIn": 0,
+      "qtyOut": 3,
+      "balance": 51,
+      "machine": "M-001",
+      "user": "สมชาย ใจมั่น (จ่าย: Test1)",
+      "refDoc": "งาน: M-001",
+      "note": "Automated Test Batch Stock Issue"
+    },
+    {
+      "id": "MOV-1789464125193-MM01",
+      "transactionNo": "ISS-20260915-5193",
+      "date": "2026-09-15 09:22:05",
+      "type": "OUT",
+      "partNumber": "MM01",
+      "partName": "ปากกา",
+      "qtyIn": 0,
+      "qtyOut": 2,
+      "balance": 3,
+      "machine": "M-001",
+      "user": "สมชาย ใจมั่น (จ่าย: Test1)",
+      "refDoc": "งาน: M-001",
+      "note": "Automated Test Batch Stock Issue"
+    },
+    {
+      "id": "MOV-1789464125112-NA10",
+      "transactionNo": "IN-20260915-5112",
+      "date": "2026-09-15 09:22:05",
+      "type": "IN",
+      "partNumber": "NA10",
+      "partName": "Hex Bolt M12x1.75x50 mm. + N + W (Tool Room Standard)",
+      "qtyIn": 10,
+      "qtyOut": 0,
+      "balance": 54,
+      "machine": "Tool Room",
+      "user": "มีนะ",
+      "refDoc": "รับเข้าสโตร์ (ชุด 2 รายการ)",
+      "note": "Automated Test Batch Stock In"
+    },
+    {
+      "id": "MOV-1789464125112-MM01",
+      "transactionNo": "IN-20260915-5112",
+      "date": "2026-09-15 09:22:05",
+      "type": "IN",
+      "partNumber": "MM01",
+      "partName": "ปากกา",
+      "qtyIn": 5,
+      "qtyOut": 0,
+      "balance": 5,
+      "machine": "Tool Room",
+      "user": "มีนะ",
+      "refDoc": "รับเข้าสโตร์ (ชุด 2 รายการ)",
+      "note": "Automated Test Batch Stock In"
+    },
     {
       "id": "MOV-1789385180750",
       "transactionNo": "ISS-20260914-0750",
@@ -13686,6 +14503,54 @@
     }
   ],
   "auditLogs": [
+    {
+      "id": "AUD-1789464125194-NA10",
+      "timestamp": "2026-09-15 09:22:05",
+      "user": "Test1",
+      "action": "STOCK_ISSUE",
+      "partNumber": "NA10",
+      "previousQty": 54,
+      "newQty": 51,
+      "difference": -3,
+      "reason": "เบิกใช้งาน (M-001) โดยช่าง: สมชาย ใจมั่น",
+      "reference": "ISS-20260915-5193"
+    },
+    {
+      "id": "AUD-1789464125194-MM01",
+      "timestamp": "2026-09-15 09:22:05",
+      "user": "Test1",
+      "action": "STOCK_ISSUE",
+      "partNumber": "MM01",
+      "previousQty": 5,
+      "newQty": 3,
+      "difference": -2,
+      "reason": "เบิกใช้งาน (M-001) โดยช่าง: สมชาย ใจมั่น",
+      "reference": "ISS-20260915-5193"
+    },
+    {
+      "id": "AUD-1789464125112-NA10",
+      "timestamp": "2026-09-15 09:22:05",
+      "user": "มีนะ",
+      "action": "STOCK_IN",
+      "partNumber": "NA10",
+      "previousQty": 44,
+      "newQty": 54,
+      "difference": 10,
+      "reason": "รับอะไหล่เข้าห้อง Tool Room (+ 10 ตัว) - Automated Test Batch Stock In",
+      "reference": "IN-20260915-5112"
+    },
+    {
+      "id": "AUD-1789464125112-MM01",
+      "timestamp": "2026-09-15 09:22:05",
+      "user": "มีนะ",
+      "action": "STOCK_IN",
+      "partNumber": "MM01",
+      "previousQty": 0,
+      "newQty": 5,
+      "difference": 5,
+      "reason": "รับอะไหล่เข้าห้อง Tool Room (+ 5 EA) - Automated Test Batch Stock In",
+      "reference": "IN-20260915-5112"
+    },
     {
       "id": "AUD-EMP-DEL-1789455829530",
       "timestamp": "2026-09-15 07:03:49",
