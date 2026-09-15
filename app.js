@@ -96,7 +96,8 @@ async function initApp() {
   } finally {
     hideLoading();
     updateHeaderCounts();
-    switchTab('dashboard');
+    const initHash = window.location.hash ? window.location.hash.replace('#', '') : '';
+    switchTab(initHash || 'dashboard');
     initRealtimeSync();
   }
 }
@@ -139,6 +140,10 @@ function initRealtimeSync() {
               else if (event.type === 'STOCK_ISSUE') msg = `เบิกอะไหล่ ${event.payload.partNumber} (-${event.payload.qtyOut}) โดย ${event.payload.user}`;
               else if (event.type === 'STOCK_RETURN') msg = `รับคืนอะไหล่ ${event.payload.partNumber} สภาพ ${event.payload.condition}`;
               else if (event.type === 'STOCK_ADJUST') msg = `ปรับปรุงยอดสต็อก ${event.payload.partNumber}`;
+              else if (event.type === 'TOOL_LOAN_UPDATE') {
+                const actName = event.payload.action === 'BORROW' ? 'ยืมเครื่องมือ' : 'คืนเครื่องมือ';
+                msg = `${actName}: ${event.payload.loan.toolName} โดย ${event.payload.loan.borrowerName}`;
+              }
 
               Swal.fire({
                 toast: true,
@@ -235,6 +240,11 @@ function updateHeaderCounts() {
   const navReorder = document.getElementById('navReorderCount');
   if (navReorder) navReorder.innerText = reorderCount;
 
+  const navActiveLoans = document.getElementById('navActiveLoansCount');
+  if (navActiveLoans && appState.db) {
+    const activeLoans = (appState.db.toolLoans || []).filter(l => l.status === 'BORROWED' || l.status === 'OVERDUE');
+    navActiveLoans.innerText = activeLoans.length;
+  }
   const navAlert = document.getElementById('navAlertTotal');
   if (navAlert) navAlert.innerText = lowStockCount;
 }
@@ -336,6 +346,9 @@ function renderCurrentTab() {
   destroyCharts();
 
   switch (appState.currentTab) {
+    case 'tool-loans':
+      renderToolLoans(container);
+      break;
     case 'dashboard':
       renderDashboard(container);
       break;
@@ -4263,4 +4276,532 @@ function exportMovementsToExcel() {
     showConfirmButton: false,
     timer: 2000
   });
+}
+
+
+// ==================== 19. TOOL & EQUIPMENT LOANS (ยืม-คืนเครื่องมือ ไม่ตัดสต็อก) ====================
+
+let toolLoansFilterStatus = 'ALL';
+let toolLoansSearchQuery = '';
+
+function renderToolLoans(container) {
+  const db = appState.db;
+  const loans = db.toolLoans || [];
+  const now = Date.now();
+  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+
+  // คำนวณสถิติ
+  const activeLoans = loans.filter(l => l.status === 'BORROWED' || l.status === 'OVERDUE');
+  const overdueLoans = loans.filter(l => {
+    if (l.status === 'OVERDUE') return true;
+    if (l.status === 'BORROWED') {
+      const bTime = new Date(l.borrowDate).getTime();
+      return (now - bTime > TWENTY_FOUR_HOURS);
+    }
+    return false;
+  });
+  const returnedLoans = loans.filter(l => l.status === 'RETURNED');
+
+  container.innerHTML = `
+    <div class="space-y-6">
+      
+      <!-- Top Title & Action Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+        <div>
+          <div class="flex items-center space-x-2.5">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <div>
+              <h1 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center space-x-2">
+                <span>ยืม-คืนเครื่องมือและอุปกรณ์ (Tool & Equipment Loans)</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 font-mono font-bold">NON-STOCK</span>
+              </h1>
+              <p class="text-xs text-slate-500">ติดตามสถานะเครื่องมือช่าง ช่างผู้ถือครอง และตำแหน่งเครื่องจักรที่นำไปใช้งาน (ระบบยืม-คืนแบบไม่ตัดสต็อก)</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2.5">
+          <button onclick="openBorrowToolModal()" class="px-4 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-500/20 flex items-center space-x-2 transition transform active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+            <span>บันทึกการยืมเครื่องมือ</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 KPI Summary Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Card 1: Total Loans -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-500">รายการยืมสะสม</span>
+            <span class="p-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs">🧰 All</span>
+          </div>
+          <div class="mt-2 flex items-baseline space-x-2">
+            <span class="text-2xl font-bold font-mono text-slate-900">${loans.length}</span>
+            <span class="text-xs text-slate-500">รายการ</span>
+          </div>
+          <div class="mt-1 text-[11px] text-slate-400">ประวัติการยืมทั้งหมดในระบบ</div>
+        </div>
+
+        <!-- Card 2: Active Borrowed -->
+        <div class="bg-white p-4 rounded-2xl border border-amber-200 bg-gradient-to-br from-white to-amber-50/40 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-amber-800">กำลังถูกยืมใช้งาน</span>
+            <span class="p-2 rounded-xl bg-amber-100 text-amber-800 font-bold text-xs">🟡 In Use</span>
+          </div>
+          <div class="mt-2 flex items-baseline space-x-2">
+            <span class="text-2xl font-bold font-mono text-amber-700">${activeLoans.length}</span>
+            <span class="text-xs text-amber-600">ชิ้น</span>
+          </div>
+          <div class="mt-1 text-[11px] text-amber-600 font-medium">นำออกไปใช้งานที่เครื่องจักร</div>
+        </div>
+
+        <!-- Card 3: Overdue > 24 Hours -->
+        <div class="bg-white p-4 rounded-2xl border ${overdueLoans.length > 0 ? 'border-rose-300 bg-gradient-to-br from-white to-rose-50/50 shadow-sm shadow-rose-100' : 'border-slate-200'}">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold ${overdueLoans.length > 0 ? 'text-rose-800' : 'text-slate-500'}">เกินกำหนด 24 ชม.</span>
+            <span class="p-2 rounded-xl ${overdueLoans.length > 0 ? 'bg-rose-100 text-rose-700 animate-pulse font-bold' : 'bg-slate-100 text-slate-500'} text-xs">🔴 >24h</span>
+          </div>
+          <div class="mt-2 flex items-baseline space-x-2">
+            <span class="text-2xl font-bold font-mono ${overdueLoans.length > 0 ? 'text-rose-600' : 'text-slate-700'}">${overdueLoans.length}</span>
+            <span class="text-xs ${overdueLoans.length > 0 ? 'text-rose-600 font-semibold' : 'text-slate-500'}">รายการ</span>
+          </div>
+          <div class="mt-1 text-[11px] ${overdueLoans.length > 0 ? 'text-rose-600 font-medium' : 'text-slate-400'}">ยังไม่นำมาส่งคืนห้อง Tool Room</div>
+        </div>
+
+        <!-- Card 4: Returned -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-emerald-800">ส่งคืนเรียบร้อย</span>
+            <span class="p-2 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-xs">🟢 Returned</span>
+          </div>
+          <div class="mt-2 flex items-baseline space-x-2">
+            <span class="text-2xl font-bold font-mono text-emerald-700">${returnedLoans.length}</span>
+            <span class="text-xs text-emerald-600">รายการ</span>
+          </div>
+          <div class="mt-1 text-[11px] text-emerald-600">ตรวจสอบสภาพเข้าคลังแล้ว</div>
+        </div>
+      </div>
+
+      <!-- Filters & Search Bar -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          
+          <!-- Search input -->
+          <div class="relative flex-1 max-w-md">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </span>
+            <input type="text" id="toolLoanSearchInput" 
+                   value="${toolLoansSearchQuery}" 
+                   oninput="onToolLoanSearchInput(this.value)"
+                   placeholder="ค้นหาชื่อเครื่องมือ, รหัส, ช่างผู้ยืม, เครื่องจักร..." 
+                   class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:border-sky-500 focus:outline-none transition">
+          </div>
+
+          <!-- Status Filter Buttons -->
+          <div class="flex items-center space-x-1.5 overflow-x-auto pb-1 md:pb-0 text-xs">
+            <button onclick="setToolLoansFilter('ALL')" id="tlFilter-ALL" class="px-3 py-1.5 rounded-lg font-medium transition ${toolLoansFilterStatus === 'ALL' ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+              ทั้งหมด (${loans.length})
+            </button>
+            <button onclick="setToolLoansFilter('ACTIVE')" id="tlFilter-ACTIVE" class="px-3 py-1.5 rounded-lg font-medium transition ${toolLoansFilterStatus === 'ACTIVE' ? 'bg-amber-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+              🟡 กำลังยืม (${activeLoans.length})
+            </button>
+            <button onclick="setToolLoansFilter('OVERDUE')" id="tlFilter-OVERDUE" class="px-3 py-1.5 rounded-lg font-medium transition ${toolLoansFilterStatus === 'OVERDUE' ? 'bg-rose-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+              🔴 เกิน 24 ชม. (${overdueLoans.length})
+            </button>
+            <button onclick="setToolLoansFilter('RETURNED')" id="tlFilter-RETURNED" class="px-3 py-1.5 rounded-lg font-medium transition ${toolLoansFilterStatus === 'RETURNED' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+              🟢 คืนแล้ว (${returnedLoans.length})
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Tool Loans Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[11px]">
+                <th class="p-3.5">รหัสรายการ</th>
+                <th class="p-3.5">เครื่องมือ / อุปกรณ์</th>
+                <th class="p-3.5">ผู้ยืม (ช่าง)</th>
+                <th class="p-3.5">เครื่องจักร / จุดใช้งาน</th>
+                <th class="p-3.5">วันเวลาที่ยืม</th>
+                <th class="p-3.5">ระยะเวลาที่ยืม</th>
+                <th class="p-3.5">สถานะ</th>
+                <th class="p-3.5">สภาพตอนคืน / หมายเหตุ</th>
+                <th class="p-3.5 text-center">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="toolLoansTableBody" class="divide-y divide-slate-100 text-slate-700">
+              <!-- Rendered by updateToolLoansTable -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  `;
+
+  updateToolLoansTable();
+}
+
+function setToolLoansFilter(status) {
+  toolLoansFilterStatus = status;
+  // Update button active state
+  ['ALL', 'ACTIVE', 'OVERDUE', 'RETURNED'].forEach(st => {
+    const btn = document.getElementById('tlFilter-' + st);
+    if (btn) {
+      if (st === status) {
+        btn.className = 'px-3 py-1.5 rounded-lg font-medium transition ' + 
+          (st === 'ALL' ? 'bg-slate-900 text-white shadow-sm' : 
+          (st === 'ACTIVE' ? 'bg-amber-600 text-white shadow-sm' : 
+          (st === 'OVERDUE' ? 'bg-rose-600 text-white shadow-sm' : 'bg-emerald-600 text-white shadow-sm')));
+      } else {
+        btn.className = 'px-3 py-1.5 rounded-lg font-medium transition bg-slate-100 text-slate-600 hover:bg-slate-200';
+      }
+    }
+  });
+  updateToolLoansTable();
+}
+
+function onToolLoanSearchInput(val) {
+  toolLoansSearchQuery = (val || '').toLowerCase().trim();
+  updateToolLoansTable();
+}
+
+function updateToolLoansTable() {
+  const tbody = document.getElementById('toolLoansTableBody');
+  if (!tbody || !appState.db) return;
+
+  const loans = appState.db.toolLoans || [];
+  const now = Date.now();
+  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+
+  // Filter
+  const filtered = loans.filter(loan => {
+    // Status Filter
+    const isOverdue = (loan.status === 'OVERDUE') || (loan.status === 'BORROWED' && (now - new Date(loan.borrowDate).getTime() > TWENTY_FOUR_HOURS));
+    if (toolLoansFilterStatus === 'ACTIVE') {
+      if (loan.status === 'RETURNED') return false;
+    } else if (toolLoansFilterStatus === 'OVERDUE') {
+      if (!isOverdue) return false;
+    } else if (toolLoansFilterStatus === 'RETURNED') {
+      if (loan.status !== 'RETURNED') return false;
+    }
+
+    // Search Query
+    if (toolLoansSearchQuery) {
+      const q = toolLoansSearchQuery;
+      const match = (loan.toolName && loan.toolName.toLowerCase().includes(q)) ||
+                    (loan.toolCode && loan.toolCode.toLowerCase().includes(q)) ||
+                    (loan.borrowerName && loan.borrowerName.toLowerCase().includes(q)) ||
+                    (loan.machineName && loan.machineName.toLowerCase().includes(q)) ||
+                    (loan.id && loan.id.toLowerCase().includes(q));
+      if (!match) return false;
+    }
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="9" class="p-8 text-center text-slate-400">
+          <div class="flex flex-col items-center justify-center space-y-2">
+            <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+            <span>ไม่พบรายการยืมเครื่องมือตามเงื่อนไขที่ค้นหา</span>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(loan => {
+    const borrowTime = new Date(loan.borrowDate).getTime();
+    const returnTime = loan.actualReturnDate ? new Date(loan.actualReturnDate).getTime() : now;
+    const diffMs = returnTime - borrowTime;
+    const isOverdue = (loan.status === 'OVERDUE') || (loan.status === 'BORROWED' && (now - borrowTime > TWENTY_FOUR_HOURS));
+
+    // Format Duration String
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    let durationStr = '';
+    if (diffHours >= 24) {
+      const days = Math.floor(diffHours / 24);
+      const remHours = diffHours % 24;
+      durationStr = `${days} วัน ${remHours} ชม.`;
+    } else if (diffHours > 0) {
+      durationStr = `${diffHours} ชม. ${diffMins} นาที`;
+    } else {
+      durationStr = `${diffMins} นาที`;
+    }
+
+    // Status Badge
+    let statusBadge = '';
+    let durationBadge = '';
+    if (loan.status === 'RETURNED') {
+      statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">🟢 คืนแล้ว</span>`;
+      durationBadge = `<span class="text-slate-500 font-mono text-[11px]">ยืมไป ${durationStr}</span>`;
+    } else if (isOverdue) {
+      statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">🔴 เกิน 24 ชม.</span>`;
+      durationBadge = `<span class="text-rose-600 font-bold font-mono text-[11px]">ยืมแล้ว ${durationStr}</span>`;
+    } else {
+      statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">🟡 กำลังใช้งาน</span>`;
+      durationBadge = `<span class="text-amber-700 font-mono text-[11px]">ยืมแล้ว ${durationStr}</span>`;
+    }
+
+    // Condition / Remark
+    let conditionRemark = '';
+    if (loan.status === 'RETURNED') {
+      let condText = '🟢 สภาพปกติ';
+      if (loan.returnCondition === 'Damaged') condText = '🟡 ชำรุด/ต้องซ่อม';
+      else if (loan.returnCondition === 'Lost') condText = '🔴 สูญหาย';
+      conditionRemark = `<div><strong class="text-slate-800">${condText}</strong></div>${loan.returnRemark ? `<div class="text-[11px] text-slate-500 mt-0.5">${loan.returnRemark}</div>` : ''}`;
+    } else {
+      conditionRemark = loan.remark ? `<span class="text-[11px] text-slate-600">${loan.remark}</span>` : '<span class="text-slate-400">-</span>';
+    }
+
+    return `
+      <tr class="hover:bg-slate-50/80 transition ${isOverdue && loan.status !== 'RETURNED' ? 'bg-rose-50/30' : ''}">
+        <td class="p-3.5 font-mono font-bold text-sky-700">${loan.id}</td>
+        <td class="p-3.5">
+          <div class="font-bold text-slate-900">${loan.toolName}</div>
+          <div class="text-[10px] text-slate-400 font-mono">รหัส: ${loan.toolCode || 'CUSTOM'}</div>
+        </td>
+        <td class="p-3.5">
+          <div class="font-semibold text-slate-800">${loan.borrowerName}</div>
+          <div class="text-[10px] text-slate-400">${loan.borrowerDept || '-'}</div>
+        </td>
+        <td class="p-3.5">
+          <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium text-[11px]">
+            ${loan.machineName || '-'}
+          </span>
+        </td>
+        <td class="p-3.5 text-slate-600 font-mono text-[11px]">
+          ${new Date(loan.borrowDate).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}
+        </td>
+        <td class="p-3.5 font-medium">
+          ${durationBadge}
+        </td>
+        <td class="p-3.5">
+          ${statusBadge}
+        </td>
+        <td class="p-3.5 max-w-xs">
+          ${conditionRemark}
+        </td>
+        <td class="p-3.5 text-center whitespace-nowrap">
+          ${loan.status !== 'RETURNED' ? `
+            <button onclick="openReturnToolModal('${loan.id}')" 
+                    class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow-sm flex items-center space-x-1 transition mx-auto active:scale-95">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <span>รับคืน</span>
+            </button>
+          ` : `
+            <span class="text-[11px] text-slate-400 font-mono">
+              คืนเมื่อ: ${new Date(loan.actualReturnDate).toLocaleDateString('th-TH', { dateStyle: 'short' })}
+            </span>
+          `}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Open Borrow Modal
+function openBorrowToolModal() {
+  const modal = document.getElementById('borrowToolModal');
+  if (!modal) return;
+
+  const db = appState.db;
+  const toolsDatalist = document.getElementById('availableToolsDatalist');
+  const techsDatalist = document.getElementById('techniciansDatalist');
+  const machineSelect = document.getElementById('borrowMachineSelect');
+
+  // Fill Tools Datalist (ทั้งเครื่องมือช่าง และอะไหล่ทั้งหมด)
+  if (toolsDatalist && db && db.parts) {
+    const toolItems = db.parts.map(p => `<option value="${p.partName} (${p.partNumber})">`).join('');
+    toolsDatalist.innerHTML = toolItems;
+  }
+
+  // Fill Technicians Datalist
+  if (techsDatalist && db && db.users) {
+    techsDatalist.innerHTML = db.users.map(u => `<option value="${u.name}">`).join('');
+  }
+
+  // Fill Machine Select
+  if (machineSelect && db && db.machines) {
+    machineSelect.innerHTML = '<option value="">-- เลือกเครื่องจักร --</option>' + 
+      db.machines.map(m => `<option value="${m.code}">${m.name} (${m.code})</option>`).join('') +
+      '<option value="Workshop">Workshop / ซ่อมบำรุงส่วนกลาง</option>' +
+      '<option value="Other">อื่นๆ (ระบุในหมายเหตุ)</option>';
+  }
+
+  // Default Values
+  const toolNameInput = document.getElementById('borrowToolNameInput');
+  if (toolNameInput) toolNameInput.value = '';
+  const toolCodeInput = document.getElementById('borrowToolCodeInput');
+  if (toolCodeInput) toolCodeInput.value = 'CUSTOM';
+  const borrowerInput = document.getElementById('borrowerNameInput');
+  if (borrowerInput) borrowerInput.value = (appState.currentUser && appState.currentUser.name) || 'สมชาย ใจมั่น';
+  const borrowerDept = document.getElementById('borrowerDeptInput');
+  if (borrowerDept) borrowerDept.value = (appState.currentUser && appState.currentUser.department) || 'ฝ่ายซ่อมบำรุง';
+  const remarkInput = document.getElementById('borrowRemarkInput');
+  if (remarkInput) remarkInput.value = '';
+  const recordedBy = document.getElementById('borrowRecordedBy');
+  if (recordedBy) recordedBy.innerText = (appState.currentUser && appState.currentUser.name) || 'สโตร์ช่าง';
+
+  modal.classList.remove('hidden');
+}
+
+function onBorrowToolSelect(val) {
+  const codeInput = document.getElementById('borrowToolCodeInput');
+  if (!codeInput || !appState.db || !appState.db.parts) return;
+  const match = appState.db.parts.find(p => val.includes(p.partNumber) || p.partName === val);
+  if (match) {
+    codeInput.value = match.partNumber;
+  } else {
+    codeInput.value = 'CUSTOM';
+  }
+}
+
+function closeBorrowToolModal() {
+  const modal = document.getElementById('borrowToolModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function handleSaveBorrowTool(e) {
+  e.preventDefault();
+  const toolNameRaw = document.getElementById('borrowToolNameInput').value;
+  const toolCode = document.getElementById('borrowToolCodeInput').value;
+  const borrowerName = document.getElementById('borrowerNameInput').value;
+  const borrowerDept = document.getElementById('borrowerDeptInput').value;
+  const machineSelect = document.getElementById('borrowMachineSelect');
+  const machineId = machineSelect.value;
+  const machineName = machineSelect.options[machineSelect.selectedIndex]?.text || machineId;
+  const remark = document.getElementById('borrowRemarkInput').value;
+  const recordedBy = (appState.currentUser && appState.currentUser.name) || 'Store';
+
+  if (!toolNameRaw || !borrowerName || !machineId) {
+    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน', text: 'กรุณากรอกชื่อเครื่องมือ, ผู้ยืม และเลือกเครื่องจักร' });
+    return;
+  }
+
+  // Clean tool name if it had (PartNo) appended from datalist
+  let toolName = toolNameRaw;
+  const pMatch = toolNameRaw.match(/^(.*?)\s*\([A-Z0-9-]+\)$/);
+  if (pMatch) toolName = pMatch[1];
+
+  try {
+    const res = await fetch('/api/tool-loans/borrow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        toolCode,
+        toolName,
+        borrowerName,
+        borrowerDept,
+        machineId,
+        machineName,
+        remark,
+        recordedBy
+      })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'เกิดข้อผิดพลาดในการบันทึก');
+
+    closeBorrowToolModal();
+    
+    // Refresh DB
+    const dbRes = await fetch('/api/db');
+    appState.db = await dbRes.json();
+    updateHeaderCounts();
+    renderToolLoans(document.getElementById('mainContent'));
+
+    Swal.fire({
+      icon: 'success',
+      title: 'บันทึกการยืมเครื่องมือสำเร็จ',
+      text: `${toolName} ได้รับการบันทึกว่า ${borrowerName} เป็นผู้ยืมไปใช้ที่ ${machineName} (ไม่ตัดสต็อก)`,
+      confirmButtonText: 'ตกลง',
+      confirmButtonColor: '#0284c7'
+    });
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
+  }
+}
+
+// Open Return Modal
+function openReturnToolModal(loanId) {
+  const modal = document.getElementById('returnToolModal');
+  if (!modal || !appState.db || !appState.db.toolLoans) return;
+
+  const loan = appState.db.toolLoans.find(l => l.id === loanId);
+  if (!loan) return;
+
+  document.getElementById('returnLoanId').value = loan.id;
+  document.getElementById('returnToolDisplay').innerText = `${loan.toolName} (${loan.toolCode || 'CUSTOM'})`;
+  document.getElementById('returnBorrowerDisplay').innerText = loan.borrowerName;
+  document.getElementById('returnMachineDisplay').innerText = loan.machineName || '-';
+  document.getElementById('returnRemarkInput').value = '';
+
+  // Default condition Good
+  const goodRadio = modal.querySelector('input[name="returnCondition"][value="Good"]');
+  if (goodRadio) goodRadio.checked = true;
+
+  modal.classList.remove('hidden');
+}
+
+function closeReturnToolModal() {
+  const modal = document.getElementById('returnToolModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+async function handleSaveReturnTool(e) {
+  e.preventDefault();
+  const loanId = document.getElementById('returnLoanId').value;
+  const conditionInput = document.querySelector('input[name="returnCondition"]:checked');
+  const returnCondition = conditionInput ? conditionInput.value : 'Good';
+  const returnRemark = document.getElementById('returnRemarkInput').value;
+  const receivedBy = (appState.currentUser && appState.currentUser.name) || 'Store';
+
+  try {
+    const res = await fetch('/api/tool-loans/return', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        loanId,
+        returnCondition,
+        returnRemark,
+        receivedBy
+      })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || 'เกิดข้อผิดพลาดในการบันทึก');
+
+    closeReturnToolModal();
+
+    // Refresh DB
+    const dbRes = await fetch('/api/db');
+    appState.db = await dbRes.json();
+    updateHeaderCounts();
+    renderToolLoans(document.getElementById('mainContent'));
+
+    let condThai = 'ปกติ สมบูรณ์';
+    if (returnCondition === 'Damaged') condThai = 'ชำรุด/ต้องส่งซ่อม';
+    else if (returnCondition === 'Lost') condThai = 'สูญหาย';
+
+    Swal.fire({
+      icon: 'success',
+      title: 'บันทึกการส่งคืนเครื่องมือสำเร็จ',
+      text: `รับคืนเครื่องมือเรียบร้อยแล้ว (สภาพ: ${condThai})`,
+      confirmButtonText: 'ตกลง',
+      confirmButtonColor: '#10b981'
+    });
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
+  }
 }

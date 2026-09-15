@@ -1,6 +1,6 @@
 {
-  "version": 1789437330488,
-  "lastUpdated": "2026-09-15T01:55:30.488Z",
+  "version": 1789447113974,
+  "lastUpdated": "2026-09-15T04:38:33.974Z",
   "users": [
     {
       "id": "U-001",
@@ -13680,6 +13680,42 @@
   ],
   "auditLogs": [
     {
+      "id": "AUD-RET-1789447113974",
+      "timestamp": "2026-09-15 04:38:33",
+      "user": "วิโรจน์",
+      "action": "TOOL_RETURN",
+      "partNumber": "CUSTOM",
+      "reason": "คืนเครื่องมือ: ประแจปอนด์ดิจิตอล 1/2 นิ้ว (เครื่องมือกลาง) (สภาพ: Damaged) คืนโดย วิชัย ช่างกลึง",
+      "reference": "LN-113791"
+    },
+    {
+      "id": "AUD-RET-1789447113867",
+      "timestamp": "2026-09-15 04:38:33",
+      "user": "หัวหน้าช่างวิโรจน์",
+      "action": "TOOL_RETURN",
+      "partNumber": "MM01",
+      "reason": "คืนเครื่องมือ: ปากกา (สภาพ: Good) คืนโดย สมชาย ช่างซ่อมบำรุง",
+      "reference": "LN-113530"
+    },
+    {
+      "id": "AUD-LN-1789447113791",
+      "timestamp": "2026-09-15 04:38:33",
+      "user": "เจ้าหน้าที่คลังพัสดุ",
+      "action": "TOOL_BORROW",
+      "partNumber": "CUSTOM",
+      "reason": "ยืมเครื่องมือ: ประแจปอนด์ดิจิตอล 1/2 นิ้ว (เครื่องมือกลาง) โดย วิชัย ช่างกลึง (ไปใช้ที่: Foil Mill 2 (FM-02))",
+      "reference": "LN-113791"
+    },
+    {
+      "id": "AUD-LN-1789447113632",
+      "timestamp": "2026-09-15 04:38:33",
+      "user": "เจ้าหน้าที่คลังพัสดุ",
+      "action": "TOOL_BORROW",
+      "partNumber": "MM01",
+      "reason": "ยืมเครื่องมือ: ปากกา โดย สมชาย ช่างซ่อมบำรุง (ไปใช้ที่: Cold Mill 1 (CM-01))",
+      "reference": "LN-113530"
+    },
+    {
       "id": "AUD-1789437330483",
       "timestamp": "2026-09-15 01:55:30",
       "user": "Warrawat Baokhiev",
@@ -14377,6 +14413,72 @@
       "totalItems": 376,
       "varianceCount": 3,
       "varianceValue": -420
+    }
+  ],
+  "toolLoans": [
+    {
+      "id": "LN-113791",
+      "toolCode": "CUSTOM",
+      "toolName": "ประแจปอนด์ดิจิตอล 1/2 นิ้ว (เครื่องมือกลาง)",
+      "borrowerName": "วิชัย ช่างกลึง",
+      "borrowerDept": "ฝ่ายซ่อมบำรุง",
+      "machineId": "-",
+      "machineName": "Foil Mill 2 (FM-02)",
+      "borrowDate": "2026-09-15T04:38:33.791Z",
+      "actualReturnDate": "2026-09-15T04:38:33.974Z",
+      "status": "RETURNED",
+      "returnCondition": "Damaged",
+      "remark": "ยืมใช้งานเปลี่ยนลูกปืนสปินเดิล",
+      "recordedBy": "เจ้าหน้าที่คลังพัสดุ",
+      "returnRemark": "หัวขันมีรอยบิ่น ส่งฝ่ายช่างซ่อมตรวจเช็ค",
+      "receivedBy": "วิโรจน์"
+    },
+    {
+      "id": "LN-113530",
+      "toolCode": "MM01",
+      "toolName": "ปากกา",
+      "borrowerName": "สมชาย ช่างซ่อมบำรุง",
+      "borrowerDept": "ฝ่ายซ่อมบำรุง",
+      "machineId": "-",
+      "machineName": "Cold Mill 1 (CM-01)",
+      "borrowDate": "2026-09-15T04:38:33.573Z",
+      "actualReturnDate": "2026-09-15T04:38:33.867Z",
+      "status": "RETURNED",
+      "returnCondition": "Good",
+      "remark": "นำไปตรวจเช็คเกจวัดแรงดัน",
+      "recordedBy": "เจ้าหน้าที่คลังพัสดุ",
+      "returnRemark": "ใช้งานเสร็จเรียบร้อย ไม่มีชำรุด",
+      "receivedBy": "หัวหน้าช่างวิโรจน์"
+    },
+    {
+      "id": "LN-001",
+      "toolCode": "TL-001",
+      "toolName": "ประแจปอนด์ดิจิตอล 1/2 นิ้ว (Digital Torque Wrench)",
+      "borrowerName": "สมชาย ใจมั่น",
+      "borrowerDept": "ฝ่ายซ่อมบำรุง",
+      "machineId": "MC-CNC-01",
+      "machineName": "CNC Milling Machine #1",
+      "borrowDate": "2026-09-15T02:25:02.796Z",
+      "actualReturnDate": null,
+      "status": "BORROWED",
+      "returnCondition": null,
+      "remark": "ขันน็อตหน้าแปลน Spindle งาน PM ประจำสัปดาห์",
+      "recordedBy": "สมชาย ใจมั่น"
+    },
+    {
+      "id": "LN-002",
+      "toolCode": "TL-005",
+      "toolName": "มัลติมิเตอร์ดิจิตอล FLUKE 87V",
+      "borrowerName": "เกรียงไกร ช่างไฟ",
+      "borrowerDept": "ฝ่ายซ่อมบำรุง",
+      "machineId": "MC-PRESS-01",
+      "machineName": "Mechanical Press 200T",
+      "borrowDate": "2026-09-14T02:25:04.767Z",
+      "actualReturnDate": null,
+      "status": "OVERDUE",
+      "returnCondition": null,
+      "remark": "เช็คแผงคอนโทรลระบบอินเวอร์เตอร์",
+      "recordedBy": "สมชาย ใจมั่น"
     }
   ]
 }
