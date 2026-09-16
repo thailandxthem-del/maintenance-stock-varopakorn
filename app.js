@@ -4764,6 +4764,59 @@ function exportMovementsToExcel() {
 // ==================== 19. TOOL & EQUIPMENT LOANS (ยืม-คืนเครื่องมือ ไม่ตัดสต็อก) ====================
 
 // ==================== MASTER DATALISTS & DROPDOWN HELPERS ====================
+// Options Generator for Tools & Equipment (Strictly from Parts Master)
+function getToolSelectOptions(selectedCode = '', selectedName = '') {
+  const parts = (appState.db && appState.db.parts) || [];
+  let options = '<option value="">-- เลือกเครื่องมือ / อุปกรณ์จากคลัง --</option>';
+
+  const tools = parts.filter(p => isPartTool(p));
+  const spares = parts.filter(p => !isPartTool(p));
+
+  if (tools.length > 0) {
+    options += '<optgroup label="🧰 เครื่องมือช่าง & อุปกรณ์ (Tools & Equipment)">';
+    tools.forEach(p => {
+      const isSel = (p.partNumber === selectedCode || p.partName === selectedName) ? 'selected' : '';
+      const cond = p.toolCondition === 'Needs Repair' ? ' [ชำรุด]' : (p.toolCondition === 'Decommissioned' ? ' [ปลดระวาง]' : '');
+      options += `<option value="${p.partNumber}" data-name="${p.partName}" data-code="${p.partNumber}" ${isSel}>[${p.partNumber}] ${p.partName}${cond} (${p.location || '-'})` + `</option>`;
+    });
+    options += '</optgroup>';
+  }
+
+  if (spares.length > 0) {
+    options += '<optgroup label="📦 รายการอะไหล่อื่นๆ ในคลัง (Spare Parts)">';
+    spares.forEach(p => {
+      const isSel = (p.partNumber === selectedCode || p.partName === selectedName) ? 'selected' : '';
+      options += `<option value="${p.partNumber}" data-name="${p.partName}" data-code="${p.partNumber}" ${isSel}>[${p.partNumber}] ${p.partName} (${p.location || '-'})` + `</option>`;
+    });
+    options += '</optgroup>';
+  }
+
+  return options;
+}
+
+function onBorrowToolSelectChange(selectEl) {
+  const selectedOpt = selectEl.options[selectEl.selectedIndex];
+  const nameInput = document.getElementById('borrowToolNameInput');
+  const codeInput = document.getElementById('borrowToolCodeInput');
+  if (selectedOpt && selectedOpt.value) {
+    if (nameInput) nameInput.value = selectedOpt.dataset.name || selectedOpt.text;
+    if (codeInput) codeInput.value = selectedOpt.dataset.code || selectedOpt.value;
+  } else {
+    if (nameInput) nameInput.value = '';
+    if (codeInput) codeInput.value = '';
+  }
+}
+
+function onEditLoanToolSelectChange(selectEl) {
+  const selectedOpt = selectEl.options[selectEl.selectedIndex];
+  const nameInput = document.getElementById('editLoanToolName');
+  const codeInput = document.getElementById('editLoanToolCode');
+  if (selectedOpt && selectedOpt.value) {
+    if (nameInput) nameInput.value = selectedOpt.dataset.name || selectedOpt.text;
+    if (codeInput) codeInput.value = selectedOpt.dataset.code || selectedOpt.value;
+  }
+}
+
 
 // Options Generator for Personnel (used in Tool Loans, Stock Issue, Stock Return, Stock In)
 function getPersonnelSelectOptions(selectedName = '') {
@@ -5396,18 +5449,24 @@ function updateToolLoansTable() {
   }).join('');
 }
 
-// Open Borrow Modal
+// Open Borrow Modal (Strict Tool Selection)
 function openBorrowToolModal() {
   const modal = document.getElementById('borrowToolModal');
   if (!modal) return;
 
   syncMasterDatalists();
 
-  const db = appState.db;
-  const toolsDatalist = document.getElementById('availableToolsDatalist');
-  if (toolsDatalist && db && db.parts) {
-    toolsDatalist.innerHTML = db.parts.map(p => `<option value="${p.partName} (${p.partNumber})">`).join('');
+  // Populate Tool Dropdown strictly from Parts Master
+  const tSelect = document.getElementById('borrowToolSelect');
+  if (tSelect) {
+    tSelect.innerHTML = getToolSelectOptions();
+    tSelect.value = '';
   }
+
+  const toolNameInput = document.getElementById('borrowToolNameInput');
+  if (toolNameInput) toolNameInput.value = '';
+  const toolCodeInput = document.getElementById('borrowToolCodeInput');
+  if (toolCodeInput) toolCodeInput.value = '';
 
   // Populate Borrower Dropdown from Personnel Master
   const bSelect = document.getElementById('borrowerNameSelect');
@@ -5434,12 +5493,6 @@ function openBorrowToolModal() {
     mInput.value = '';
     mInput.classList.add('hidden');
   }
-
-  // Default Tool fields
-  const toolNameInput = document.getElementById('borrowToolNameInput');
-  if (toolNameInput) toolNameInput.value = '';
-  const toolCodeInput = document.getElementById('borrowToolCodeInput');
-  if (toolCodeInput) toolCodeInput.value = 'CUSTOM';
 
   // Quick preset to Now
   setBorrowTimePreset(0);
@@ -5472,6 +5525,14 @@ async function handleSaveBorrowTool(e) {
   e.preventDefault();
   const toolNameRaw = document.getElementById('borrowToolNameInput').value;
   const toolCode = document.getElementById('borrowToolCodeInput').value;
+  const toolSelect = document.getElementById('borrowToolSelect');
+  if (toolSelect && toolSelect.value && !toolCode) {
+    const opt = toolSelect.options[toolSelect.selectedIndex];
+    if (opt) {
+      toolCode = opt.dataset.code || opt.value;
+      toolNameRaw = opt.dataset.name || opt.text;
+    }
+  }
   
   // Borrower strictly from Personnel Master
   const bSelect = document.getElementById('borrowerNameSelect');
@@ -5491,8 +5552,8 @@ async function handleSaveBorrowTool(e) {
   const remark = document.getElementById('borrowRemarkInput').value;
   const recordedBy = (appState.currentUser && appState.currentUser.name) || 'Store';
 
-  if (!toolNameRaw || !borrowerName || !machineName || !borrowDateVal || !borrowTimeVal) {
-    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน', text: 'กรุณากรอกชื่อเครื่องมือ, เลือกหรือระบุผู้ยืม, เครื่องจักร และวันเวลาที่เริ่มยืม' });
+  if (!toolNameRaw || !toolCode || !borrowerName || !machineName || !borrowDateVal || !borrowTimeVal) {
+    Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน', text: 'กรุณาเลือกเครื่องมือ/อุปกรณ์จากคลัง, เลือกผู้ยืม, เครื่องจักร และวันเวลาที่เริ่มยืม' });
     return;
   }
 
@@ -5631,8 +5692,13 @@ function openEditToolLoanModal(loanId) {
 
   document.getElementById('editLoanId').value = loan.id;
   document.getElementById('editLoanIdDisplay').value = loan.id;
+  const editTSelect = document.getElementById('editLoanToolSelect');
+  if (editTSelect) {
+    editTSelect.innerHTML = getToolSelectOptions(loan.toolCode, loan.toolName);
+    if (loan.toolCode) editTSelect.value = loan.toolCode;
+  }
   document.getElementById('editLoanToolName').value = loan.toolName;
-  document.getElementById('editLoanToolCode').value = loan.toolCode || 'CUSTOM';
+  document.getElementById('editLoanToolCode').value = loan.toolCode || '';
 
   // Borrower Select (Strict Personnel Master)
   const bSelect = document.getElementById('editLoanBorrowerSelect');

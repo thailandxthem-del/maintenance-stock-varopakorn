@@ -1,6 +1,6 @@
 {
-  "version": 1789527352296,
-  "lastUpdated": "2026-09-16T02:55:52.296Z",
+  "version": 1789533390041,
+  "lastUpdated": "2026-09-16T04:36:30.041Z",
   "users": [
     {
       "id": "U-001",
@@ -127,6 +127,46 @@
     }
   ],
   "parts": [
+    {
+      "id": "PART-1789533231329-02",
+      "partNumber": "TL-005",
+      "partName": "มัลติมิเตอร์ดิจิตอล FLUKE 87V",
+      "category": "Workshop Tools (เครื่องมือช่างและอุปกรณ์)",
+      "categoryType": "Tool",
+      "toolCondition": "Operational",
+      "specification": "True-RMS Industrial Digital Multimeter 1000V AC/DC",
+      "description": "มัลติมิเตอร์ดิจิทัลความเที่ยงตรงสูง สำหรับงานตรวจวัดระบบไฟฟ้าและคอนโทรล",
+      "location": "TOOL-ROOM-A2",
+      "currentStock": 2,
+      "minStock": 1,
+      "maxStock": 5,
+      "reorderPoint": 1,
+      "unit": "ตัว",
+      "unitCost": 18500,
+      "supplier": "Varopakorn Central Tool Room",
+      "isCritical": false,
+      "lastUpdated": "2026-09-16 04:33:51"
+    },
+    {
+      "id": "PART-1789533231076-01",
+      "partNumber": "TL-001",
+      "partName": "ประแจปอนด์ดิจิตอล 1/2 นิ้ว (Digital Torque Wrench)",
+      "category": "Workshop Tools (เครื่องมือช่างและอุปกรณ์)",
+      "categoryType": "Tool",
+      "toolCondition": "Operational",
+      "specification": "ประแจวัดแรงบิดดิจิทัล ขนาดแกน 1/2 นิ้ว ช่วงวัด 10-200 Nm ความแม่นยำสูง",
+      "description": "เครื่องมือวัดแรงบิดดิจิทัล สำหรับงานขันโบลต์-น็อตหน้าแปลน Spindle และเครื่องจักรหลัก",
+      "location": "TOOL-ROOM-A1",
+      "currentStock": 2,
+      "minStock": 1,
+      "maxStock": 5,
+      "reorderPoint": 1,
+      "unit": "ตัว",
+      "unitCost": 12500,
+      "supplier": "Varopakorn Central Tool Room",
+      "isCritical": false,
+      "lastUpdated": "2026-09-16 04:33:51"
+    },
     {
       "id": "P-0377",
       "currentStock": 3,
@@ -14519,6 +14559,15 @@
   ],
   "auditLogs": [
     {
+      "id": "AUD-LN-1789533390041",
+      "timestamp": "2026-09-16 04:36:30",
+      "user": "Store Admin",
+      "action": "TOOL_BORROW",
+      "partNumber": "TL-001",
+      "reason": "ยืมเครื่องมือ: ประแจปอนด์ดิจิตอล 1/2 นิ้ว (Digital Torque Wrench) โดย สมเกียรติ ช่างซ่อม (หัวหน้า) (ไปใช้ที่: Foil Mill 1 (FM-01))",
+      "reference": "LN-390037"
+    },
+    {
       "id": "AUD-1789527352296",
       "timestamp": "2026-09-16 02:55:52",
       "user": "Warrawat (Developer)",
@@ -15404,8 +15453,8 @@
   "toolLoans": [
     {
       "id": "LN-829404",
-      "toolCode": "TL-TEST-01",
-      "toolName": "ประแจปอนด์ดิจิทัล (Digital Torque Wrench)",
+      "toolCode": "TL-001",
+      "toolName": "ประแจปอนด์ดิจิตอล 1/2 นิ้ว (Digital Torque Wrench)",
       "borrowerName": "สมเกียรติ ช่างซ่อม (หัวหน้า)",
       "borrowerDept": "ฝ่ายซ่อมบำรุง",
       "machineId": "TEST-MC-01",
@@ -15421,8 +15470,8 @@
     },
     {
       "id": "LN-790980",
-      "toolCode": "TL-TEST-01",
-      "toolName": "ประแจปอนด์ดิจิทัล (Digital Torque Wrench)",
+      "toolCode": "TL-001",
+      "toolName": "ประแจปอนด์ดิจิตอล 1/2 นิ้ว (Digital Torque Wrench)",
       "borrowerName": "สมเกียรติ ช่างซ่อม (หัวหน้า)",
       "borrowerDept": "ฝ่ายซ่อมบำรุง",
       "machineId": "TEST-MC-01",
@@ -15438,8 +15487,8 @@
     },
     {
       "id": "LN-113791",
-      "toolCode": "CUSTOM",
-      "toolName": "ประแจปอนด์ดิจิตอล 1/2 นิ้ว (เครื่องมือกลาง)",
+      "toolCode": "TL-001",
+      "toolName": "ประแจปอนด์ดิจิตอล 1/2 นิ้ว (Digital Torque Wrench)",
       "borrowerName": "วิชัย ช่างกลึง",
       "borrowerDept": "ฝ่ายซ่อมบำรุง",
       "machineId": "-",

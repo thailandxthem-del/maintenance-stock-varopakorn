@@ -614,13 +614,13 @@
         </div>
 
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">ชื่อเครื่องมือ / อุปกรณ์ <span class="text-rose-500">*</span> <span class="text-[11px] text-slate-400 font-normal">(เลือกจากรายการ หรือพิมพ์ชื่อใหม่ได้อิสระ)</span></label>
-          <input type="text" id="borrowToolNameInput" list="availableToolsDatalist" required 
-                 placeholder="พิมพ์ชื่อเครื่องมือ หรือพิมพ์ค้นหาจากคลัง..." 
-                 oninput="onBorrowToolSelect(this.value)"
-                 class="w-full border border-slate-300 rounded-lg p-2.5 font-medium text-slate-900 focus:border-sky-500 focus:outline-none">
-          <datalist id="availableToolsDatalist"></datalist>
-          <input type="hidden" id="borrowToolCodeInput" value="CUSTOM">
+          <label class="block font-semibold text-slate-700 mb-1">ชื่อเครื่องมือ / อุปกรณ์ <span class="text-rose-500">*</span> <span class="text-[11px] text-sky-600 font-normal">(อ้างอิงจากฐานข้อมูลอะไหล่ & เครื่องมือในระบบ)</span></label>
+          <select id="borrowToolSelect" onchange="onBorrowToolSelectChange(this)" required 
+                  class="w-full border border-slate-300 rounded-lg p-2.5 font-medium text-slate-900 bg-white focus:border-sky-500 focus:outline-none cursor-pointer">
+            <!-- Populated from Parts Master -->
+          </select>
+          <input type="hidden" id="borrowToolNameInput">
+          <input type="hidden" id="borrowToolCodeInput">
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -808,11 +808,12 @@
         <div class="grid grid-cols-3 gap-2">
           <div class="col-span-2">
             <label class="block font-semibold text-slate-700 mb-1">ชื่อเครื่องมือ / อุปกรณ์ <span class="text-rose-500">*</span></label>
-            <input type="text" id="editLoanToolName" required class="w-full border border-slate-300 rounded-lg p-2 font-medium text-slate-900 focus:border-sky-500 focus:outline-none">
+            <select id="editLoanToolSelect" onchange="onEditLoanToolSelectChange(this)" required class="w-full border border-slate-300 rounded-lg p-2 font-medium text-slate-900 bg-white focus:border-sky-500 focus:outline-none cursor-pointer"></select>
+            <input type="hidden" id="editLoanToolName">
           </div>
           <div>
             <label class="block font-semibold text-slate-700 mb-1">รหัสเครื่องมือ</label>
-            <input type="text" id="editLoanToolCode" class="w-full border border-slate-300 rounded-lg p-2 font-mono text-slate-700 focus:border-sky-500 focus:outline-none">
+            <input type="text" id="editLoanToolCode" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg p-2 font-mono font-bold text-sky-700 focus:outline-none cursor-not-allowed">
           </div>
         </div>
 
@@ -1013,8 +1014,8 @@
   <datalist id="personnelMasterDatalist"></datalist>
   <datalist id="machinesMasterDatalist"></datalist>
 
-  <!-- APPLICATION LOGIC (with Cache Busting v=3.2.0) -->
-  <script src="/js/app.js?v=3.2.0"></script>
+  <!-- APPLICATION LOGIC (with Cache Busting v=3.3.0) -->
+  <script src="/js/app.js?v=3.3.0"></script>
 </body>
 </html>
 
