@@ -382,11 +382,10 @@
         <div>
           <div class="text-[11px] text-slate-500 mb-1.5 font-medium">คลิกทดสอบสแกนตัวอย่างจริง:</div>
           <div class="flex flex-wrap gap-1.5">
-            <button onclick="executeScan('NA10')" class="px-2 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 rounded text-[11px] font-mono border border-slate-200">NA10 (Bolt M12)</button>
-            <button onclick="executeScan('NC24')" class="px-2 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 rounded text-[11px] font-mono border border-slate-200">NC24 (Socket M12)</button>
-            <button onclick="executeScan('TI53')" class="px-2 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 rounded text-[11px] font-mono border border-slate-200">TI53 (Teflon)</button>
-            <button onclick="executeScan('LC44')" class="px-2 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 rounded text-[11px] font-mono border border-slate-200">LC44 (ใบหินเจียร์ 7")</button>
-            <button onclick="executeScan('TOOL-001')" class="px-2 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 rounded text-[11px] font-mono border border-slate-200">TOOL-001 (มิเตอร์)</button>
+            <button onclick="executeScan('NA10')" class="px-2 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 rounded text-[11px] font-mono border border-slate-200">NA10 (Bolt M12 - เบิกอะไหล่)</button>
+            <button onclick="executeScan('TL-005')" class="px-2 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded text-[11px] font-mono border border-purple-200">TL-005 (Fluke 87V - ยืมเครื่องมือ)</button>
+            <button onclick="executeScan('TL-001')" class="px-2 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded text-[11px] font-mono border border-purple-200">TL-001 (ประแจปอนด์ - ยืมเครื่องมือ)</button>
+            <button onclick="executeScan('LC44')" class="px-2 py-1 bg-slate-100 hover:bg-sky-100 text-slate-700 rounded text-[11px] font-mono border border-slate-200">LC44 (ใบหินเจียร์ - เบิกอะไหล่)</button>
           </div>
         </div>
 
@@ -405,12 +404,13 @@
       <!-- Printable Label Box -->
       <div id="printableLabelContent" class="p-6 text-center space-y-3 bg-white">
         <div class="border-2 border-slate-800 rounded-lg p-4 bg-white space-y-2">
-          <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">TOOL ROOM SPARE PART</div>
+          <div id="labelHeaderType" class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">TOOL ROOM SPARE PART</div>
           <div id="labelPartNumber" class="text-xl font-bold font-mono text-slate-900">NA10</div>
           <div id="labelPartName" class="text-xs font-semibold text-slate-800 line-clamp-2">Hex Bolt M12x1.75x50 mm. + N + W</div>
           
-          <div class="py-2 flex justify-center">
+          <div class="py-2 flex flex-col items-center justify-center">
             <div id="labelQrContainer" class="p-1.5 bg-white border border-slate-200 rounded"></div>
+            <div id="labelScanActionHint" class="text-[10px] font-semibold text-slate-500 mt-1.5">📱 สแกนเพื่อเบิกอะไหล่ / ขอยืมเครื่องมือทันที</div>
           </div>
 
           <div class="grid grid-cols-2 gap-2 text-[11px] text-left pt-2 border-t border-slate-200">
@@ -420,6 +420,15 @@
             <div><span class="text-slate-500">คลัง:</span> <strong class="text-slate-700">Tool Room</strong></div>
           </div>
         </div>
+      </div>
+
+      <!-- Permanent Scan URL & Direct Test Button -->
+      <div class="px-6 pb-2 text-left space-y-1 no-print">
+        <div class="text-[10px] text-slate-500 font-semibold flex items-center justify-between">
+          <span>🔗 ลิงก์ประจำ QR Code (ถาวร ไม่ซ้ำกัน):</span>
+          <button type="button" onclick="testQrScanLink()" class="text-sky-600 hover:text-sky-700 underline font-bold text-[11px]">⚡ ทดสอบคลิกเปิดลิงก์นี้</button>
+        </div>
+        <input type="text" id="labelQrUrlDisplay" readonly class="w-full bg-slate-100 border border-slate-300 rounded p-1.5 text-[11px] font-mono text-slate-700 cursor-pointer" onclick="this.select()">
       </div>
 
       <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-end space-x-2 no-print">
@@ -1014,8 +1023,8 @@
   <datalist id="personnelMasterDatalist"></datalist>
   <datalist id="machinesMasterDatalist"></datalist>
 
-  <!-- APPLICATION LOGIC (with Cache Busting v=3.3.0) -->
-  <script src="/js/app.js?v=3.3.0"></script>
+  <!-- APPLICATION LOGIC (with Cache Busting v=3.4.0) -->
+  <script src="/js/app.js?v=3.4.0"></script>
 </body>
 </html>
 

@@ -154,8 +154,16 @@ async function initApp() {
     updateHeaderCounts();
     // Initialize strictly in Viewer / Auditor role by default
     changeUserRole('Viewer / Auditor', { silent: true });
-    const initHash = window.location.hash ? window.location.hash.replace('#', '') : '';
-    switchTab(initHash || 'dashboard');
+    // Check if URL contains scan parameter (e.g. from scanning QR code with phone camera)
+    const urlParams = new URLSearchParams(window.location.search);
+    const scanCode = urlParams.get('code') || urlParams.get('item');
+    if (scanCode) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setTimeout(() => handleScanRoute(scanCode), 120);
+    } else {
+      const initHash = window.location.hash ? window.location.hash.replace('#', '') : '';
+      switchTab(initHash || 'dashboard');
+    }
     initRealtimeSync();
   }
 }
@@ -2210,6 +2218,17 @@ function quickStockIn(partCode) {
 function quickStockIssue(partCode) {
   switchTab('stock-issue');
   setTimeout(() => renderStockIssue(document.getElementById('mainContent'), partCode), 20);
+}
+function quickBorrowTool(toolCode) {
+  switchTab('tool-loans');
+  setTimeout(() => {
+    openBorrowToolModal();
+    const tSelect = document.getElementById('borrowToolSelect');
+    if (tSelect) {
+      tSelect.value = toolCode;
+      onBorrowToolSelectChange(tSelect);
+    }
+  }, 60);
 }
 
 // ==================== 5. SPARE PARTS RETURN MODULE ====================
@@ -4390,11 +4409,88 @@ function closePartDetail() {
   document.getElementById('partDetailModal').classList.add('hidden');
 }
 
-// Print Label & QR Generation
+// ==================== QR CODE URL & SCAN ROUTING (v3.4.0) ====================
+
+function getPartScanUrl(partNumber) {
+  const domain = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'https://maintenance-stock-varopakorn.onrender.com'
+    : window.location.origin;
+  return `${domain}/?action=scan&code=${encodeURIComponent(partNumber)}`;
+}
+
+function testQrScanLink() {
+  if (appState.selectedPart) {
+    closePrintLabel();
+    handleScanRoute(appState.selectedPart.partNumber);
+  }
+}
+
+// Handle QR scan route: Tool -> Tool Loans (Borrow Modal), Spare Part -> Stock Issue Voucher
+function handleScanRoute(scannedCode) {
+  if (!scannedCode) return;
+  const parts = (appState.db && appState.db.parts) || [];
+  const cleanCode = scannedCode.trim().toUpperCase();
+  const part = parts.find(p => p.partNumber.toUpperCase() === cleanCode);
+
+  if (!part) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'ไม่พบรหัสอะไหล่ / เครื่องมือ',
+      text: `ไม่พบข้อมูลสำหรับรหัส: ${scannedCode} ในฐานข้อมูลหลัก`
+    });
+    return;
+  }
+
+  // If user is currently in Viewer / Auditor role, switch to User role so they can proceed with borrow / issue
+  if (isViewerRole(appState.currentUser.role)) {
+    changeUserRole('User', { silent: true });
+  }
+
+  // Close any open modals
+  closeQRScanner();
+  closePartDetail();
+  closePrintLabel();
+
+  if (isPartTool(part)) {
+    // Tool & Equipment -> Go to Tool Loans Borrow Modal
+    quickBorrowTool(part.partNumber);
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'success',
+      title: `🧰 พบเครื่องมือ: [${part.partNumber}] ${part.partName} - เปิดหน้าขอยืมทันที`,
+      showConfirmButton: false,
+      timer: 2500
+    });
+  } else {
+    // Spare Part -> Go to Stock Issue Voucher
+    quickStockIssue(part.partNumber);
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'success',
+      title: `📦 พบอะไหล่: [${part.partNumber}] ${part.partName} - เปิดหน้าขอเบิกทันที`,
+      showConfirmButton: false,
+      timer: 2500
+    });
+  }
+}
+
+// Print Label & QR Generation (Immutable URL per Item Code)
 function openPrintLabelModal(partId) {
   const part = (appState.db.parts || []).find(p => p.id === partId);
   if (!part) return;
   appState.selectedPart = part;
+
+  const isTool = isPartTool(part);
+
+  const headerType = document.getElementById('labelHeaderType');
+  if (headerType) {
+    headerType.innerText = isTool ? '🧰 TOOL ROOM EQUIPMENT & TOOLS' : '📦 TOOL ROOM SPARE PART';
+    headerType.className = isTool 
+      ? 'text-[10px] uppercase font-bold text-purple-700 tracking-wider' 
+      : 'text-[10px] uppercase font-bold text-slate-500 tracking-wider';
+  }
 
   document.getElementById('labelPartNumber').innerText = part.partNumber;
   document.getElementById('labelPartName').innerText = part.partName;
@@ -4404,13 +4500,26 @@ function openPrintLabelModal(partId) {
   if (document.getElementById('labelCost')) document.getElementById('labelCost').innerText = `฿${part.unitCost ? part.unitCost.toLocaleString() : '-'}`;
   if (document.getElementById('labelCategory')) document.getElementById('labelCategory').innerText = (part.category || 'Tool Room').split('(')[0];
 
+  const scanActionHint = document.getElementById('labelScanActionHint');
+  if (scanActionHint) {
+    scanActionHint.innerText = isTool ? '📱 สแกนเพื่อขอยืมเครื่องมือทันที' : '📱 สแกนเพื่อขอเบิกอะไหล่ทันที';
+    scanActionHint.className = isTool 
+      ? 'text-[10px] font-bold text-purple-700 mt-1.5' 
+      : 'text-[10px] font-bold text-sky-700 mt-1.5';
+  }
+
+  // Permanent Scan URL
+  const targetScanUrl = getPartScanUrl(part.partNumber);
+  const qrUrlDisplay = document.getElementById('labelQrUrlDisplay');
+  if (qrUrlDisplay) qrUrlDisplay.value = targetScanUrl;
+
   const qrContainer = document.getElementById('labelQrContainer');
   qrContainer.innerHTML = '';
   if (window.QRCode) {
     new QRCode(qrContainer, {
-      text: part.partNumber,
-      width: 110,
-      height: 110,
+      text: targetScanUrl,
+      width: 120,
+      height: 120,
       colorDark: '#0f172a',
       colorLight: '#ffffff',
       correctLevel: QRCode.CorrectLevel.M
@@ -4440,44 +4549,23 @@ function closeQRScanner() {
   document.getElementById('scannerModal').classList.add('hidden');
 }
 
-function executeScan(scannedCode) {
-  if (!scannedCode) return;
-  const cleanCode = scannedCode.trim().toUpperCase();
-  const part = (appState.db.parts || []).find(p => p.partNumber.toUpperCase() === cleanCode);
+function executeScan(scannedInput) {
+  if (!scannedInput) return;
+  let code = scannedInput.trim();
 
-  if (part) {
-    closeQRScanner();
-    // Show Action Selector Modal
-    Swal.fire({
-      title: `พบอะไหล่: [${part.partNumber}]`,
-      html: `
-        <div class="text-left text-xs space-y-2 p-2 bg-slate-50 rounded border border-slate-200">
-          <div><span class="text-slate-500">ชื่อ:</span> <strong>${part.partName}</strong></div>
-          <div><span class="text-slate-500">ตำแหน่งเก็บ:</span> <strong class="text-sky-700 font-mono">${part.location}</strong></div>
-          <div><span class="text-slate-500">คงเหลือในสต็อก:</span> <strong class="text-slate-900 font-mono text-base">${part.currentStock} ${part.unit}</strong></div>
-          <div><span class="text-slate-500">เครื่องจักร:</span> <strong>${part.machineCode}</strong></div>
-        </div>
-      `,
-      showCancelButton: true,
-      showDenyButton: true,
-      confirmButtonText: 'เบิกจ่ายอะไหล่ (-OUT)',
-      denyButtonText: 'รับอะไหล่เข้า (+IN)',
-      cancelButtonText: 'ดูประวัติ / รายละเอียด',
-      confirmButtonColor: '#e11d48',
-      denyButtonColor: '#059669',
-      cancelButtonColor: '#0284c7'
-    }).then(res => {
-      if (res.isConfirmed) {
-        quickStockIssue(part.partNumber);
-      } else if (res.isDenied) {
-        quickStockIn(part.partNumber);
-      } else if (res.dismiss === Swal.DismissReason.cancel) {
-        showPartDetail(part.id);
-      }
-    });
-  } else {
-    Swal.fire('ไม่พบรหัสอะไหล่', `ไม่พบข้อมูลอะไหล่สำหรับรหัส: ${scannedCode}`, 'warning');
+  // If scannedInput is a full URL or query string, extract 'code' or 'item' parameter
+  try {
+    if (code.includes('?') || code.includes('http://') || code.includes('https://')) {
+      const urlObj = new URL(code, window.location.origin);
+      const urlCode = urlObj.searchParams.get('code') || urlObj.searchParams.get('item');
+      if (urlCode) code = urlCode;
+    }
+  } catch (e) {
+    const match = code.match(/[?&](code|item)=([^&]+)/i);
+    if (match) code = decodeURIComponent(match[2]);
   }
+
+  handleScanRoute(code);
 }
 
 // Global Search (Ctrl+K)
