@@ -12,6 +12,9 @@ function isUserRole(r) {
 function isViewerRole(r) {
   return r === 'Viewer / Auditor' || r === 'Viewer' || r === 'Auditor';
 }
+function isAdminOrAbove(r) {
+  return isDeveloperRole(r) || isStoreAdminRole(r);
+}
 
 function renderPersonnelAccessBadge(role) {
   if (isDeveloperRole(role)) {
@@ -197,7 +200,14 @@ function initRealtimeSync() {
               // Re-render only if user is not actively typing in an open input
               const activeEl = document.activeElement;
               const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
-              if (!isTyping) {
+              const isFormTab = ['stock-issue', 'stock-in', 'stock-return', 'stock-adjustment'].includes(appState.currentTab);
+              const isModalOpen = !document.getElementById('borrowToolModal')?.classList.contains('hidden') ||
+                                  !document.getElementById('scannerModal')?.classList.contains('hidden') ||
+                                  !document.getElementById('partDetailModal')?.classList.contains('hidden') ||
+                                  !document.getElementById('printLabelModal')?.classList.contains('hidden') ||
+                                  !document.getElementById('editToolLoanModal')?.classList.contains('hidden') ||
+                                  !document.getElementById('returnToolModal')?.classList.contains('hidden');
+              if (!isTyping && !isFormTab && !isModalOpen) {
                 renderCurrentTab();
               }
               // Show notification toast
@@ -251,11 +261,18 @@ function initRealtimeSync() {
           lastKnownVersion = info.version;
           const activeEl = document.activeElement;
           const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
+          const isFormTab = ['stock-issue', 'stock-in', 'stock-return', 'stock-adjustment'].includes(appState.currentTab);
+          const isModalOpen = !document.getElementById('borrowToolModal')?.classList.contains('hidden') ||
+                              !document.getElementById('scannerModal')?.classList.contains('hidden') ||
+                              !document.getElementById('partDetailModal')?.classList.contains('hidden') ||
+                              !document.getElementById('printLabelModal')?.classList.contains('hidden') ||
+                              !document.getElementById('editToolLoanModal')?.classList.contains('hidden') ||
+                              !document.getElementById('returnToolModal')?.classList.contains('hidden');
           const dbRes = await fetch('/api/db');
           if (dbRes.ok) {
             appState.db = await dbRes.json();
             updateHeaderCounts();
-            if (!isTyping) renderCurrentTab();
+            if (!isTyping && !isFormTab && !isModalOpen) renderCurrentTab();
           }
         } else if (info.version) {
           lastKnownVersion = info.version;
@@ -370,6 +387,21 @@ function changeUserRole(newRole, options = {}) {
     const navStockIssue = document.getElementById('nav-stock-issue');
     if (navStockIssue) navStockIssue.classList.toggle('hidden', isViewer);
 
+    // 5. Reports & System section: Admin level and above only (Developer & Store Admin)
+    const isAdmin = isAdminOrAbove(r);
+    const sectionReports = document.getElementById('section-reports-system');
+    if (sectionReports) sectionReports.classList.toggle('hidden', !isAdmin);
+
+    // 6. Spare Parts Master database: Admin level and above only
+    const navSpareParts = document.getElementById('nav-spare-parts');
+    if (navSpareParts) navSpareParts.classList.toggle('hidden', !isAdmin);
+
+    // 7. Redirect to dashboard if currently viewing an Admin-only tab as non-admin
+    const adminOnlyTabs = ['spare-parts', 'reports', 'audit-log', 'master-data', 'users'];
+    if (adminOnlyTabs.includes(appState.currentTab) && !isAdmin) {
+      appState.currentTab = 'dashboard';
+    }
+
     if (!options.silent) {
       Swal.fire({
         toast: true,
@@ -427,6 +459,20 @@ function hideLoading() {}
 // ==================== TAB SWITCHING & ROUTING ====================
 
 function switchTab(tabId) {
+  const r = (appState.currentUser && appState.currentUser.role) || 'Viewer / Auditor';
+  const isAdmin = isAdminOrAbove(r);
+  const adminOnlyTabs = ['spare-parts', 'reports', 'audit-log', 'master-data', 'users'];
+
+  if (adminOnlyTabs.includes(tabId) && !isAdmin) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'สิทธิ์การเข้าถึงไม่เพียงพอ',
+      text: 'เมนูนี้อนุญาตเฉพาะผู้ใช้งานระดับ Store Admin หรือ Developer ขึ้นไปเท่านั้น',
+      confirmButtonColor: '#0284c7'
+    });
+    return;
+  }
+
   appState.currentTab = tabId;
 
   // Update sidebar active styling
@@ -1846,10 +1892,16 @@ function renderStockIssue(container, prefillPartCode = '') {
   const parts = appState.db.parts || [];
   const autoTransNo = `ISS-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${String(Math.floor(Math.random()*9000)+1000)}`;
 
-  // Initialize with 1 row (pre-filled if provided)
-  batchIssueItems = [
-    { partNumber: prefillPartCode || '', qty: 1 }
-  ];
+  // Initialize with 1 row (pre-filled if provided), or preserve existing items
+  if (prefillPartCode) {
+    batchIssueItems = [
+      { partNumber: prefillPartCode, qty: 1 }
+    ];
+  } else if (!batchIssueItems || batchIssueItems.length === 0) {
+    batchIssueItems = [
+      { partNumber: '', qty: 1 }
+    ];
+  }
 
   container.innerHTML = `
     <div class="max-w-5xl mx-auto space-y-6">
@@ -1953,7 +2005,7 @@ function renderStockIssue(container, prefillPartCode = '') {
             * ระบบจะตัดยอดสต็อกคงเหลือทันทีสำหรับทุกรายการ และป้องกันการเบิกเกินยอดสต็อกที่มีอยู่
           </div>
           <div class="flex items-center space-x-3">
-            <button type="button" onclick="switchTab('dashboard')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition">
+            <button type="button" onclick="cancelStockIssue()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition">
               ยกเลิก
             </button>
             <button type="submit" id="btnSubmitIssue" class="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md shadow-rose-600/20 flex items-center space-x-1.5 transition transform active:scale-95">
@@ -2198,6 +2250,7 @@ async function handleStockIssueSubmit(e) {
                ${warningHtml}`,
         confirmButtonText: 'ตกลง'
       }).then(() => {
+        batchIssueItems = [];
         refreshData();
         switchTab('dashboard');
       });
@@ -2210,14 +2263,19 @@ async function handleStockIssueSubmit(e) {
 }
 
 
+function cancelStockIssue() {
+  batchIssueItems = [];
+  switchTab('dashboard');
+}
+
 // Quick Stock Helpers
 function quickStockIn(partCode) {
   switchTab('stock-in');
   setTimeout(() => renderStockIn(document.getElementById('mainContent'), partCode), 20);
 }
 function quickStockIssue(partCode) {
+  batchIssueItems = [{ partNumber: partCode, qty: 1 }];
   switchTab('stock-issue');
-  setTimeout(() => renderStockIssue(document.getElementById('mainContent'), partCode), 20);
 }
 function quickBorrowTool(toolCode) {
   switchTab('tool-loans');
