@@ -1,6 +1,6 @@
 {
-  "version": 1789464125194,
-  "lastUpdated": "2026-09-15T09:22:05.194Z",
+  "version": 1789523586484,
+  "lastUpdated": "2026-09-16T01:53:06.484Z",
   "users": [
     {
       "id": "U-001",
@@ -13692,6 +13692,21 @@
   ],
   "movements": [
     {
+      "id": "MOV-1789523586113-TEST-SPARE-5873",
+      "transactionNo": "ISS-20260916-6113",
+      "date": "2026-09-16 01:53:06",
+      "type": "OUT",
+      "partNumber": "TEST-SPARE-5873",
+      "partName": "น็อตสแตนเลส M10x30mm (Test Spare)",
+      "qtyIn": 0,
+      "qtyOut": 5,
+      "balance": 45,
+      "machine": "M-001",
+      "user": "มีนะ (จ่าย: Test1)",
+      "refDoc": "งาน: M-001",
+      "note": "เบิกใช้งาน"
+    },
+    {
       "id": "MOV-1789464125194-NA10",
       "transactionNo": "ISS-20260915-5193",
       "date": "2026-09-15 09:22:05",
@@ -14561,42 +14576,6 @@
       "reference": "EMP-9181"
     },
     {
-      "id": "AUD-MC-DEL-1789455829503",
-      "timestamp": "2026-09-15 07:03:49",
-      "user": "Developer",
-      "action": "MACHINE_DELETE",
-      "partNumber": "TEST-MC-01",
-      "reason": "ลบเครื่องจักร: เครื่องทดสอบความเที่ยงตรงสูง (TEST-MC-01) เหตุผล: ปรับปรุงรายการเครื่องจักร",
-      "reference": "TEST-MC-01"
-    },
-    {
-      "id": "AUD-RET-1789455829437",
-      "timestamp": "2026-09-15 07:03:49",
-      "user": "สโตร์ช่าง",
-      "action": "TOOL_RETURN",
-      "partNumber": "TL-TEST-01",
-      "reason": "คืนเครื่องมือ: ประแจปอนด์ดิจิทัล (Digital Torque Wrench) (สภาพ: Good) คืนโดย สมเกียรติ ช่างซ่อม (หัวหน้า)",
-      "reference": "LN-829404"
-    },
-    {
-      "id": "AUD-LN-1789455829404",
-      "timestamp": "2026-09-15 07:03:49",
-      "user": "สโตร์ช่าง",
-      "action": "TOOL_BORROW",
-      "partNumber": "TL-TEST-01",
-      "reason": "ยืมเครื่องมือ: ประแจปอนด์ดิจิทัล (Digital Torque Wrench) โดย สมเกียรติ ช่างซ่อม (หัวหน้า) (ไปใช้ที่: เครื่องทดสอบความเที่ยงตรงสูง)",
-      "reference": "LN-829404"
-    },
-    {
-      "id": "AUD-MC-1789455829282",
-      "timestamp": "2026-09-15 07:03:49",
-      "user": "Developer",
-      "action": "MACHINE_SAVE",
-      "partNumber": "TEST-MC-01",
-      "reason": "บันทึกข้อมูลเครื่องจักร: เครื่องทดสอบความเที่ยงตรงสูง (TEST-MC-01)",
-      "reference": "TEST-MC-01"
-    },
-    {
       "id": "AUD-EMP-1789455829242",
       "timestamp": "2026-09-15 07:03:49",
       "user": "Developer",
@@ -14622,42 +14601,6 @@
       "partNumber": "EMP-0826",
       "reason": "ลบรายชื่อบุคลากร: สมเกียรติ ช่างซ่อม (หัวหน้า) (EMP-0826) เหตุผล: ปรับปรุงรายชื่อบุคลากร",
       "reference": "EMP-0826"
-    },
-    {
-      "id": "AUD-MC-DEL-1789453791069",
-      "timestamp": "2026-09-15 06:29:51",
-      "user": "Developer",
-      "action": "MACHINE_DELETE",
-      "partNumber": "TEST-MC-01",
-      "reason": "ลบเครื่องจักร: เครื่องทดสอบความเที่ยงตรงสูง (TEST-MC-01) เหตุผล: ปรับปรุงรายการเครื่องจักร",
-      "reference": "TEST-MC-01"
-    },
-    {
-      "id": "AUD-RET-1789453791010",
-      "timestamp": "2026-09-15 06:29:51",
-      "user": "สโตร์ช่าง",
-      "action": "TOOL_RETURN",
-      "partNumber": "TL-TEST-01",
-      "reason": "คืนเครื่องมือ: ประแจปอนด์ดิจิทัล (Digital Torque Wrench) (สภาพ: Good) คืนโดย สมเกียรติ ช่างซ่อม (หัวหน้า)",
-      "reference": "LN-790980"
-    },
-    {
-      "id": "AUD-LN-1789453790980",
-      "timestamp": "2026-09-15 06:29:50",
-      "user": "สโตร์ช่าง",
-      "action": "TOOL_BORROW",
-      "partNumber": "TL-TEST-01",
-      "reason": "ยืมเครื่องมือ: ประแจปอนด์ดิจิทัล (Digital Torque Wrench) โดย สมเกียรติ ช่างซ่อม (หัวหน้า) (ไปใช้ที่: เครื่องทดสอบความเที่ยงตรงสูง)",
-      "reference": "LN-790980"
-    },
-    {
-      "id": "AUD-MC-1789453790923",
-      "timestamp": "2026-09-15 06:29:50",
-      "user": "Developer",
-      "action": "MACHINE_SAVE",
-      "partNumber": "TEST-MC-01",
-      "reason": "บันทึกข้อมูลเครื่องจักร: เครื่องทดสอบความเที่ยงตรงสูง (TEST-MC-01)",
-      "reference": "TEST-MC-01"
     },
     {
       "id": "AUD-EMP-1789453790890",
@@ -14949,18 +14892,6 @@
       "difference": -3,
       "reason": "เบิกใช้งานเครื่องจักร M-001 (Preventive Maintenance (PM)) โดย Test Tech ตามใบงาน WO-PASS-TEST เหตุผล: -",
       "reference": "ISS-20260914-8730"
-    },
-    {
-      "id": "AUD-1789366178701",
-      "timestamp": "2026-09-14 06:09:38",
-      "user": "Test Auditor",
-      "action": "STOCK_IN",
-      "partNumber": "NA10",
-      "previousQty": 44,
-      "newQty": 54,
-      "difference": 10,
-      "reason": "รับเข้าอะไหล่ตาม PO: TEST-PO-001 จากผู้ขาย: หจก. สหอุตสาหกรรมสลักภัณฑ์",
-      "reference": "IN-20260914-8701"
     },
     {
       "id": "AUD-0001",
@@ -15565,7 +15496,8 @@
       "department": "ฝ่ายซ่อมบำรุง",
       "roleTitle": "ช่างเครื่องกล",
       "phone": "089-111-2222",
-      "active": true
+      "active": true,
+      "accessRole": "User"
     },
     {
       "id": "EMP-001",
@@ -15573,7 +15505,8 @@
       "department": "Tool Room Store",
       "roleTitle": "เจ้าหน้าที่สโตร์ / จัดการเครื่องมือ",
       "phone": "081-111-2233",
-      "active": true
+      "active": true,
+      "accessRole": "Store Admin / Storekeeper"
     },
     {
       "id": "EMP-002",
@@ -15581,7 +15514,8 @@
       "department": "ฝ่ายซ่อมบำรุง",
       "roleTitle": "ช่างซ่อมบำรุงอาวุโส",
       "phone": "082-222-3344",
-      "active": true
+      "active": true,
+      "accessRole": "Store Admin / Storekeeper"
     },
     {
       "id": "EMP-003",
@@ -15589,7 +15523,8 @@
       "department": "ฝ่ายซ่อมบำรุง",
       "roleTitle": "ช่างกลึง / ซ่อมเครื่องจักร",
       "phone": "083-333-4455",
-      "active": true
+      "active": true,
+      "accessRole": "User"
     },
     {
       "id": "EMP-004",
@@ -15597,7 +15532,8 @@
       "department": "ฝ่ายซ่อมบำรุง",
       "roleTitle": "ช่างไฟฟ้าโรงงาน",
       "phone": "084-444-5566",
-      "active": true
+      "active": true,
+      "accessRole": "User"
     },
     {
       "id": "EMP-005",
@@ -15605,7 +15541,8 @@
       "department": "Plant Maintenance",
       "roleTitle": "หัวหน้าฝ่ายซ่อมบำรุง",
       "phone": "085-555-6677",
-      "active": true
+      "active": true,
+      "accessRole": "User"
     },
     {
       "id": "EMP-006",
@@ -15613,7 +15550,8 @@
       "department": "Inventory Control",
       "roleTitle": "ผู้ดูแลข้อมูลอะไหล่",
       "phone": "086-666-7788",
-      "active": true
+      "active": true,
+      "accessRole": "User"
     },
     {
       "id": "EMP-007",
@@ -15621,7 +15559,8 @@
       "department": "Mechanical Engineering",
       "roleTitle": "วิศวกรเครื่องกล / Developer",
       "phone": "02-xxx-xxxx",
-      "active": true
+      "active": true,
+      "accessRole": "Developer"
     }
   ]
 }

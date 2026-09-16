@@ -242,6 +242,8 @@ const server = http.createServer(async (req, res) => {
             status: 'Active',
             unit: payload.unit || 'ชิ้น',
             location: payload.location || 'A-R01-S01-B01',
+            categoryType: payload.categoryType || (payload.category && payload.category.includes('Tools') ? 'Tool' : 'Spare Part'),
+            toolCondition: payload.categoryType === 'Tool' ? (payload.toolCondition || 'Operational') : null,
             ...payload
           };
           db.parts.unshift(newPart);
@@ -1046,7 +1048,7 @@ const server = http.createServer(async (req, res) => {
         const db = readDB();
         if (!db.personnel) db.personnel = [];
         const body = await readRequestBody(req);
-        const { id, name, department, roleTitle, phone, active, operator } = body;
+        const { id, name, department, roleTitle, accessRole, phone, active, operator } = body;
 
         if (!name) {
           return sendJSON(res, 400, { error: 'กรุณาระบุชื่อ-นามสกุล บุคลากร' });
@@ -1063,6 +1065,7 @@ const server = http.createServer(async (req, res) => {
           person.name = name.trim();
           person.department = department ? department.trim() : 'ฝ่ายซ่อมบำรุง';
           person.roleTitle = roleTitle ? roleTitle.trim() : 'ช่างซ่อมบำรุง';
+          person.accessRole = accessRole || person.accessRole || 'User';
           person.phone = phone ? phone.trim() : '';
           person.active = active !== undefined ? active : true;
         } else {
@@ -1073,6 +1076,7 @@ const server = http.createServer(async (req, res) => {
             name: name.trim(),
             department: department ? department.trim() : 'ฝ่ายซ่อมบำรุง',
             roleTitle: roleTitle ? roleTitle.trim() : 'ช่างซ่อมบำรุง',
+            accessRole: accessRole || 'User',
             phone: phone ? phone.trim() : '',
             active: active !== undefined ? active : true
           };

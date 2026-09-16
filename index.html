@@ -119,10 +119,10 @@
           <div class="relative">
             <select id="roleSelector" onchange="changeUserRole(this.value)" 
                     class="bg-slate-800 text-xs text-slate-200 border border-slate-700 rounded-lg py-1 px-2 focus:outline-none focus:border-sky-500 cursor-pointer font-medium">
-              <option value="Develop">💻 Develop (ผู้พัฒนาระบบ)</option>
-              <option value="Admin">🛡️ Admin (ผู้ดูแล/บันทึก)</option>
-              <option value="Data Editor">✏️ หลังบ้าน (แก้ไขข้อมูลอะไหล่)</option>
-              <option value="Store" selected>👤 สโตร์ช่าง (รับ-เบิกของ)</option>
+              <option value="Developer">💻 Developer (สิทธิ์สูงสุด)</option>
+              <option value="Store Admin / Storekeeper" selected>👤 Store Admin / Storekeeper (ปฏิบัติการ)</option>
+              <option value="User">👥 ผู้ใช้งาน (User) (ใช้งานทั่วไป)</option>
+              <option value="Viewer / Auditor">👁️ Viewer / Auditor (Read Only)</option>
             </select>
           </div>
         </div>
@@ -554,10 +554,10 @@
         <div>
           <label class="block font-semibold text-slate-700 mb-1">บทบาท / สิทธิ์การใช้งาน (Role) <span class="text-rose-500">*</span></label>
           <select id="editUserRole" required class="w-full border border-slate-300 rounded-lg p-2 font-medium focus:border-sky-500 focus:outline-none">
-            <option value="Develop">💻 Develop (ผู้พัฒนาระบบ - สิทธิ์สูงสุด จัดการ User และแก้ไขได้ทั้งหมด)</option>
-            <option value="Admin">🛡️ Admin (ผู้ดูแล/บันทึก)</option>
-            <option value="Data Editor">✏️ หลังบ้าน (แก้ไขข้อมูลอะไหล่)</option>
-            <option value="Store">👤 สโตร์ช่าง (รับ-เบิกของ)</option>
+            <option value="Developer">💻 Developer (ดูแลระบบและ User สามารถทำได้ทุกอย่าง - สิทธิ์สูงสุด)</option>
+            <option value="Store Admin / Storekeeper">👤 Store Admin / Storekeeper (รับเข้า-เบิกจ่าย-คืน-ตรวจ Stock - ระดับสิทธิ์ ปฏิบัติการ)</option>
+            <option value="User">👥 ผู้ใช้งาน (User) (ขอเบิก ขอยืมและดูข้อมูลที่จำเป็น - ระดับสิทธิ์ ใช้งานทั่วไป)</option>
+            <option value="Viewer / Auditor">👁️ Viewer / Auditor (ดูข้อมูลและรายงาน - ระดับสิทธิ์ Read Only)</option>
           </select>
         </div>
 
@@ -936,6 +936,16 @@
           </div>
         </div>
 
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">บทบาท & สิทธิ์การเข้าถึงระบบ (System Role & Permission) <span class="text-rose-500">*</span></label>
+          <select id="personnelAccessRole" required class="w-full border border-purple-300 bg-purple-50/50 rounded-lg p-2.5 font-medium text-slate-900 focus:border-purple-500 focus:outline-none cursor-pointer">
+            <option value="Developer">💻 Developer (ดูแลระบบและ User สามารถทำได้ทุกอย่าง - ระดับสิทธิ์ สูงสุด)</option>
+            <option value="Store Admin / Storekeeper">👤 Store Admin / Storekeeper (รับเข้า-เบิกจ่าย-คืน-ตรวจ Stock - ระดับสิทธิ์ ปฏิบัติการ)</option>
+            <option value="User" selected>👥 ผู้ใช้งาน (User) (ขอเบิก ขอยืมและดูข้อมูลที่จำเป็น - ระดับสิทธิ์ ใช้งานทั่วไป)</option>
+            <option value="Viewer / Auditor">👁️ Viewer / Auditor (ดูข้อมูลและรายงาน - ระดับสิทธิ์ Read Only)</option>
+          </select>
+        </div>
+
         
 
         <div class="pt-4 border-t border-slate-200 flex items-center justify-end space-x-2">
@@ -1004,7 +1014,7 @@
   <datalist id="machinesMasterDatalist"></datalist>
 
   <!-- APPLICATION LOGIC (with Cache Busting v=2.8.0) -->
-  <script src="/js/app.js?v=3.0.0"></script>
+  <script src="/js/app.js?v=3.1.0"></script>
 </body>
 </html>
 

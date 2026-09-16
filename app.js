@@ -1,4 +1,18 @@
 
+function renderPersonnelAccessBadge(role) {
+  if (role === 'Developer') {
+    return '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-300">💻 Developer (สิทธิ์สูงสุด)</span>';
+  }
+  if (role === 'Store Admin / Storekeeper') {
+    return '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">👤 Store Admin (ปฏิบัติการ)</span>';
+  }
+  if (role === 'Viewer / Auditor') {
+    return '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">👁️ Viewer / Auditor (Read Only)</span>';
+  }
+  return '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-300">👥 User (ใช้งานทั่วไป)</span>';
+}
+
+
 // Helper to check if a part is classified as a Tool & Equipment
 function isPartTool(part) {
   if (!part) return false;
@@ -29,10 +43,15 @@ const appState = {
 
 // Available Users for Role Switching (รองรับ Develop สิทธิ์สูงสุด)
 const SYSTEM_USERS = {
-  'Develop': { id: 'U-004', name: 'Developer (ผู้พัฒนาระบบ)', role: 'Develop', title: 'Develop (ผู้พัฒนาระบบ - สิทธิ์สูงสุด)', badgeColor: 'text-purple-400' },
-  'Admin': { id: 'U-003', name: 'ธนภัทร รัตนศิลป์', role: 'Admin', title: 'Admin (ผู้ดูแล/บันทึก)', badgeColor: 'text-amber-400' },
-  'Data Editor': { id: 'U-002', name: 'วีระ หลังบ้าน', role: 'Data Editor', title: 'หลังบ้าน (แก้ไขข้อมูลอะไหล่)', badgeColor: 'text-indigo-400' },
-  'Store': { id: 'U-001', name: 'สมชาย ใจมั่น', role: 'Store', title: 'Store / สโตร์ช่าง (รับ-เบิกของ)', badgeColor: 'text-sky-400' }
+  'Developer': { id: 'U-004', name: 'Warrawat (Developer)', role: 'Developer', title: 'Developer (สิทธิ์สูงสุด)', badgeColor: 'text-purple-400' },
+  'Store Admin / Storekeeper': { id: 'U-001', name: 'มีนะ (Store Admin)', role: 'Store Admin / Storekeeper', title: 'Store Admin / Storekeeper (ปฏิบัติการ)', badgeColor: 'text-amber-400' },
+  'User': { id: 'U-005', name: 'สมชาย ใจมั่น (User)', role: 'User', title: 'ผู้ใช้งาน (User) (ใช้งานทั่วไป)', badgeColor: 'text-sky-400' },
+  'Viewer / Auditor': { id: 'U-006', name: 'Auditor (ผู้ตรวจสอบ)', role: 'Viewer / Auditor', title: 'Viewer / Auditor (Read Only)', badgeColor: 'text-slate-400' },
+  // Backward-compatibility Aliases
+  'Develop': { id: 'U-004', name: 'Warrawat (Developer)', role: 'Developer', title: 'Developer (สิทธิ์สูงสุด)', badgeColor: 'text-purple-400' },
+  'Store': { id: 'U-001', name: 'มีนะ (Store Admin)', role: 'Store Admin / Storekeeper', title: 'Store Admin / Storekeeper (ปฏิบัติการ)', badgeColor: 'text-amber-400' },
+  'Admin': { id: 'U-003', name: 'ธนภัทร รัตนศิลป์', role: 'Store Admin / Storekeeper', title: 'Store Admin / Storekeeper (ปฏิบัติการ)', badgeColor: 'text-amber-400' },
+  'Data Editor': { id: 'U-002', name: 'วีระ หลังบ้าน', role: 'Store Admin / Storekeeper', title: 'Store Admin / Storekeeper (ปฏิบัติการ)', badgeColor: 'text-indigo-400' }
 };
 
 // ซิงค์รายชื่อและข้อมูลผู้ใช้ทั้งหมดจากฐานข้อมูลอัตโนมัติ
@@ -270,24 +289,46 @@ function updateHeaderCounts() {
 
 // User Role Switching
 function changeUserRole(newRole) {
-  if (SYSTEM_USERS[newRole]) {
-    appState.currentUser = SYSTEM_USERS[newRole];
-    document.getElementById('currentUserLabel').innerText = appState.currentUser.name;
-    document.getElementById('currentRoleBadge').innerText = appState.currentUser.title;
-    
-    // Toggle Admin navigation visibility (Develop & Admin have access)
-    const adminItems = document.querySelectorAll('.admin-only');
-    adminItems.forEach(el => {
-      if (newRole === 'Admin' || newRole === 'Develop') el.classList.remove('hidden');
-      else el.classList.add('hidden');
+  // Alias mapping
+  let targetRole = newRole;
+  if (targetRole === 'Develop') targetRole = 'Developer';
+  if (targetRole === 'Store' || targetRole === 'Admin' || targetRole === 'Data Editor') targetRole = 'Store Admin / Storekeeper';
+
+  if (SYSTEM_USERS[targetRole] || SYSTEM_USERS[newRole]) {
+    appState.currentUser = SYSTEM_USERS[targetRole] || SYSTEM_USERS[newRole];
+    const userLbl = document.getElementById('currentUserLabel');
+    if (userLbl) userLbl.innerText = appState.currentUser.name;
+    const roleBadge = document.getElementById('currentRoleBadge');
+    if (roleBadge) roleBadge.innerText = appState.currentUser.title;
+
+    const r = appState.currentUser.role;
+    const isDev = (r === 'Developer' || r === 'Develop');
+    const isStore = (r === 'Store Admin / Storekeeper' || r === 'Store' || r === 'Admin');
+    const isUser = (r === 'User');
+    const isViewer = (r === 'Viewer / Auditor');
+
+    // 1. Develop-only (Master Data Management: บุคลากร & เครื่องจักร)
+    document.querySelectorAll('.develop-only').forEach(el => {
+      el.classList.toggle('hidden', !isDev);
     });
 
-    // Toggle Develop-only navigation visibility (STRICTLY Develop role only)
-    const devItems = document.querySelectorAll('.develop-only');
-    devItems.forEach(el => {
-      if (newRole === 'Develop') el.classList.remove('hidden');
-      else el.classList.add('hidden');
+    // 2. Admin-only (Users management)
+    document.querySelectorAll('.admin-only').forEach(el => {
+      el.classList.toggle('hidden', !isDev);
     });
+
+    // 3. Stock In & Stock Adjust navigation (Developer & Store Admin only)
+    const navStockIn = document.getElementById('nav-stock-in');
+    if (navStockIn) navStockIn.classList.toggle('hidden', isUser || isViewer);
+
+    const navStockAdj = document.getElementById('nav-stock-adjustment');
+    if (navStockAdj) navStockAdj.classList.toggle('hidden', isUser || isViewer);
+
+    const navStockReturn = document.getElementById('nav-stock-return');
+    if (navStockReturn) navStockReturn.classList.toggle('hidden', isViewer);
+
+    const navStockIssue = document.getElementById('nav-stock-issue');
+    if (navStockIssue) navStockIssue.classList.toggle('hidden', isViewer);
 
     Swal.fire({
       toast: true,
@@ -4491,17 +4532,36 @@ function renderTypeBadge(type) {
 function openAddPartModal() {
   Swal.fire({
     title: 'เพิ่มอะไหล่ Tool Room ใหม่',
-    width: '600px',
+    width: '640px',
     html: `
       <div class="grid grid-cols-2 gap-3 text-left text-xs">
         <div>
           <label class="block font-semibold mb-1">Item Code / Part No. <span class="text-rose-500">*</span></label>
-          <input type="text" id="newPartNo" placeholder="เช่น BOLT-M12, SEAL-01, LC-50" class="w-full p-2 border border-slate-300 rounded uppercase font-mono">
+          <input type="text" id="newPartNo" placeholder="เช่น BOLT-M12, SEAL-01, LC-50" class="w-full p-2 border border-slate-300 rounded uppercase font-mono font-bold text-sky-700">
         </div>
         <div>
           <label class="block font-semibold mb-1">ชื่ออะไหล่ / ขนาดสเปก <span class="text-rose-500">*</span></label>
           <input type="text" id="newPartName" placeholder="เช่น น็อตหกเหลี่ยม M12x50, ซีลยาง 25mm" class="w-full p-2 border border-slate-300 rounded font-medium">
         </div>
+
+        <!-- Item Category & Tool Condition -->
+        <div>
+          <label class="block font-semibold mb-1 text-slate-800">หมวดหมู่รายการ (Item Category) <span class="text-rose-500">*</span></label>
+          <select id="newCategoryType" onchange="const cond = document.getElementById('newToolConditionContainer'); if (cond) cond.style.display = (this.value === 'Tool' ? 'block' : 'none');" 
+                  class="w-full p-2 border border-slate-300 rounded font-medium bg-white focus:border-sky-500 focus:outline-none cursor-pointer">
+            <option value="Spare Part" selected>📦 อะไหล่ & วัสดุสิ้นเปลือง (Spare Part - ตัดสต็อกได้)</option>
+            <option value="Tool">🧰 เครื่องมือช่าง & อุปกรณ์ (Tool & Equipment - ไม่ตัดสต็อก)</option>
+          </select>
+        </div>
+        <div id="newToolConditionContainer" style="display:none;">
+          <label class="block font-semibold mb-1 text-purple-900">สภาพความพร้อมใช้งานของเครื่องมือ <span class="text-rose-500">*</span></label>
+          <select id="newToolCondition" class="w-full p-2 border border-purple-300 bg-purple-50 rounded font-medium focus:border-purple-500 focus:outline-none cursor-pointer">
+            <option value="Operational" selected>🟢 พร้อมใช้งาน (Operational)</option>
+            <option value="Needs Repair">🟡 ชำรุด/รอส่งซ่อม (Needs Repair)</option>
+            <option value="Decommissioned">🔴 ปลดระวาง/เลิกใช้งาน (Decommissioned)</option>
+          </select>
+        </div>
+
         <div>
           <label class="block font-semibold mb-1">ตำแหน่งจัดเก็บ (Location) <span class="text-rose-500">*</span></label>
           <input type="text" id="newLocation" placeholder="เช่น RACK-A-01, BIN-12" class="w-full p-2 border border-slate-300 rounded font-mono font-bold text-sky-700">
@@ -4547,6 +4607,12 @@ function openAddPartModal() {
       const maxStock = parseFloat(document.getElementById('newMax').value) || 50;
       const remark = document.getElementById('newRemark').value.trim();
 
+      const catTypeSel = document.getElementById('newCategoryType');
+      const categoryType = catTypeSel ? catTypeSel.value : 'Spare Part';
+      const toolCondSel = document.getElementById('newToolCondition');
+      const toolCondition = (categoryType === 'Tool' && toolCondSel) ? toolCondSel.value : null;
+      const category = categoryType === 'Tool' ? 'Workshop Tools (เครื่องมือช่างและอุปกรณ์)' : 'Tool Room Consumables';
+
       if (!partNumber || !partName || !location) {
         Swal.fire('กรุณาระบุข้อมูล', 'Part No., ชื่ออะไหล่ และ ตำแหน่งจัดเก็บ ห้ามว่าง', 'warning');
         return;
@@ -4558,8 +4624,10 @@ function openAddPartModal() {
         body: JSON.stringify({
           partNumber,
           partName,
-          category: 'Tool Room Consumables',
-          machineCode: 'TOOL-ROOM',
+          categoryType,
+          toolCondition,
+          category,
+          machineCode: categoryType === 'Tool' ? 'WORKSHOP' : 'TOOL-ROOM',
           unit,
           location,
           unitCost,
@@ -4570,7 +4638,7 @@ function openAddPartModal() {
           remark,
           isCritical: false,
           editedBy: appState.currentUser.name,
-          editReason: 'เพิ่มรายการอะไหล่ Tool Room ใหม่'
+          editReason: 'เพิ่มรายการอะไหล่ Tool Room ใหม่ (' + categoryType + ')'
         })
       });
 
@@ -5851,6 +5919,7 @@ function renderPersonnelList(container) {
                 <th class="p-3.5">ชื่อ - นามสกุล</th>
                 <th class="p-3.5">แผนก / ฝ่าย</th>
                 <th class="p-3.5">ตำแหน่งหน้าที่</th>
+                <th class="p-3.5">บทบาท & สิทธิ์การเข้าถึง</th>
                 <th class="p-3.5 text-center">จัดการ</th>
               </tr>
             </thead>
@@ -5871,6 +5940,9 @@ function renderPersonnelList(container) {
                     </span>
                   </td>
                   <td class="p-3.5 text-slate-600">${p.roleTitle || '-'}</td>
+                  <td class="p-3.5">
+                    ${renderPersonnelAccessBadge(p.accessRole || 'User')}
+                  </td>
                   <td class="p-3.5 text-center whitespace-nowrap">
                     <div class="flex items-center justify-center space-x-1.5">
                       <button onclick="openPersonnelModal('${p.id}')" 
@@ -6002,6 +6074,8 @@ function openPersonnelModal(id = null) {
       nameInput.value = p.name;
       deptInput.value = p.department || 'ฝ่ายซ่อมบำรุง';
       roleInput.value = p.roleTitle || '';
+      const accessSel = document.getElementById('personnelAccessRole');
+      if (accessSel) accessSel.value = p.accessRole || 'User';
     }
   } else {
     if (titleEl) titleEl.innerText = 'เพิ่มบุคลากร / ช่างใหม่';
@@ -6009,6 +6083,8 @@ function openPersonnelModal(id = null) {
     nameInput.value = '';
     deptInput.value = 'ฝ่ายซ่อมบำรุง';
     roleInput.value = '';
+    const accessSelNew = document.getElementById('personnelAccessRole');
+    if (accessSelNew) accessSelNew.value = 'User';
   }
 
   modal.classList.remove('hidden');
@@ -6025,6 +6101,8 @@ async function handleSavePersonnel(e) {
   const name = document.getElementById('personnelNameInput').value.trim();
   const department = document.getElementById('personnelDeptInput').value.trim();
   const roleTitle = document.getElementById('personnelRoleTitleInput').value.trim();
+  const accessRoleSel = document.getElementById('personnelAccessRole');
+  const accessRole = accessRoleSel ? accessRoleSel.value : 'User';
   const updatedBy = (appState.currentUser && appState.currentUser.name) || 'Developer';
 
   if (!name || !department) {
@@ -6041,6 +6119,7 @@ async function handleSavePersonnel(e) {
         name,
         department,
         roleTitle,
+        accessRole,
         phone: '',
         active: true,
         updatedBy
