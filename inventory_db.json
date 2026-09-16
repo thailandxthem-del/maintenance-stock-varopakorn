@@ -1,12 +1,12 @@
 {
-  "version": 1789523586484,
-  "lastUpdated": "2026-09-16T01:53:06.484Z",
+  "version": 1789527352296,
+  "lastUpdated": "2026-09-16T02:55:52.296Z",
   "users": [
     {
       "id": "U-001",
       "username": "store1",
       "name": "Test2",
-      "role": "Admin",
+      "role": "Store Admin / Storekeeper",
       "department": "Tool Room Store",
       "email": "somchai@varopakorn.com",
       "active": true,
@@ -16,8 +16,8 @@
       "id": "U-002",
       "username": "editor1",
       "name": "Test3",
-      "role": "Data Editor",
-      "department": "Inventory Control",
+      "role": "Viewer / Auditor",
+      "department": "Inventory Control / Audit",
       "email": "weera@varopakorn.com",
       "active": true,
       "phone": ""
@@ -26,7 +26,7 @@
       "id": "U-003",
       "username": "admin1",
       "name": "Test1",
-      "role": "Store",
+      "role": "User",
       "department": "Plant Maintenance",
       "email": "thanaphat@varopakorn.com",
       "active": true,
@@ -36,7 +36,7 @@
       "id": "U-004",
       "username": "developer1",
       "name": "Warrawat Baokhiev",
-      "role": "Develop",
+      "role": "Developer",
       "department": "Mechanical Engineering",
       "email": "dev@varopakorn.com",
       "active": true,
@@ -14518,6 +14518,18 @@
     }
   ],
   "auditLogs": [
+    {
+      "id": "AUD-1789527352296",
+      "timestamp": "2026-09-16 02:55:52",
+      "user": "Warrawat (Developer)",
+      "action": "USER_EDITED",
+      "partNumber": "U-004",
+      "previousQty": null,
+      "newQty": null,
+      "difference": null,
+      "reason": "แก้ไขข้อมูลผู้ใช้งาน: Warrawat Baokhiev (Developer)",
+      "reference": "U-004"
+    },
     {
       "id": "AUD-1789464125194-NA10",
       "timestamp": "2026-09-15 09:22:05",

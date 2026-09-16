@@ -276,7 +276,7 @@ const server = http.createServer(async (req, res) => {
             db.users[idx] = {
               ...db.users[idx],
               name: payload.name.trim(),
-              role: payload.role || db.users[idx].role || 'Store',
+              role: payload.role ? payload.role.trim() : (db.users[idx].role || 'Viewer / Auditor'),
               department: payload.department !== undefined ? payload.department : (db.users[idx].department || 'Tool Room'),
               email: payload.email !== undefined ? payload.email : (db.users[idx].email || ''),
               phone: payload.phone !== undefined ? payload.phone : (db.users[idx].phone || ''),
@@ -287,7 +287,7 @@ const server = http.createServer(async (req, res) => {
             db.auditLogs.unshift({
               id: `AUD-${Date.now()}`,
               timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-              user: payload.operatorName || 'Develop',
+              user: payload.operatorName || 'Developer',
               action: 'USER_EDITED',
               partNumber: targetUser.id,
               previousQty: null,
@@ -306,7 +306,7 @@ const server = http.createServer(async (req, res) => {
             id: newId,
             username: `user_${Date.now().toString().slice(-4)}`,
             name: payload.name.trim(),
-            role: payload.role || 'Store',
+            role: payload.role ? payload.role.trim() : 'Viewer / Auditor',
             department: payload.department || 'Tool Room Store',
             email: payload.email || '',
             phone: payload.phone || '',
@@ -317,7 +317,7 @@ const server = http.createServer(async (req, res) => {
           db.auditLogs.unshift({
             id: `AUD-${Date.now()}`,
             timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-            user: payload.operatorName || 'Develop',
+            user: payload.operatorName || 'Developer',
             action: 'USER_CREATED',
             partNumber: newId,
             previousQty: null,
