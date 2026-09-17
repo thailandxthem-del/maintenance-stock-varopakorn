@@ -2318,10 +2318,8 @@ function renderStockIssue(container, prefillPartCode = '') {
             <!-- Test Simulator Chips -->
             <div class="mt-2.5 pt-2.5 border-t border-slate-700/60 flex flex-wrap items-center gap-1.5 text-[11px]">
               <span class="text-slate-400 font-medium mr-1">🎮 ปุ่มจำลองทดสอบ:</span>
-              <button type="button" onclick="handleScannerGunInput('NA10', 'stock-issue')" class="px-2 py-0.5 bg-slate-700/70 hover:bg-slate-700 text-slate-200 rounded-md border border-slate-600 hover:border-slate-500 transition font-mono">⚡ ยิง NA10</button>
-              <button type="button" onclick="handleScannerGunInput('LC44', 'stock-issue')" class="px-2 py-0.5 bg-slate-700/70 hover:bg-slate-700 text-slate-200 rounded-md border border-slate-600 hover:border-slate-500 transition font-mono">⚡ ยิง LC44 (ซ้ำ +1)</button>
-              <button type="button" onclick="handleScannerGunInput('ืฟ10', 'stock-issue')" class="px-2 py-0.5 bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 rounded-md border border-amber-700/60 transition font-mono">🇹🇭 ลองยิงภาษาไทย: ืฟ10</button>
-              <button type="button" onclick="handleScannerGunInput('TL-005', 'stock-issue')" class="px-2 py-0.5 bg-purple-950/60 hover:bg-purple-900/80 text-purple-300 rounded-md border border-purple-700/60 transition font-mono">🧰 ลองยิงเครื่องมือ: TL-005</button>
+              <button type="button" onclick="handleScannerGunInput('MB28', 'stock-issue')" class="px-2 py-0.5 bg-purple-950/60 hover:bg-purple-900/80 text-purple-300 rounded-md border border-purple-700/60 transition font-mono">🧰 ลองยิงเครื่องมือ: MB28</button>
+              <button type="button" onclick="handleScannerGunInput('ทิ28', 'stock-issue')" class="px-2 py-0.5 bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 rounded-md border border-amber-700/60 transition font-mono">🇹🇭 ลองยิงภาษาไทย: ทิ28 (MB28)</button>
             </div>
           </div>
 
@@ -5748,9 +5746,9 @@ function renderToolLoans(container) {
         <!-- Test Simulator Chips for Tools -->
         <div class="mt-2.5 pt-2.5 border-t border-slate-700/60 flex flex-wrap items-center gap-1.5 text-[11px]">
           <span class="text-slate-400 font-medium mr-1">🎮 ปุ่มจำลองทดสอบ:</span>
-          <button type="button" onclick="handleScannerGunInput('TL-005', 'tool-loans')" class="px-2 py-0.5 bg-slate-700/70 hover:bg-slate-700 text-slate-200 rounded-md border border-slate-600 hover:border-slate-500 transition font-mono">⚡ ยิง TL-005</button>
-          <button type="button" onclick="handleScannerGunInput('TL-001', 'tool-loans')" class="px-2 py-0.5 bg-slate-700/70 hover:bg-slate-700 text-slate-200 rounded-md border border-slate-600 hover:border-slate-500 transition font-mono">⚡ ยิง TL-001</button>
-          <button type="button" onclick="handleScannerGunInput('ะส-005', 'tool-loans')" class="px-2 py-0.5 bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 rounded-md border border-amber-700/60 transition font-mono">🇹🇭 ลองยิงภาษาไทย: ะส-005</button>
+          <button type="button" onclick="handleScannerGunInput('MB28', 'tool-loans')" class="px-2 py-0.5 bg-slate-700/70 hover:bg-slate-700 text-slate-200 rounded-md border border-slate-600 hover:border-slate-500 transition font-mono">⚡ ยิง MB28</button>
+          <button type="button" onclick="handleScannerGunInput('DD71', 'tool-loans')" class="px-2 py-0.5 bg-slate-700/70 hover:bg-slate-700 text-slate-200 rounded-md border border-slate-600 hover:border-slate-500 transition font-mono">⚡ ยิง DD71</button>
+          <button type="button" onclick="handleScannerGunInput('ทิ28', 'tool-loans')" class="px-2 py-0.5 bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 rounded-md border border-amber-700/60 transition font-mono">🇹🇭 ลองยิงภาษาไทย: ทิ28 (MB28)</button>
         </div>
       </div>
 
