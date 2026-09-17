@@ -1,3 +1,325 @@
+// ==================== BARCODE & 2D QR SCANNER GUN ENGINE (v3.6.0) ====================
+
+const THAI_TO_ENG_KEY_MAP = {
+  // 1st row (Digits & Symbols)
+  'ๅ': '1', '๑': '!',
+  '๒': '@',
+  '๓': '#',
+  'ภ': '4', '๔': '$',
+  'ถ': '5', '๕': '%',
+  'ุ': '6', 'ู': '^',
+  'ึ': '7', '฿': '&',
+  'ค': '8',
+  'ต': '9', '๖': '(',
+  'จ': '0', '๗': ')',
+  'ข': '-', '๘': '_',
+  'ช': '=', '๙': '+',
+  // 2nd row
+  'ๆ': 'q', '๐': 'Q',
+  'ไ': 'w',
+  'ำ': 'e', 'ฎ': 'E',
+  'พ': 'r', 'ฑ': 'R',
+  'ะ': 't', 'ธ': 'T',
+  'ั': 'y', 'ํ': 'Y',
+  'ี': 'u', '๊': 'U',
+  'ร': 'i', 'ณ': 'I',
+  'น': 'o', 'ฯ': 'O',
+  'ย': 'p', 'ญ': 'P',
+  'บ': '[', 'ฐ': '{',
+  'ล': ']',
+  'ฃ': '\\', 'ฅ': '|',
+  // 3rd row
+  'ฟ': 'a', 'ฤ': 'A',
+  'ห': 's', 'ฆ': 'S',
+  'ก': 'd', 'ฏ': 'D',
+  'ด': 'f', 'โ': 'F',
+  'เ': 'g', 'ฌ': 'G',
+  '้': 'h', '็': 'H',
+  '่': 'j', '๋': 'J',
+  'า': 'k', 'ษ': 'K',
+  'ส': 'l', 'ศ': 'L',
+  'ว': ';', 'ซ': ':',
+  'ง': "'",
+  // 4th row
+  'ผ': 'z',
+  'ป': 'x',
+  'แ': 'c', 'ฉ': 'C',
+  'อ': 'v', 'ฮ': 'V',
+  'ิ': 'b', 'ฺ': 'B',
+  'ื': 'n', '์': 'N',
+  'ท': 'm', 'ฒ': 'M',
+  'ม': ',', 'ฬ': '<',
+  'ใ': '.', 'ฦ': '>',
+  'ฝ': '/'
+};
+
+function convertThaiToEnglishKeyboard(input) {
+  if (!input || typeof input !== 'string') return '';
+  let res = '';
+  for (let i = 0; i < input.length; i++) {
+    const ch = input[i];
+    res += (THAI_TO_ENG_KEY_MAP[ch] !== undefined) ? THAI_TO_ENG_KEY_MAP[ch] : ch;
+  }
+  return res;
+}
+
+// Web Audio API Sound Synthesizer (No external MP3 files needed)
+function playScanBeep(type = 'success') {
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+
+    if (type === 'success') {
+      // Crisp high pitch double-beep (880Hz -> 1320Hz)
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.setValueAtTime(1320, ctx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.18);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.18);
+    } else if (type === 'warning' || type === 'error') {
+      // Low buzz: 220Hz
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(220, ctx.currentTime);
+      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.28);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.28);
+    }
+  } catch (e) {
+    // AudioContext blocked or not supported
+  }
+}
+
+function extractCodeFromScanInput(input) {
+  if (!input) return '';
+  let str = input.trim();
+  // Decode Thai characters if any
+  str = convertThaiToEnglishKeyboard(str).trim();
+  // If it's a URL or contains params, extract 'code' or 'item'
+  try {
+    if (str.includes('?') || str.includes('http://') || str.includes('https://')) {
+      const urlObj = new URL(str, window.location.origin);
+      const urlCode = urlObj.searchParams.get('code') || urlObj.searchParams.get('item');
+      if (urlCode) str = urlCode;
+    }
+  } catch (e) {
+    const match = str.match(/[?&](code|item)=([^&]+)/i);
+    if (match) str = decodeURIComponent(match[2]);
+  }
+  return str.trim().toUpperCase();
+}
+
+function handleScannerGunInput(rawInput, contextTab = null) {
+  const currentTab = contextTab || appState.currentTab;
+  const code = extractCodeFromScanInput(rawInput);
+  if (!code) return;
+
+  const parts = (appState.db && appState.db.parts) || [];
+  const part = parts.find(p => p.partNumber.toUpperCase() === code);
+
+  if (!part) {
+    playScanBeep('error');
+    Swal.fire({
+      icon: 'warning',
+      title: 'ไม่พบรหัสอะไหล่ / เครื่องมือ',
+      text: `ไม่พบข้อมูลสำหรับรหัส: "${code}" ในฐานข้อมูลหลัก`,
+      timer: 3000,
+      showConfirmButton: false
+    });
+    return;
+  }
+
+  // Auto-elevate role if Viewer
+  if (isViewerRole(appState.currentUser.role)) {
+    changeUserRole('User', { silent: true });
+  }
+
+  if (currentTab === 'stock-issue') {
+    // Check if it's a Tool (blocked in stock issue)
+    if (isPartTool(part)) {
+      playScanBeep('warning');
+      Swal.fire({
+        icon: 'warning',
+        title: 'ไม่อนุญาตให้เบิกตัดสต็อก',
+        html: `<p class="font-bold text-slate-800">"${part.partName}" (${part.partNumber})</p>
+               <p class="text-xs text-slate-600 mt-2">รายการนี้จัดเป็น <strong>"เครื่องมือช่าง & อุปกรณ์"</strong></p>
+               <p class="text-xs text-sky-700 font-semibold mt-1">👉 กำลังสลับไปหน้า "ยืม-คืนเครื่องมือ" ให้อัตโนมัติ...</p>`,
+        timer: 2000,
+        showConfirmButton: false
+      }).then(() => {
+        handleScannerGunInput(rawInput, 'tool-loans');
+      });
+      return;
+    }
+
+    // Spare part -> add or increment in batchIssueItems
+    const existingIndex = batchIssueItems.findIndex(item => item.partNumber.toUpperCase() === code);
+    if (existingIndex !== -1) {
+      // Increment qty if stock allows
+      const currentStock = part.currentStock || 0;
+      const currentQty = parseFloat(batchIssueItems[existingIndex].qty) || 1;
+      if (currentQty + 1 <= currentStock) {
+        batchIssueItems[existingIndex].qty = currentQty + 1;
+        playScanBeep('success');
+        updateStockIssueItemsTable();
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: `➕ [${part.partNumber}] บวกจำนวนเป็น ${currentQty + 1} ${part.unit || 'ชิ้น'}`,
+          showConfirmButton: false,
+          timer: 1500
+        });
+      } else {
+        playScanBeep('warning');
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'warning',
+          title: `⚠️ [${part.partNumber}] ยอดสต็อกมีเพียง ${currentStock} ${part.unit || 'ชิ้น'}`,
+          showConfirmButton: false,
+          timer: 2000
+        });
+      }
+    } else {
+      // Find first empty row or push new row
+      if (batchIssueItems.length === 1 && !batchIssueItems[0].partNumber) {
+        batchIssueItems[0] = { partNumber: part.partNumber, qty: 1 };
+      } else if (batchIssueItems.length < 10) {
+        batchIssueItems.push({ partNumber: part.partNumber, qty: 1 });
+      } else {
+        playScanBeep('warning');
+        Swal.fire('จำกัดจำนวนรายการ', 'สามารถเบิกได้สูงสุดครั้งละไม่เกิน 10 รายการต่อ 1 ใบเบิก', 'info');
+        return;
+      }
+      playScanBeep('success');
+      updateStockIssueItemsTable();
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: `✓ เพิ่มในใบเบิก: [${part.partNumber}] ${part.partName}`,
+        showConfirmButton: false,
+        timer: 1500
+      });
+    }
+
+    // Keep focus in barcode input
+    const barInput = document.getElementById('stockIssueScannerInput');
+    if (barInput) {
+      barInput.value = '';
+      barInput.focus();
+    }
+    return;
+  }
+
+  if (currentTab === 'tool-loans') {
+    if (!isPartTool(part)) {
+      playScanBeep('warning');
+      Swal.fire({
+        icon: 'info',
+        title: 'รายการนี้เป็นอะไหล่ทั่วไป',
+        text: `[${part.partNumber}] ${part.partName} เป็นอะไหล่ตัดสต็อก ไม่ใช่เครื่องมือยืม-คืน`,
+        showConfirmButton: false,
+        timer: 2000
+      }).then(() => {
+        quickStockIssue(part.partNumber);
+      });
+      return;
+    }
+
+    // Check if tool is currently BORROWED
+    const loans = (appState.db && appState.db.toolLoans) || [];
+    const activeLoan = loans.find(l => l.toolCode === part.partNumber && (l.status === 'BORROWED' || l.status === 'OVERDUE'));
+
+    if (activeLoan) {
+      // Open Return Modal!
+      playScanBeep('success');
+      openReturnToolModal(activeLoan.id);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'info',
+        title: `🔄 ตรวจพบกำลังยืมโดย ${activeLoan.borrowerName} - เปิดหน้าส่งคืนทันที`,
+        showConfirmButton: false,
+        timer: 2500
+      });
+    } else {
+      // Open Borrow Modal!
+      playScanBeep('success');
+      quickBorrowTool(part.partNumber);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: `🧰 เครื่องมือพร้อมยืม: [${part.partNumber}] - เปิดหน้าขอยืมทันที`,
+        showConfirmButton: false,
+        timer: 2500
+      });
+    }
+
+    const toolBarInput = document.getElementById('toolLoansScannerInput');
+    if (toolBarInput) {
+      toolBarInput.value = '';
+      toolBarInput.focus();
+    }
+    return;
+  }
+
+  // If in other tabs, use handleScanRoute
+  playScanBeep('success');
+  handleScanRoute(code);
+}
+
+// Global Keyboard Stream Listener for Barcode Guns
+let scannerBuffer = '';
+let lastKeyTime = 0;
+
+function setupGlobalScannerGunListener() {
+  document.addEventListener('keydown', (e) => {
+    const now = Date.now();
+    const activeEl = document.activeElement;
+    const activeTag = activeEl ? activeEl.tagName : '';
+    const isEditingField = (activeTag === 'TEXTAREA' || (activeTag === 'INPUT' && activeEl.type === 'text' && !activeEl.id.includes('ScannerInput')));
+
+    // If typing manually in a regular input/textarea, do not capture as scanner stream
+    if (isEditingField && now - lastKeyTime > 60) {
+      scannerBuffer = '';
+      lastKeyTime = now;
+      return;
+    }
+
+    if (e.key === 'Enter') {
+      if (scannerBuffer.length >= 2) {
+        const scannedCode = scannerBuffer;
+        scannerBuffer = '';
+        e.preventDefault();
+        handleScannerGunInput(scannedCode);
+      }
+      return;
+    }
+
+    if (e.key.length === 1) {
+      if (now - lastKeyTime > 75) {
+        scannerBuffer = ''; // Reset buffer if more than 75ms gap
+      }
+      scannerBuffer += e.key;
+      lastKeyTime = now;
+    }
+  });
+}
+
 
 // ==================== CANONICAL ROLE HELPERS (v3.2.0) ====================
 function isDeveloperRole(r) {
@@ -135,6 +457,7 @@ function syncUsersFromDb() {
 document.addEventListener('DOMContentLoaded', () => {
   initApp();
   setupKeyboardShortcuts();
+  setupGlobalScannerGunListener();
 });
 
 async function initApp() {
@@ -1959,6 +2282,49 @@ function renderStockIssue(container, prefillPartCode = '') {
 
         <!-- Items Table Section -->
         <div>
+
+          <!-- Barcode & QR Scanner Gun Bar (v3.6.0) -->
+          <div class="bg-gradient-to-r from-slate-900 to-slate-800 p-4 rounded-xl border border-slate-700/80 shadow-md text-white mb-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-lg bg-rose-600/30 border border-rose-500/50 flex items-center justify-center text-rose-400">
+                  <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                </div>
+                <div>
+                  <div class="text-xs font-bold flex items-center space-x-2">
+                    <span>ยิงบาร์โค้ด / QR Code อะไหล่</span>
+                    <span class="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-700 font-mono font-bold">READY TO SCAN</span>
+                  </div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">ใช้เครื่องยิงบาร์โค้ดยิงใส่จอได้ทันที (รองรับพิมพ์ไทย ยิงซ้ำ = บวกจำนวน)</div>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2 flex-1 max-w-md">
+                <div class="relative flex-1">
+                  <input type="text" id="stockIssueScannerInput" autocomplete="off"
+                         onkeydown="if(event.key==='Enter'){event.preventDefault(); handleScannerGunInput(this.value, 'stock-issue');}"
+                         placeholder="🔍 ยิงบาร์โค้ด หรือพิมพ์รหัสอะไหล่แล้วกด Enter..." 
+                         class="w-full pl-9 pr-3 py-2 bg-slate-950/80 border border-slate-600 rounded-xl text-xs font-mono text-white placeholder-slate-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 focus:outline-none">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  </span>
+                </div>
+                <button type="button" onclick="handleScannerGunInput(document.getElementById('stockIssueScannerInput').value, 'stock-issue')" 
+                        class="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm transition active:scale-95">
+                  เพิ่ม
+                </button>
+              </div>
+            </div>
+
+            <!-- Test Simulator Chips -->
+            <div class="mt-2.5 pt-2.5 border-t border-slate-700/60 flex flex-wrap items-center gap-1.5 text-[11px]">
+              <span class="text-slate-400 font-medium mr-1">🎮 ปุ่มจำลองทดสอบ:</span>
+              <button type="button" onclick="handleScannerGunInput('NA10', 'stock-issue')" class="px-2 py-0.5 bg-slate-700/70 hover:bg-slate-700 text-slate-200 rounded-md border border-slate-600 hover:border-slate-500 transition font-mono">⚡ ยิง NA10</button>
+              <button type="button" onclick="handleScannerGunInput('LC44', 'stock-issue')" class="px-2 py-0.5 bg-slate-700/70 hover:bg-slate-700 text-slate-200 rounded-md border border-slate-600 hover:border-slate-500 transition font-mono">⚡ ยิง LC44 (ซ้ำ +1)</button>
+              <button type="button" onclick="handleScannerGunInput('ืฟ10', 'stock-issue')" class="px-2 py-0.5 bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 rounded-md border border-amber-700/60 transition font-mono">🇹🇭 ลองยิงภาษาไทย: ืฟ10</button>
+              <button type="button" onclick="handleScannerGunInput('TL-005', 'stock-issue')" class="px-2 py-0.5 bg-purple-950/60 hover:bg-purple-900/80 text-purple-300 rounded-md border border-purple-700/60 transition font-mono">🧰 ลองยิงเครื่องมือ: TL-005</button>
+            </div>
+          </div>
+
           <div class="flex items-center justify-between mb-2.5">
             <div class="flex items-center space-x-2">
               <span class="w-2 h-2 rounded-full bg-rose-500"></span>
@@ -5344,6 +5710,47 @@ function renderToolLoans(container) {
             <span class="text-xs text-emerald-600">รายการ</span>
           </div>
           <div class="mt-1 text-[11px] text-emerald-600">ตรวจสอบสภาพเข้าคลังแล้ว</div>
+        </div>
+      </div>
+
+      <!-- Barcode & QR Scanner Gun Bar for Tools (v3.6.0) -->
+      <div class="bg-gradient-to-r from-slate-900 to-slate-800 p-4 rounded-xl border border-slate-700/80 shadow-md text-white">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-lg bg-sky-600/30 border border-sky-500/50 flex items-center justify-center text-sky-400">
+              <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <div>
+              <div class="text-xs font-bold flex items-center space-x-2">
+                <span>ยิงบาร์โค้ด / QR Code เครื่องมือ</span>
+                <span class="text-[10px] bg-sky-950 text-sky-300 px-2 py-0.5 rounded-full border border-sky-700 font-mono font-bold">SMART LOAN / RETURN</span>
+              </div>
+              <div class="text-[11px] text-slate-400 mt-0.5">ถ้าเครื่องมือกำลังถูกยืมอยู่ ➔ เปิดหน้าส่งคืนทันที | ถ้าเครื่องมือว่าง ➔ เปิดหน้าขอยืมทันที</div>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2 flex-1 max-w-md">
+            <div class="relative flex-1">
+              <input type="text" id="toolLoansScannerInput" autocomplete="off"
+                     onkeydown="if(event.key==='Enter'){event.preventDefault(); handleScannerGunInput(this.value, 'tool-loans');}"
+                     placeholder="🔍 ยิงบาร์โค้ด หรือพิมพ์รหัสเครื่องมือแล้วกด Enter..." 
+                     class="w-full pl-9 pr-3 py-2 bg-slate-950/80 border border-slate-600 rounded-xl text-xs font-mono text-white placeholder-slate-400 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              </span>
+            </div>
+            <button type="button" onclick="handleScannerGunInput(document.getElementById('toolLoansScannerInput').value, 'tool-loans')" 
+                    class="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-sm transition active:scale-95">
+              ตรวจ
+            </button>
+          </div>
+        </div>
+
+        <!-- Test Simulator Chips for Tools -->
+        <div class="mt-2.5 pt-2.5 border-t border-slate-700/60 flex flex-wrap items-center gap-1.5 text-[11px]">
+          <span class="text-slate-400 font-medium mr-1">🎮 ปุ่มจำลองทดสอบ:</span>
+          <button type="button" onclick="handleScannerGunInput('TL-005', 'tool-loans')" class="px-2 py-0.5 bg-slate-700/70 hover:bg-slate-700 text-slate-200 rounded-md border border-slate-600 hover:border-slate-500 transition font-mono">⚡ ยิง TL-005</button>
+          <button type="button" onclick="handleScannerGunInput('TL-001', 'tool-loans')" class="px-2 py-0.5 bg-slate-700/70 hover:bg-slate-700 text-slate-200 rounded-md border border-slate-600 hover:border-slate-500 transition font-mono">⚡ ยิง TL-001</button>
+          <button type="button" onclick="handleScannerGunInput('ะส-005', 'tool-loans')" class="px-2 py-0.5 bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 rounded-md border border-amber-700/60 transition font-mono">🇹🇭 ลองยิงภาษาไทย: ะส-005</button>
         </div>
       </div>
 
