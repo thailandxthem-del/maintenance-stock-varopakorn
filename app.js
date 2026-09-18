@@ -321,18 +321,28 @@ function setupGlobalScannerGunListener() {
 }
 
 
-// ==================== CANONICAL ROLE HELPERS (v3.2.0) ====================
+// ==================== CANONICAL ROLE HELPERS (v3.7.2) ====================
+// Role Access Passwords:
+// Store Admin: Varo2026
+// Developer: Engvaro2026
+// User (รวม Viewer & User): ไม่ต้องใส่รหัส
+const ROLE_PASSWORDS = {
+  'Store Admin / Storekeeper': 'Varo2026',
+  'Store Admin': 'Varo2026',
+  'Developer': 'Engvaro2026'
+};
+
 function isDeveloperRole(r) {
   return r === 'Developer' || r === 'Develop';
 }
 function isStoreAdminRole(r) {
-  return r === 'Store Admin / Storekeeper' || r === 'Store' || r === 'Admin' || r === 'Data Editor';
+  return r === 'Store Admin / Storekeeper' || r === 'Store Admin' || r === 'Store' || r === 'Admin' || r === 'Data Editor';
 }
 function isUserRole(r) {
-  return r === 'User' || r === 'ผู้ใช้งาน (User)';
+  return r === 'User' || r === 'ผู้ใช้งาน (User)' || r === 'Viewer / Auditor' || r === 'Viewer' || r === 'Auditor';
 }
 function isViewerRole(r) {
-  return r === 'Viewer / Auditor' || r === 'Viewer' || r === 'Auditor';
+  return false; // Merged into User with User permissions
 }
 function isAdminOrAbove(r) {
   return isDeveloperRole(r) || isStoreAdminRole(r);
@@ -345,9 +355,6 @@ function renderPersonnelAccessBadge(role) {
   if (isStoreAdminRole(role)) {
     return '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">📦 Store Admin (ปฏิบัติการ)</span>';
   }
-  if (isViewerRole(role)) {
-    return '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">👁️ Viewer / Auditor (Read Only)</span>';
-  }
   return '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-300">👥 User (ใช้งานทั่วไป)</span>';
 }
 
@@ -358,10 +365,7 @@ function renderUserRoleBadge(role) {
   if (isStoreAdminRole(role)) {
     return '<span class="px-2.5 py-1 rounded text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200">📦 Store Admin / Storekeeper (ปฏิบัติการ)</span>';
   }
-  if (isUserRole(role)) {
-    return '<span class="px-2.5 py-1 rounded text-[11px] font-bold bg-sky-100 text-sky-800 border border-sky-200">👥 ผู้ใช้งาน (User) (ใช้งานทั่วไป)</span>';
-  }
-  return '<span class="px-2.5 py-1 rounded text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">👁️ Viewer / Auditor (Read Only)</span>';
+  return '<span class="px-2.5 py-1 rounded text-[11px] font-bold bg-sky-100 text-sky-800 border border-sky-200">👥 ผู้ใช้งาน (User) (ใช้งานทั่วไป)</span>';
 }
 
 
@@ -378,10 +382,10 @@ function isPartTool(part) {
  * Core Client Application Logic
  */
 
-// Global State (Default starts as Viewer / Auditor)
+// Global State (Default starts as User - ไม่ต้องใส่รหัส)
 const appState = {
   db: null,
-  currentUser: { id: 'U-002', name: 'Test3', role: 'Viewer / Auditor', department: 'Inventory Control / Audit', title: 'Viewer / Auditor (Read Only)' },
+  currentUser: { id: 'U-003', name: 'Test1', role: 'User', department: 'Plant Maintenance', title: 'ผู้ใช้งาน (User) (ใช้งานทั่วไป)' },
   currentTab: 'dashboard',
   selectedPart: null,
   searchQuery: '',
@@ -393,12 +397,12 @@ const appState = {
   charts: {}
 };
 
-// 4 Canonical System Roles
+// 3 Canonical System Roles (รวม Viewer เข้ากับ User)
 const SYSTEM_USERS = {
-  'Viewer / Auditor': { id: 'U-002', name: 'Test3', role: 'Viewer / Auditor', department: 'Inventory Control / Audit', email: 'weera@varopakorn.com', phone: '', title: 'Viewer / Auditor (Read Only)', badgeColor: 'text-slate-400' },
   'User': { id: 'U-003', name: 'Test1', role: 'User', department: 'Plant Maintenance', email: 'thanaphat@varopakorn.com', phone: '', title: 'ผู้ใช้งาน (User) (ใช้งานทั่วไป)', badgeColor: 'text-sky-400' },
   'Store Admin / Storekeeper': { id: 'U-001', name: 'Test2', role: 'Store Admin / Storekeeper', department: 'Tool Room Store', email: 'somchai@varopakorn.com', phone: '', title: 'Store Admin / Storekeeper (ปฏิบัติการ)', badgeColor: 'text-amber-400' },
-  'Developer': { id: 'U-004', name: 'Warrawat Baokhiev', role: 'Developer', department: 'Mechanical Engineering', email: 'dev@varopakorn.com', phone: '02-xxx-xxxx', title: 'Developer (สิทธิ์สูงสุด)', badgeColor: 'text-purple-400' }
+  'Developer': { id: 'U-004', name: 'Warrawat Baokhiev', role: 'Developer', department: 'Mechanical Engineering', email: 'dev@varopakorn.com', phone: '02-xxx-xxxx', title: 'Developer (สิทธิ์สูงสุด)', badgeColor: 'text-purple-400' },
+  'Viewer / Auditor': { id: 'U-003', name: 'Test1', role: 'User', department: 'Plant Maintenance', email: 'thanaphat@varopakorn.com', phone: '', title: 'ผู้ใช้งาน (User) (ใช้งานทั่วไป)', badgeColor: 'text-sky-400' }
 };
 
 // ซิงค์รายชื่อและข้อมูลผู้ใช้ทั้งหมดจากฐานข้อมูลอัตโนมัติ
@@ -408,7 +412,6 @@ function syncUsersFromDb() {
     let canonicalRole = u.role;
     if (isDeveloperRole(canonicalRole)) canonicalRole = 'Developer';
     else if (isStoreAdminRole(canonicalRole)) canonicalRole = 'Store Admin / Storekeeper';
-    else if (isViewerRole(canonicalRole)) canonicalRole = 'Viewer / Auditor';
     else canonicalRole = 'User';
 
     if (SYSTEM_USERS[canonicalRole]) {
@@ -434,20 +437,20 @@ function syncUsersFromDb() {
     }
   }
 
-  // อัปเดตตัวเลือกในแถบสลับบทบาท (Role Selector) ด้านบนขวาด้วย 4 บทบาทมาตรฐาน
+  // อัปเดตตัวเลือกในแถบสลับบทบาท (Role Selector) ด้านบนขวาด้วย 3 บทบาทมาตรฐาน
   const roleSelect = document.getElementById('roleSelector');
   if (roleSelect) {
-    const canonicalRoles = ['Viewer / Auditor', 'User', 'Store Admin / Storekeeper', 'Developer'];
-    const currentSelectedVal = roleSelect.value || (appState.currentUser ? appState.currentUser.role : 'Viewer / Auditor');
+    const canonicalRoles = ['User', 'Store Admin / Storekeeper', 'Developer'];
+    const currentSelectedVal = roleSelect.value || (appState.currentUser ? appState.currentUser.role : 'User');
     roleSelect.innerHTML = canonicalRoles.map(role => {
-      const u = SYSTEM_USERS[role];
-      const icon = role === 'Developer' ? '💻' : (role === 'Store Admin / Storekeeper' ? '📦' : (role === 'User' ? '👥' : '👁️'));
-      return `<option value="${role}">${icon} ${role}</option>`;
+      const icon = role === 'Developer' ? '💻' : (role === 'Store Admin / Storekeeper' ? '📦' : '👥');
+      const label = role === 'User' ? 'ผู้ใช้งาน (User)' : role;
+      return `<option value="${role}">${icon} ${label}</option>`;
     }).join('');
     if (canonicalRoles.includes(currentSelectedVal)) {
       roleSelect.value = currentSelectedVal;
     } else {
-      roleSelect.value = 'Viewer / Auditor';
+      roleSelect.value = 'User';
     }
   }
 }
@@ -478,8 +481,8 @@ async function initApp() {
     hideLoading();
     syncMasterDatalists();
     updateHeaderCounts();
-    // Initialize strictly in Viewer / Auditor role by default
-    changeUserRole('Viewer / Auditor', { silent: true });
+    // Initialize strictly in User role by default (ไม่ต้องใส่รหัส)
+    changeUserRole('User', { silent: true, skipAuth: true });
     // Check if URL contains scan parameter (e.g. from scanning QR code with phone camera)
     const urlParams = new URLSearchParams(window.location.search);
     const scanCode = urlParams.get('code') || urlParams.get('item');
@@ -659,15 +662,77 @@ function updateHeaderCounts() {
   if (navAlert) navAlert.innerText = lowStockCount;
 }
 
-// User Role Switching (v3.2.0)
-function changeUserRole(newRole, options = {}) {
-  // Alias mapping to 4 canonical roles
+// User Role Switching with Password Authentication (v3.7.2)
+async function changeUserRole(newRole, options = {}) {
+  // Alias mapping to 3 canonical roles
   let targetRole = newRole;
   if (isDeveloperRole(targetRole)) targetRole = 'Developer';
   else if (isStoreAdminRole(targetRole)) targetRole = 'Store Admin / Storekeeper';
-  else if (isViewerRole(targetRole)) targetRole = 'Viewer / Auditor';
-  else targetRole = 'User';
+  else targetRole = 'User'; // Combined Viewer & User
 
+  const previousRole = (appState.currentUser && appState.currentUser.role) || 'User';
+
+  // If already in this role and not forced, do nothing
+  if (previousRole === targetRole && !options.force) {
+    const roleSelect = document.getElementById('roleSelector');
+    if (roleSelect && roleSelect.value !== targetRole) roleSelect.value = targetRole;
+    return;
+  }
+
+  // Password verification for Store Admin and Developer
+  if (ROLE_PASSWORDS[targetRole] && !options.skipAuth) {
+    const requiredPassword = ROLE_PASSWORDS[targetRole];
+    const isDev = targetRole === 'Developer';
+    const roleTitle = isDev ? 'Developer (สิทธิ์สูงสุด)' : 'Store Admin / Storekeeper (ปฏิบัติการ)';
+    const roleIcon = isDev ? '💻' : '📦';
+    const themeColor = isDev ? '#7c3aed' : '#d97706';
+
+    const result = await Swal.fire({
+      title: `<div class="text-base font-bold text-slate-800 flex items-center justify-center space-x-2">
+                <span>${roleIcon}</span>
+                <span>ยืนยันรหัสผ่านเพื่อเข้าสู่บทบาท</span>
+              </div>`,
+      html: `
+        <div class="text-xs text-slate-600 mb-2">
+          ต้องการเข้าถึงสิทธิ์: <strong class="text-slate-900 text-sm mt-1 inline-block">${roleTitle}</strong>
+        </div>
+      `,
+      input: 'password',
+      inputPlaceholder: 'กรุณากรอกรหัสผ่าน...',
+      inputAttributes: {
+        autocapitalize: 'off',
+        autocorrect: 'off',
+        autocomplete: 'current-password'
+      },
+      showCancelButton: true,
+      confirmButtonText: 'ยืนยันรหัสผ่าน',
+      cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: themeColor,
+      cancelButtonColor: '#64748b',
+      reverseButtons: true,
+      allowOutsideClick: false,
+      inputValidator: (value) => {
+        if (!value) {
+          return 'กรุณาระบุรหัสผ่าน!';
+        }
+        if (value.trim() !== requiredPassword) {
+          return '❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง';
+        }
+      }
+    });
+
+    if (!result.isConfirmed) {
+      // Revert select dropdown to previous role
+      const roleSelect = document.getElementById('roleSelector');
+      if (roleSelect) roleSelect.value = previousRole;
+      return;
+    }
+  }
+
+  applyUserRole(targetRole, options);
+}
+
+function applyUserRole(targetRole, options = {}) {
   if (SYSTEM_USERS[targetRole]) {
     appState.currentUser = { ...SYSTEM_USERS[targetRole] };
     const userLbl = document.getElementById('currentUserLabel');
@@ -684,7 +749,7 @@ function changeUserRole(newRole, options = {}) {
     const isDev = isDeveloperRole(r);
     const isStore = isStoreAdminRole(r);
     const isUser = isUserRole(r);
-    const isViewer = isViewerRole(r);
+    const isAdmin = isAdminOrAbove(r);
 
     // 1. Develop-only (Master Data Management: บุคลากร & เครื่องจักร)
     document.querySelectorAll('.develop-only').forEach(el => {
@@ -703,24 +768,23 @@ function changeUserRole(newRole, options = {}) {
     const navStockAdj = document.getElementById('nav-stock-adjustment');
     if (navStockAdj) navStockAdj.classList.toggle('hidden', !isDev && !isStore);
 
-    // 4. Stock Issue & Stock Return navigation (User, Store Admin, Developer - Hidden for Viewer)
+    // 4. Stock Issue & Stock Return navigation (All active roles have access)
     const navStockReturn = document.getElementById('nav-stock-return');
-    if (navStockReturn) navStockReturn.classList.toggle('hidden', isViewer);
+    if (navStockReturn) navStockReturn.classList.toggle('hidden', false);
 
     const navStockIssue = document.getElementById('nav-stock-issue');
-    if (navStockIssue) navStockIssue.classList.toggle('hidden', isViewer);
+    if (navStockIssue) navStockIssue.classList.toggle('hidden', false);
 
     // 5. Reports & System section: Admin level and above only (Developer & Store Admin)
-    const isAdmin = isAdminOrAbove(r);
     const sectionReports = document.getElementById('section-reports-system');
     if (sectionReports) sectionReports.classList.toggle('hidden', !isAdmin);
 
-    // 6. Spare Parts Master database: Admin level and above only
+    // 6. Spare Parts Master database: visible to all users
     const navSpareParts = document.getElementById('nav-spare-parts');
-    if (navSpareParts) navSpareParts.classList.toggle('hidden', !isAdmin);
+    if (navSpareParts) navSpareParts.classList.toggle('hidden', false);
 
     // 7. Redirect to dashboard if currently viewing an Admin-only tab as non-admin
-    const adminOnlyTabs = ['spare-parts', 'reports', 'audit-log', 'master-data', 'users'];
+    const adminOnlyTabs = ['reports', 'audit-log', 'master-data', 'users'];
     if (adminOnlyTabs.includes(appState.currentTab) && !isAdmin) {
       appState.currentTab = 'dashboard';
     }
@@ -729,7 +793,7 @@ function changeUserRole(newRole, options = {}) {
       Swal.fire({
         toast: true,
         position: 'top-end',
-        icon: 'info',
+        icon: 'success',
         title: `สลับบทบาทเป็น: ${appState.currentUser.title}`,
         showConfirmButton: false,
         timer: 1800
@@ -2016,6 +2080,20 @@ function setupSearchablePartPicker(containerId, config) {
 let batchStockInItems = [];
 
 function renderStockIn(container, prefillPartCode = '') {
+  if (!isAdminOrAbove(appState.currentUser.role)) {
+    container.innerHTML = `
+      <div class="p-8 text-center bg-white rounded-2xl border border-amber-200 shadow-sm max-w-xl mx-auto my-12">
+        <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">📦</div>
+        <h2 class="text-lg font-bold text-slate-900 mb-1">ต้องใช้สิทธิ์ Store Admin ขึ้นไป</h2>
+        <p class="text-xs text-slate-500 mb-5">เมนูรับอะไหล่เข้าคลัง (Stock In) สงวนสิทธิ์สำหรับ Store Admin และ Developer เท่านั้น</p>
+        <button onclick="changeUserRole('Store Admin / Storekeeper')" class="px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold rounded-xl text-xs transition shadow-md shadow-amber-500/20">
+          📦 ยืนยันรหัสผ่านเพื่อสลับเป็น Store Admin
+        </button>
+      </div>
+    `;
+    return;
+  }
+
   const parts = appState.db.parts || [];
   const autoTransNo = `IN-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${String(Math.floor(Math.random()*9000)+1000)}`;
 
@@ -2749,7 +2827,27 @@ function cancelStockIssue() {
 }
 
 // Quick Stock Helpers
-function quickStockIn(partCode) {
+async function quickStockIn(partCode) {
+  if (!isAdminOrAbove(appState.currentUser.role)) {
+    const res = await Swal.fire({
+      icon: 'info',
+      title: 'ต้องใช้สิทธิ์ Store Admin',
+      text: 'การรับอะไหล่เข้าสต็อกจำเป็นต้องใช้สิทธิ์ Store Admin หรือ Developer กรุณายืนยันรหัสผ่านเพื่อดำเนินการ',
+      showCancelButton: true,
+      confirmButtonText: 'ใส่รหัสผ่าน Store Admin',
+      cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: '#d97706',
+      cancelButtonColor: '#64748b'
+    });
+    if (res.isConfirmed) {
+      await changeUserRole('Store Admin / Storekeeper');
+      if (!isStoreAdminRole(appState.currentUser.role) && !isDeveloperRole(appState.currentUser.role)) {
+        return;
+      }
+    } else {
+      return;
+    }
+  }
   switchTab('stock-in');
   setTimeout(() => renderStockIn(document.getElementById('mainContent'), partCode), 20);
 }
@@ -2921,6 +3019,20 @@ async function handleStockReturnSubmit(e) {
 // ==================== 6. STOCK ADJUSTMENT MODULE ====================
 
 function renderStockAdjustment(container) {
+  if (!isAdminOrAbove(appState.currentUser.role)) {
+    container.innerHTML = `
+      <div class="p-8 text-center bg-white rounded-2xl border border-amber-200 shadow-sm max-w-xl mx-auto my-12">
+        <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">⚖️</div>
+        <h2 class="text-lg font-bold text-slate-900 mb-1">ต้องใช้สิทธิ์ Store Admin ขึ้นไป</h2>
+        <p class="text-xs text-slate-500 mb-5">เมนูปรับปรุงยอดสต็อก (Stock Adjustment) สงวนสิทธิ์สำหรับ Store Admin และ Developer เท่านั้น</p>
+        <button onclick="changeUserRole('Store Admin / Storekeeper')" class="px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold rounded-xl text-xs transition shadow-md shadow-amber-500/20">
+          📦 ยืนยันรหัสผ่านเพื่อสลับเป็น Store Admin
+        </button>
+      </div>
+    `;
+    return;
+  }
+
   const parts = appState.db.parts || [];
   const autoTransNo = `ADJ-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${String(Math.floor(Math.random()*9000)+1000)}`;
 
@@ -4853,6 +4965,20 @@ function renderMasterData(container) {
 }
 
 function renderUsers(container) {
+  if (!isDeveloperRole(appState.currentUser.role)) {
+    container.innerHTML = `
+      <div class="p-8 text-center bg-white rounded-2xl border border-purple-200 shadow-sm max-w-xl mx-auto my-12">
+        <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🔒</div>
+        <h2 class="text-lg font-bold text-slate-900 mb-1">เฉพาะสิทธิ์ User Developer เท่านั้น</h2>
+        <p class="text-xs text-slate-500 mb-5">เมนูจัดการผู้ใช้งานและกำหนดสิทธิ์ (User Roles & Permissions) สงวนไว้สำหรับ Developer เท่านั้น</p>
+        <button onclick="changeUserRole('Developer')" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-md shadow-purple-500/20">
+          💻 ยืนยันรหัสผ่านเพื่อสลับเป็น Developer
+        </button>
+      </div>
+    `;
+    return;
+  }
+
   const users = appState.db.users || [];
   const isDev = isDeveloperRole(appState.currentUser.role);
 
@@ -4964,10 +5090,9 @@ function openUserModal(userId = null) {
   document.getElementById('editUserId').value = user ? user.id : '';
   document.getElementById('userDisplayId').value = user ? user.id : '(สร้างอัตโนมัติ เช่น U-00' + (users.length + 1) + ')';
   document.getElementById('editUserName').value = user ? user.name : '';
-  let uRole = user ? user.role : 'Viewer / Auditor';
+  let uRole = user ? user.role : 'User';
   if (isDeveloperRole(uRole)) uRole = 'Developer';
   else if (isStoreAdminRole(uRole)) uRole = 'Store Admin / Storekeeper';
-  else if (isViewerRole(uRole)) uRole = 'Viewer / Auditor';
   else uRole = 'User';
   document.getElementById('editUserRole').value = uRole;
   document.getElementById('editUserDept').value = user ? (user.department || '') : '';

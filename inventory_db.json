@@ -16,7 +16,7 @@
       "id": "U-002",
       "username": "editor1",
       "name": "Test3",
-      "role": "Viewer / Auditor",
+      "role": "User",
       "department": "Inventory Control / Audit",
       "email": "weera@varopakorn.com",
       "active": true,
