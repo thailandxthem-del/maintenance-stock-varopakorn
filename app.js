@@ -779,9 +779,48 @@ function showLoading() {
 }
 function hideLoading() {}
 
+// Navigation History Tracker
+if (!appState.tabHistory) {
+  appState.tabHistory = [];
+}
+
+function getTabTitle(tabId) {
+  const titleMap = {
+    'dashboard': 'หน้าหลัก Dashboard',
+    'spare-parts': 'ฐานข้อมูลอะไหล่ & เครื่องมือ (Spare Parts Master)',
+    'tool-loans': 'ยืม-คืนเครื่องมือ (Tool Loans & Returns)',
+    'stock-in': 'รับเข้าสต็อก (Stock In / Receive)',
+    'stock-issue': 'เบิกจ่ายอะไหล่ (Stock Issue)',
+    'stock-return': 'คืนอะไหล่เข้าคลัง (Stock Return)',
+    'stock-adjustment': 'ปรับยอดสต็อก (Stock Adjustment)',
+    'stock-movement': 'ประวัติความเคลื่อนไหว (Stock Movement Ledger)',
+    'machine-parts': 'อะไหล่ตามเครื่องจักร (Machine-wise Parts)',
+    'critical-spares': 'อะไหล่วิกฤต (Critical Spares)',
+    'analytics': 'วิเคราะห์การใช้อะไหล่ (Usage Analytics & KPIs)',
+    'purchase-rec': 'แนะนำสั่งซื้อ (Reorder Recommendation)',
+    'stock-count': 'ตรวจนับสต็อก (Physical Stock Count)',
+    'locations': 'ตำแหน่งจัดเก็บ (Location Map)',
+    'alerts': 'เตือนสต็อกต่ำ (Low Stock Alerts)',
+    'reports': 'รายงาน 13 ฉบับ (Reports & Analytics)',
+    'audit-log': 'บันทึกการตรวจสอบ (Audit Log Trail)',
+    'master-data': 'จัดการข้อมูลระบบ (System Master Data)',
+    'users': 'จัดการผู้ใช้งาน (User Management)'
+  };
+  return titleMap[tabId] || tabId;
+}
+
+function goBackTab() {
+  if (appState.tabHistory && appState.tabHistory.length > 0) {
+    const prevTab = appState.tabHistory.pop();
+    switchTab(prevTab, false);
+  } else {
+    switchTab('dashboard', false);
+  }
+}
+
 // ==================== TAB SWITCHING & ROUTING ====================
 
-function switchTab(tabId) {
+function switchTab(tabId, pushHistory = true) {
   const r = (appState.currentUser && appState.currentUser.role) || 'Viewer / Auditor';
   const isAdmin = isAdminOrAbove(r);
   const adminOnlyTabs = ['spare-parts', 'reports', 'audit-log', 'master-data', 'users'];
@@ -796,7 +835,25 @@ function switchTab(tabId) {
     return;
   }
 
+  if (pushHistory && appState.currentTab && appState.currentTab !== tabId) {
+    if (!appState.tabHistory) appState.tabHistory = [];
+    appState.tabHistory.push(appState.currentTab);
+    if (appState.tabHistory.length > 25) appState.tabHistory.shift();
+  }
+
   appState.currentTab = tabId;
+
+  // Update top universal navigation bar
+  const topNav = document.getElementById('topNavBar');
+  const topNavLabel = document.getElementById('topNavCurrentTabLabel');
+  if (topNav) {
+    if (tabId === 'dashboard') {
+      topNav.classList.add('hidden');
+    } else {
+      topNav.classList.remove('hidden');
+      if (topNavLabel) topNavLabel.innerText = getTabTitle(tabId);
+    }
+  }
 
   // Update sidebar active styling
   document.querySelectorAll('.nav-item').forEach(btn => {
@@ -1039,7 +1096,7 @@ function renderDashboard(container) {
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
           </span>
         </div>
-        <div class="mt-2 text-2xl font-bold text-indigo-600">12 ชนิด</div>
+        <div class="mt-2 text-2xl font-bold text-indigo-600">${new Set(monthlyOut.map(m => m.partNumber)).size} ชนิด</div>
         <div class="text-[11px] text-slate-500 mt-0.5">Fast-Moving Parts</div>
       </div>
 
@@ -1156,7 +1213,14 @@ function renderDashboard(container) {
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
-            ${movements.slice(0, 6).map(m => `
+            ${movements.length === 0 ? `
+              <tr>
+                <td colspan="9" class="p-8 text-center text-slate-400">
+                  <svg class="w-8 h-8 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                  ยังไม่มีประวัติการเคลื่อนไหวสต็อก (ระบบเริ่มต้นใหม่พร้อมบันทึกรายการจริง)
+                </td>
+              </tr>
+            ` : movements.slice(0, 6).map(m => `
               <tr class="hover:bg-slate-50/80 transition">
                 <td class="p-2.5 text-slate-500 font-mono text-[11px]">${m.date}</td>
                 <td class="p-2.5 font-mono font-semibold text-slate-700">${m.transactionNo}</td>
@@ -1185,7 +1249,23 @@ function initDashboardCharts(parts, movements) {
   // 1. Movement Chart (Monthly In vs Out)
   const ctxMov = document.getElementById('chartMovement');
   if (ctxMov) {
-    const months = ['พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย. (ปัจจุบัน)'];
+    const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+    const now = new Date();
+    const months = [];
+    const inData = [];
+    const outData = [];
+    for (let i = 4; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const y = d.getFullYear();
+      const mNum = String(d.getMonth() + 1).padStart(2, '0');
+      const key = `${y}-${mNum}`;
+      const isCurrent = i === 0;
+      months.push(`${monthNames[d.getMonth()]}${isCurrent ? ' (ปัจจุบัน)' : ''}`);
+      const inSum = movements.filter(m => (m.type === 'IN' || m.type === 'RECEIVE' || m.type === 'RETURN') && m.date && m.date.startsWith(key)).reduce((s, m) => s + (m.qtyIn || 0), 0);
+      const outSum = movements.filter(m => (m.type === 'OUT' || m.type === 'ISSUE') && m.date && m.date.startsWith(key)).reduce((s, m) => s + (m.qtyOut || 0), 0);
+      inData.push(inSum);
+      outData.push(outSum);
+    }
     appState.charts.mov = new Chart(ctxMov, {
       type: 'line',
       data: {
@@ -1193,7 +1273,7 @@ function initDashboardCharts(parts, movements) {
         datasets: [
           {
             label: 'รับเข้า (Stock In)',
-            data: [45, 52, 68, 60, movements.filter(m => m.type === 'IN').reduce((s, m) => s + m.qtyIn, 0)],
+            data: inData,
             borderColor: '#10b981',
             backgroundColor: 'rgba(16, 185, 129, 0.1)',
             fill: true,
@@ -1201,7 +1281,7 @@ function initDashboardCharts(parts, movements) {
           },
           {
             label: 'เบิกจ่าย (Stock Issue)',
-            data: [38, 44, 55, 50, movements.filter(m => m.type === 'OUT').reduce((s, m) => s + m.qtyOut, 0)],
+            data: outData,
             borderColor: '#f43f5e',
             backgroundColor: 'rgba(244, 63, 94, 0.1)',
             fill: true,
@@ -1209,7 +1289,16 @@ function initDashboardCharts(parts, movements) {
           }
         ]
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' }
+        },
+        scales: {
+          y: { beginAtZero: true, ticks: { precision: 0 } }
+        }
+      }
     });
   }
 
@@ -1217,13 +1306,18 @@ function initDashboardCharts(parts, movements) {
   const ctxTop = document.getElementById('chartTopIssued');
   if (ctxTop) {
     const issueMap = {};
-    movements.filter(m => m.type === 'OUT').forEach(m => {
-      issueMap[m.partNumber] = (issueMap[m.partNumber] || 0) + m.qtyOut;
+    movements.filter(m => m.type === 'OUT' || m.type === 'ISSUE').forEach(m => {
+      issueMap[m.partNumber] = (issueMap[m.partNumber] || 0) + (m.qtyOut || 0);
     });
-    // Pick top parts
     const sorted = Object.keys(issueMap).sort((a, b) => issueMap[b] - issueMap[a]).slice(0, 10);
-    const labels = sorted.length ? sorted : ['NA10', 'NC24', 'TI53', 'CA46', 'LC44', 'LG08', 'LG09', 'NA31', 'NA35', 'TOOL-001'];
-    const dataVals = sorted.length ? sorted.map(k => issueMap[k]) : [24, 18, 15, 14, 12, 11, 9, 8, 7, 5];
+    const hasIssues = sorted.length > 0;
+    const labels = hasIssues
+      ? sorted.map(code => {
+          const p = parts.find(x => x.partNumber === code);
+          return p ? `${code} (${p.partName.length > 20 ? p.partName.slice(0, 20) + '...' : p.partName})` : code;
+        })
+      : ['ยังไม่มีประวัติการเบิกใช้'];
+    const dataVals = hasIssues ? sorted.map(k => issueMap[k]) : [0];
 
     appState.charts.top = new Chart(ctxTop, {
       type: 'bar',
@@ -1232,11 +1326,23 @@ function initDashboardCharts(parts, movements) {
         datasets: [{
           label: 'จำนวนชิ้นที่เบิกใช้',
           data: dataVals,
-          backgroundColor: '#0284c7',
+          backgroundColor: hasIssues ? '#0284c7' : '#cbd5e1',
           borderRadius: 4
         }]
       },
-      options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        scales: {
+          x: { beginAtZero: true, ticks: { precision: 0 } }
+        },
+        plugins: {
+          tooltip: {
+            enabled: hasIssues
+          }
+        }
+      }
     });
   }
 
@@ -1264,17 +1370,27 @@ function initDashboardCharts(parts, movements) {
   // 4. Min Deficit
   const ctxDef = document.getElementById('chartMinDeficit');
   if (ctxDef) {
-    const lowParts = parts.filter(p => p.currentStock <= p.minStock).slice(0, 8);
+    const lowParts = parts.filter(p => p.minStock > 0 && p.currentStock <= p.minStock).slice(0, 8);
+    const hasLow = lowParts.length > 0;
     appState.charts.def = new Chart(ctxDef, {
       type: 'bar',
       data: {
-        labels: lowParts.map(p => p.partNumber),
+        labels: hasLow ? lowParts.map(p => p.partNumber) : ['สต็อกปกติ (ไม่มีรายการต่ำกว่า Min)'],
         datasets: [
-          { label: 'Minimum Stock', data: lowParts.map(p => p.minStock), backgroundColor: '#cbd5e1' },
-          { label: 'Current Stock', data: lowParts.map(p => p.currentStock), backgroundColor: '#f43f5e' }
+          { label: 'Minimum Stock', data: hasLow ? lowParts.map(p => p.minStock) : [0], backgroundColor: '#cbd5e1' },
+          { label: 'Current Stock', data: hasLow ? lowParts.map(p => p.currentStock) : [0], backgroundColor: hasLow ? '#f43f5e' : '#10b981' }
         ]
       },
-      options: { responsive: true, maintainAspectRatio: false }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true, ticks: { precision: 0 } }
+        },
+        plugins: {
+          tooltip: { enabled: hasLow }
+        }
+      }
     });
   }
 
@@ -3031,7 +3147,7 @@ function renderStockMovement(container) {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              ${movements.map(m => `
+              ${movements.length ? movements.map(m => `
                 <tr class="hover:bg-slate-50 transition" data-part="${m.partNumber}" data-name="${m.partName}" data-type="${m.type}" data-machine="${m.machine}">
                   <td class="p-3 text-slate-500 font-mono text-[11px] whitespace-nowrap">${m.date}</td>
                   <td class="p-3 font-mono font-bold text-slate-700 whitespace-nowrap">${m.transactionNo}</td>
@@ -3045,7 +3161,16 @@ function renderStockMovement(container) {
                   <td class="p-3 text-slate-600">${m.user || '-'}</td>
                   <td class="p-3 text-slate-500 max-w-xs truncate" title="${m.refDoc || ''} ${m.note || ''}">${m.refDoc || ''} ${m.note ? `(${m.note})` : ''}</td>
                 </tr>
-              `).join('')}
+              `).join('') : `
+                <tr>
+                  <td colspan="11" class="p-8 text-center text-slate-400">
+                    <div class="flex flex-col items-center justify-center space-y-1">
+                      <span class="text-sm font-medium">ยังไม่มีประวัติการเคลื่อนไหวสต็อก (Stock Movement ว่าง)</span>
+                      <span class="text-[11px] text-slate-400">เมื่อมีการรับเข้า เบิกจ่าย ส่งคืน หรือปรับปรุงยอด ระบบจะบันทึกประวัติที่นี่โดยอัตโนมัติ</span>
+                    </div>
+                  </td>
+                </tr>
+              `}
             </tbody>
           </table>
         </div>
@@ -3305,18 +3430,44 @@ function createPurchaseProposal() {
 function renderUsageAnalytics(container) {
   const parts = appState.db.parts || [];
   const movements = appState.db.movements || [];
+  const machines = appState.db.machines || [];
 
-  const issues = movements.filter(m => m.type === 'OUT');
-  const totalIssueQty = issues.reduce((s, m) => s + m.qtyOut, 0);
+  const issues = movements.filter(m => m.type === 'OUT' || m.type === 'ISSUE');
+  const totalIssueQty = issues.reduce((s, m) => s + (m.qtyOut || 0), 0);
   const totalIssueVal = issues.reduce((s, m) => {
     const p = parts.find(x => x.partNumber === m.partNumber);
-    return s + (m.qtyOut * (p ? (p.unitCost || 0) : 50));
+    return s + ((m.qtyOut || 0) * (p ? (p.unitCost || 0) : 0));
   }, 0);
 
   const avgCostPerIssue = issues.length ? Math.round(totalIssueVal / issues.length) : 0;
-  const stockTurnover = 3.2; // Realistic industrial benchmark
-  const stockAccuracy = 98.4; // %
-  const stockOutRate = ((parts.filter(p=>p.currentStock===0).length / parts.length) * 100).toFixed(1);
+  const issueMonths = new Set(issues.map(m => (m.date || '').slice(0, 7))).size;
+  const avgMonthlyQty = issueMonths > 0 ? Math.round(totalIssueQty / issueMonths) : 0;
+  
+  const totalStockValuation = parts.reduce((s, p) => s + ((p.currentStock || 0) * (p.unitCost || 0)), 0);
+  const stockTurnover = totalStockValuation > 0 && totalIssueVal > 0 ? ((totalIssueVal * 12) / totalStockValuation).toFixed(2) : '0.00';
+  const stockAccuracy = 100.0;
+  const stockOutRate = parts.length > 0 ? ((parts.filter(p => (p.currentStock || 0) === 0).length / parts.length) * 100).toFixed(1) : '0.0';
+
+  // Aggregate top issued parts by total value
+  const partIssueMap = {};
+  issues.forEach(m => {
+    const code = m.partNumber;
+    if (!partIssueMap[code]) {
+      const p = parts.find(x => x.partNumber === code);
+      partIssueMap[code] = {
+        code,
+        name: m.partName || (p ? p.partName : code),
+        category: p ? p.category.split('(')[0].trim() : '-',
+        unit: p ? p.unit : 'ชิ้น',
+        unitCost: p ? (p.unitCost || 0) : 0,
+        qty: 0,
+        totalVal: 0
+      };
+    }
+    partIssueMap[code].qty += (m.qtyOut || 0);
+    partIssueMap[code].totalVal += (m.qtyOut || 0) * partIssueMap[code].unitCost;
+  });
+  const topCostParts = Object.values(partIssueMap).sort((a, b) => b.totalVal - a.totalVal).slice(0, 10);
 
   container.innerHTML = `
     <div class="space-y-6">
@@ -3346,7 +3497,7 @@ function renderUsageAnalytics(container) {
         </div>
         <div class="p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
           <div class="text-slate-500 font-medium">เบิกใช้เฉลี่ย/เดือน</div>
-          <div class="text-xl font-bold text-sky-600 font-mono mt-1">${Math.round(totalIssueQty * 1.2)} ชิ้น</div>
+          <div class="text-xl font-bold text-sky-600 font-mono mt-1">${avgMonthlyQty} ชิ้น</div>
         </div>
         <div class="p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
           <div class="text-slate-500 font-medium">Stock Turnover</div>
@@ -3402,15 +3553,21 @@ function renderUsageAnalytics(container) {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              ${parts.filter(p=>p.unitCost >= 200).slice(0, 10).map((p, idx) => `
+              ${topCostParts.length === 0 ? `
+                <tr>
+                  <td colspan="7" class="p-8 text-center text-slate-400">
+                    ยังไม่มีข้อมูลการเบิกใช้อะไหล่หรือเครื่องมือในระบบ (ข้อมูลจะคำนวณอัตโนมัติเมื่อมีการเบิกจ่าย)
+                  </td>
+                </tr>
+              ` : topCostParts.map((p, idx) => `
                 <tr class="hover:bg-slate-50">
                   <td class="p-2.5 font-bold text-slate-500">#${idx + 1}</td>
-                  <td class="p-2.5 font-mono font-bold text-sky-700 cursor-pointer hover:underline" onclick="showPartDetailByCode('${p.partNumber}')">${p.partNumber}</td>
-                  <td class="p-2.5 font-semibold text-slate-800">${p.partName}</td>
-                  <td class="p-2.5 text-slate-600">${p.category.split('(')[0]}</td>
-                  <td class="p-2.5 text-right font-mono font-semibold text-slate-700">${12 + (10 - idx) * 3} ${p.unit}</td>
+                  <td class="p-2.5 font-mono font-bold text-sky-700 cursor-pointer hover:underline" onclick="showPartDetailByCode('${p.code}')">${p.code}</td>
+                  <td class="p-2.5 font-semibold text-slate-800">${p.name}</td>
+                  <td class="p-2.5 text-slate-600">${p.category}</td>
+                  <td class="p-2.5 text-right font-mono font-semibold text-slate-700">${p.qty} ${p.unit}</td>
                   <td class="p-2.5 text-right font-mono text-slate-700">฿${p.unitCost.toLocaleString()}</td>
-                  <td class="p-2.5 text-right font-mono font-bold text-rose-600">฿${((12 + (10 - idx) * 3) * p.unitCost).toLocaleString()}</td>
+                  <td class="p-2.5 text-right font-mono font-bold text-rose-600">฿${p.totalVal.toLocaleString()}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -3425,34 +3582,72 @@ function renderUsageAnalytics(container) {
     // Chart Usage by Machine
     const ctxM = document.getElementById('chartUsageMachine');
     if (ctxM) {
+      const machineUsage = {};
+      machines.forEach(m => { machineUsage[m.code] = 0; });
+      issues.forEach(m => {
+        const mc = m.machine || 'WS-01';
+        machineUsage[mc] = (machineUsage[mc] || 0) + (m.qtyOut || 1);
+      });
+      const mLabels = Object.keys(machineUsage).map(code => {
+        const m = machines.find(x => x.code === code);
+        return m ? `${code} (${m.name.split('(')[0].trim()})` : code;
+      });
+      const mData = Object.values(machineUsage);
+
       appState.charts.uM = new Chart(ctxM, {
         type: 'bar',
         data: {
-          labels: ['M-001 (CNC)', 'M-002 (Press)', 'M-003 (Comp)', 'M-004 (Molding)', 'M-005 (Crane)', 'WS-01 (Tool Room)'],
+          labels: mLabels,
           datasets: [{
             label: 'จำนวนชิ้นที่เบิกใช้',
-            data: [32, 28, 19, 15, 12, 24],
+            data: mData,
             backgroundColor: '#8b5cf6',
             borderRadius: 4
           }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, ticks: { precision: 0 } }
+          }
+        }
       });
     }
 
     // Chart Usage by Maintenance Type
     const ctxT = document.getElementById('chartUsageMaintType');
     if (ctxT) {
+      const typeMap = { 'Preventive (PM)': 0, 'Breakdown (BM)': 0, 'Corrective (CM)': 0, 'Kaizen/Improvement': 0 };
+      issues.forEach(m => {
+        const note = ((m.note || '') + ' ' + (m.refDoc || '')).toUpperCase();
+        if (note.includes('BM') || note.includes('BREAKDOWN')) typeMap['Breakdown (BM)'] += (m.qtyOut || 1);
+        else if (note.includes('CM') || note.includes('CORRECTIVE')) typeMap['Corrective (CM)'] += (m.qtyOut || 1);
+        else if (note.includes('KAIZEN') || note.includes('IMPROVEMENT')) typeMap['Kaizen/Improvement'] += (m.qtyOut || 1);
+        else typeMap['Preventive (PM)'] += (m.qtyOut || 1);
+      });
+      const hasIssues = issues.length > 0;
+      const tLabels = hasIssues ? Object.keys(typeMap) : ['ยังไม่มีประวัติการเบิกใช้'];
+      const tData = hasIssues ? Object.values(typeMap) : [1];
+      const tBg = hasIssues ? ['#10b981', '#f43f5e', '#f59e0b', '#0284c7'] : ['#e2e8f0'];
+
       appState.charts.uT = new Chart(ctxT, {
         type: 'doughnut',
         data: {
-          labels: ['Preventive (PM)', 'Breakdown (BM)', 'Corrective (CM)', 'Kaizen/Improvement'],
+          labels: tLabels,
           datasets: [{
-            data: [48, 26, 18, 8],
-            backgroundColor: ['#10b981', '#f43f5e', '#f59e0b', '#0284c7']
+            data: tData,
+            backgroundColor: tBg
           }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: { enabled: hasIssues }
+          }
+        }
       });
     }
   }, 50);
@@ -3688,6 +3883,15 @@ function renderCriticalSpares(container) {
 function renderLocations(container) {
   const parts = appState.db.parts || [];
   
+  // Group actual locations from parts database
+  const locMap = {};
+  parts.forEach(p => {
+    const loc = (p.location || 'ไม่ระบุตำแหน่ง').trim();
+    if (!locMap[loc]) locMap[loc] = [];
+    locMap[loc].push(p);
+  });
+  const actualLocations = Object.keys(locMap).sort();
+
   // Zones: Zone A (Mechanical/Fasteners), Zone B (Pneumatics), Zone C (Welding/Chemical), Zone D (Tools)
   const zones = [
     { id: 'A', name: 'Zone A: Fasteners & Mechanical (สลักภัณฑ์และกลไก)', racks: ['R01', 'R02', 'R03', 'R04'] },
@@ -3708,6 +3912,42 @@ function renderLocations(container) {
         <div class="flex items-center space-x-2">
           <input type="text" id="locSearchInput" oninput="searchByLocationOrPart(this.value)" placeholder="ค้นหา Location หรือ Part No..." 
                  class="p-2 border border-slate-300 rounded-lg text-xs w-64 focus:border-sky-500 focus:outline-none">
+        </div>
+      </div>
+
+      <!-- Actual Active Locations in Stock -->
+      <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+              <span>🏢</span>
+              <span>ตำแหน่งจัดเก็บที่ใช้งานจริงในระบบ (Active Storage Locations)</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">รวมรายการจัดเก็บจริงในคลัง เช่น ห้องวิศวกรรม (ENG. Room) บมจ.วโรปกรณ์</p>
+          </div>
+          <span class="text-xs font-mono font-bold bg-sky-100 text-sky-800 px-2.5 py-1 rounded-full">${actualLocations.length} จุดจัดเก็บ (${parts.length} รายการ)</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2">
+          ${actualLocations.map(locName => {
+            const locParts = locMap[locName];
+            const totalQty = locParts.reduce((s, p) => s + (p.currentStock || 0), 0);
+            return `
+              <div onclick="showCustomLocationDetails('${locName.replace(/'/g, "\\'")}')" 
+                   class="border border-sky-200 hover:border-sky-500 bg-sky-50/60 hover:bg-sky-100/70 p-4 rounded-xl cursor-pointer transition flex flex-col justify-between shadow-xs">
+                <div class="flex items-center justify-between">
+                  <span class="font-mono font-bold text-sky-900 text-sm">📍 ${locName}</span>
+                  <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-sky-200 text-sky-800">${locParts.length} รายการ</span>
+                </div>
+                <div class="mt-2 text-xs text-slate-600">
+                  <div>ยอดคงเหลือรวม: <strong class="text-slate-900 font-mono font-bold">${totalQty}</strong> หน่วย</div>
+                </div>
+                <div class="mt-2 text-[11px] font-semibold text-sky-700 flex items-center space-x-1">
+                  <span>คลิกเพื่อดูรายการที่จัดเก็บจุดนี้</span>
+                  <span>&rarr;</span>
+                </div>
+              </div>
+            `;
+          }).join('')}
         </div>
       </div>
 
@@ -3808,12 +4048,63 @@ function showRackDetails(zoneId, rackId) {
   `;
 }
 
+function showCustomLocationDetails(locName) {
+  const parts = appState.db.parts || [];
+  const locParts = parts.filter(p => (p.location || 'ไม่ระบุตำแหน่ง').trim() === locName);
+
+  const title = document.getElementById('rackInspectorTitle');
+  if (title) title.innerText = `รายละเอียดรายการที่จัดเก็บ ณ จุด: ${locName} (${locParts.length} รายการ)`;
+
+  const content = document.getElementById('rackInspectorContent');
+  if (!content) return;
+
+  content.innerHTML = `
+    <table class="w-full text-left text-xs">
+      <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+        <tr>
+          <th class="p-2.5">Location</th>
+          <th class="p-2.5">Part No.</th>
+          <th class="p-2.5">ชื่อรายการ</th>
+          <th class="p-2.5">หมวดหมู่</th>
+          <th class="p-2.5 text-right">คงเหลือ</th>
+          <th class="p-2.5 text-center">สถานะ</th>
+          <th class="p-2.5 text-center">Action</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        ${locParts.length ? locParts.map(p => `
+          <tr class="hover:bg-slate-50">
+            <td class="p-2.5 font-mono font-bold text-sky-700">${p.location}</td>
+            <td class="p-2.5 font-mono font-bold text-slate-800 cursor-pointer hover:underline" onclick="showPartDetail('${p.id}')">${p.partNumber}</td>
+            <td class="p-2.5 text-slate-800 font-medium">${p.partName}</td>
+            <td class="p-2.5 text-slate-500">${p.category ? p.category.split('(')[0].trim() : '-'}</td>
+            <td class="p-2.5 text-right font-mono font-bold ${getStockLevelColor(p)}">${p.currentStock} ${p.unit}</td>
+            <td class="p-2.5 text-center">${renderStockBadge(p)}</td>
+            <td class="p-2.5 text-center">
+              <button onclick="openPrintLabelModal('${p.id}')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-[11px] font-semibold">พิมพ์ป้าย QR</button>
+            </td>
+          </tr>
+        `).join('') : `
+          <tr><td colspan="7" class="p-6 text-center text-slate-400">ไม่มีรายการในตำแหน่งนี้</td></tr>
+        `}
+      </tbody>
+    </table>
+  `;
+
+  const area = document.getElementById('rackInspectorArea');
+  if (area) area.scrollIntoView({ behavior: 'smooth' });
+}
+
 function searchByLocationOrPart(val) {
   if (!val) return;
   const q = val.toLowerCase().trim();
-  const part = (appState.db.parts || []).find(p => p.location.toLowerCase().includes(q) || p.partNumber.toLowerCase().includes(q));
+  const part = (appState.db.parts || []).find(p => (p.location && p.location.toLowerCase().includes(q)) || (p.partNumber && p.partNumber.toLowerCase().includes(q)));
   if (part) {
-    showRackDetails(part.zone, part.rack);
+    if (part.zone && part.rack) {
+      showRackDetails(part.zone, part.rack);
+    } else {
+      showCustomLocationDetails((part.location || 'ไม่ระบุตำแหน่ง').trim());
+    }
   }
 }
 
@@ -3859,7 +4150,7 @@ function renderStockCount(container) {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              ${rounds.map(r => `
+              ${rounds.length ? rounds.map(r => `
                 <tr class="hover:bg-slate-50">
                   <td class="p-2.5 font-mono font-bold text-sky-700">${r.id}</td>
                   <td class="p-2.5 font-semibold text-slate-800">${r.title}</td>
@@ -3877,7 +4168,16 @@ function renderStockCount(container) {
                     </span>
                   </td>
                 </tr>
-              `).join('')}
+              `).join('') : `
+                <tr>
+                  <td colspan="9" class="p-8 text-center text-slate-400">
+                    <div class="flex flex-col items-center justify-center space-y-1">
+                      <span class="text-sm font-medium">ยังไม่มีประวัติรอบการตรวจนับสต็อก (Count Sessions ว่าง)</span>
+                      <span class="text-[11px] text-slate-400">กดปุ่ม "+ เปิดรอบตรวจนับใหม่" ด้านบนเพื่อเริ่มนับสต็อกประจำงวด</span>
+                    </div>
+                  </td>
+                </tr>
+              `}
             </tbody>
           </table>
         </div>
@@ -3887,7 +4187,7 @@ function renderStockCount(container) {
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-3">
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="text-sm font-bold text-slate-800">แผ่นตรวจนับด่วนประจำจุด (Quick Cycle Count - Zone A Fasteners)</h3>
+            <h3 class="text-sm font-bold text-slate-800">แผ่นตรวจนับด่วนประจำคลัง (Quick Cycle Count - ENG. Room & Stock)</h3>
             <p class="text-xs text-slate-500">ป้อนยอดนับจริงในช่อง Physical Qty เพื่อคำนวณผลต่างทันที</p>
           </div>
           <button onclick="saveQuickCountSession()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm">
@@ -4469,7 +4769,7 @@ function renderAuditLog(container) {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              ${logs.map(log => `
+              ${logs.length ? logs.map(log => `
                 <tr class="hover:bg-slate-50 transition">
                   <td class="p-3 font-mono text-[11px] text-slate-500 whitespace-nowrap">${log.timestamp}</td>
                   <td class="p-3 font-semibold text-slate-700">${log.user}</td>
@@ -4482,7 +4782,16 @@ function renderAuditLog(container) {
                   </td>
                   <td class="p-3 text-slate-600 max-w-sm truncate" title="${log.reason} (${log.reference})">${log.reason} <span class="text-slate-400 font-mono">(${log.reference})</span></td>
                 </tr>
-              `).join('')}
+              `).join('') : `
+                <tr>
+                  <td colspan="8" class="p-8 text-center text-slate-400">
+                    <div class="flex flex-col items-center justify-center space-y-1">
+                      <span class="text-sm font-medium">ยังไม่มีประวัติการตรวจสอบระบบ (Audit Log Trail ว่าง)</span>
+                      <span class="text-[11px] text-slate-400">เมื่อมีการปรับปรุงยอดสต็อกหรือดำเนินการทางระบบ บันทึกที่ไม่สามารถแก้ไขได้จะแสดงที่นี่</span>
+                    </div>
+                  </td>
+                </tr>
+              `}
             </tbody>
           </table>
         </div>
