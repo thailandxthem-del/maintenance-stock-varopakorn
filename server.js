@@ -44,6 +44,17 @@ function broadcastEvent(type, payload = {}) {
   }
 }
 
+// Periodic Keep-Alive Ping for SSE Clients (prevents Render reverse-proxy drop after 100s)
+setInterval(() => {
+  for (const client of sseClients) {
+    try {
+      client.write(': ping\n\n');
+    } catch (e) {
+      sseClients.delete(client);
+    }
+  }
+}, 25000);
+
 // In-memory version tracker
 let currentDBVersion = Date.now();
 
@@ -226,19 +237,20 @@ const server = http.createServer(async (req, res) => {
             ...payload,
             categoryType: payload.categoryType || oldPart.categoryType || 'Spare Part',
             toolCondition: payload.toolCondition !== undefined ? payload.toolCondition : (oldPart.toolCondition || (payload.categoryType === 'Tool' ? 'Operational' : null)),
-            currentStock: payload.currentStock !== undefined ? parseFloat(payload.currentStock) : oldPart.currentStock,
-            minStock: payload.minStock !== undefined ? parseFloat(payload.minStock) : oldPart.minStock,
-            maxStock: payload.maxStock !== undefined ? parseFloat(payload.maxStock) : oldPart.maxStock,
-            unitCost: payload.unitCost !== undefined ? parseFloat(payload.unitCost) : oldPart.unitCost
+            currentStock: (payload.currentStock !== undefined && payload.currentStock !== null && payload.currentStock !== '') ? parseFloat(payload.currentStock) : oldPart.currentStock,
+            minStock: (payload.minStock !== undefined && payload.minStock !== null && payload.minStock !== '') ? parseFloat(payload.minStock) : (oldPart.minStock !== undefined ? oldPart.minStock : 0),
+            maxStock: (payload.maxStock !== undefined && payload.maxStock !== null && payload.maxStock !== '') ? parseFloat(payload.maxStock) : (oldPart.maxStock !== undefined ? oldPart.maxStock : 0),
+            reorderPoint: (payload.reorderPoint !== undefined && payload.reorderPoint !== null && payload.reorderPoint !== '') ? parseFloat(payload.reorderPoint) : (oldPart.reorderPoint !== undefined ? oldPart.reorderPoint : 0),
+            unitCost: (payload.unitCost !== undefined && payload.unitCost !== null && payload.unitCost !== '') ? parseFloat(payload.unitCost) : oldPart.unitCost
           };
         } else {
           const newId = `P-${String((db.parts.length || 0) + 1).padStart(4, '0')}`;
           const newPart = {
             id: newId,
-            currentStock: parseFloat(payload.currentStock) || 0,
-            minStock: parseFloat(payload.minStock) || 5,
-            maxStock: parseFloat(payload.maxStock) || 50,
-            reorderPoint: parseFloat(payload.reorderPoint) || 10,
+            currentStock: (payload.currentStock !== undefined && payload.currentStock !== null && payload.currentStock !== '') ? parseFloat(payload.currentStock) : 0,
+            minStock: (payload.minStock !== undefined && payload.minStock !== null && payload.minStock !== '') ? parseFloat(payload.minStock) : 0,
+            maxStock: (payload.maxStock !== undefined && payload.maxStock !== null && payload.maxStock !== '') ? parseFloat(payload.maxStock) : 0,
+            reorderPoint: (payload.reorderPoint !== undefined && payload.reorderPoint !== null && payload.reorderPoint !== '') ? parseFloat(payload.reorderPoint) : 0,
             status: 'Active',
             unit: payload.unit || 'ชิ้น',
             location: payload.location || 'A-R01-S01-B01',
@@ -520,7 +532,7 @@ const server = http.createServer(async (req, res) => {
             warnings.push(`อะไหล่ ${part.partName} (${part.partNumber}) หมดสต็อกแล้ว (Stock = 0)!`);
           } else if (newQty <= (part.reorderPoint || 10)) {
             warnings.push(`อะไหล่ ${part.partName} ถึงจุดสั่งซื้อซ้ำแล้ว (คงเหลือ ${newQty} <= ${part.reorderPoint} ${part.unit})`);
-          } else if (newQty <= (part.minStock || 5)) {
+          } else if (newQty <= (part.minStock !== undefined ? part.minStock : 0)) {
             warnings.push(`อะไหล่ ${part.partName} ต่ำกว่า Minimum Stock (คงเหลือ ${newQty} <= ${part.minStock} ${part.unit})`);
           }
 

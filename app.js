@@ -374,6 +374,7 @@ function isPartTool(part) {
   if (!part) return false;
   if (part.categoryType === 'Tool' || part.itemType === 'Tool') return true;
   if (part.category === 'Tool') return true;
+  if (part.category && (part.category.includes('Tool') || part.category.includes('เครื่องมือ'))) return true;
   return false;
 }
 
@@ -391,6 +392,7 @@ const appState = {
   searchQuery: '',
   filterCategory: 'ALL',
   filterStockStatus: 'ALL',
+  filterItemType: 'ALL', // 'ALL' | 'TOOL' | 'SPARE'
   filterMachine: 'ALL',
   currentPage: 1,
   pageSize: 15,
@@ -884,10 +886,17 @@ function goBackTab() {
 
 // ==================== TAB SWITCHING & ROUTING ====================
 
+function switchTabWithFilter(tabId, statusFilter = 'ALL', itemTypeFilter = 'ALL') {
+  appState.filterStockStatus = statusFilter;
+  if (itemTypeFilter) appState.filterItemType = itemTypeFilter;
+  appState.currentPage = 1;
+  switchTab(tabId);
+}
+
 function switchTab(tabId, pushHistory = true) {
   const r = (appState.currentUser && appState.currentUser.role) || 'Viewer / Auditor';
   const isAdmin = isAdminOrAbove(r);
-  const adminOnlyTabs = ['spare-parts', 'reports', 'audit-log', 'master-data', 'users'];
+  const adminOnlyTabs = ['reports', 'audit-log', 'master-data', 'users'];
 
   if (adminOnlyTabs.includes(tabId) && !isAdmin) {
     Swal.fire({
@@ -906,6 +915,20 @@ function switchTab(tabId, pushHistory = true) {
   }
 
   appState.currentTab = tabId;
+
+  // Background sync for latest data when entering dashboard
+  if (tabId === 'dashboard') {
+    fetch('/api/db')
+      .then(res => res.json())
+      .then(data => {
+        appState.db = data;
+        updateHeaderCounts();
+        if (appState.currentTab === 'dashboard') {
+          renderDashboard(document.getElementById('mainContent'));
+        }
+      })
+      .catch(err => console.warn('Dashboard sync:', err));
+  }
 
   // Update top universal navigation bar
   const topNav = document.getElementById('topNavBar');
@@ -1021,19 +1044,32 @@ function destroyCharts() {
 function renderDashboard(container) {
   const parts = appState.db.parts || [];
   const movements = appState.db.movements || [];
+  const toolLoans = appState.db.toolLoans || [];
 
   // Metrics
   const totalParts = parts.length;
-  const inStockParts = parts.filter(p => p.currentStock > p.minStock).length;
-  const lowStockParts = parts.filter(p => p.currentStock <= p.minStock && p.currentStock > 0).length;
+  const inStockParts = parts.filter(p => (p.minStock > 0 ? p.currentStock >= p.minStock : p.currentStock > 0)).length;
+  const lowStockParts = parts.filter(p => p.minStock > 0 && p.currentStock < p.minStock && p.currentStock > 0).length;
   const outOfStockParts = parts.filter(p => p.currentStock === 0).length;
   const criticalParts = parts.filter(p => p.isCritical).length;
   const criticalZero = parts.filter(p => p.isCritical && p.currentStock === 0).length;
 
+  // Tool Loans stats
+  const activeLoans = toolLoans.filter(l => l.status === 'BORROWED' || l.status === 'OVERDUE');
+  const overdueLoans = toolLoans.filter(l => {
+    if (l.status === 'RETURNED') return false;
+    if (l.status === 'OVERDUE') return true;
+    if (l.status === 'BORROWED') {
+      const bTime = new Date(l.borrowDate).getTime();
+      return (Date.now() - bTime > 24 * 60 * 60 * 1000);
+    }
+    return false;
+  });
+
   // Monthly stats (current month)
   const currentMonthPrefix = new Date().toISOString().slice(0, 7);
-  const monthlyIn = movements.filter(m => m.type === 'IN' && m.date.startsWith(currentMonthPrefix));
-  const monthlyOut = movements.filter(m => m.type === 'OUT' && m.date.startsWith(currentMonthPrefix));
+  const monthlyIn = movements.filter(m => (m.type === 'IN' || m.type === 'RECEIVE') && m.date && m.date.startsWith(currentMonthPrefix));
+  const monthlyOut = movements.filter(m => (m.type === 'OUT' || m.type === 'ISSUE') && m.date && m.date.startsWith(currentMonthPrefix));
   const totalValuation = parts.reduce((sum, p) => sum + ((p.currentStock || 0) * (p.unitCost || 0)), 0);
 
   container.innerHTML = `
@@ -1052,26 +1088,30 @@ function renderDashboard(container) {
         </p>
       </div>
       <div class="flex flex-wrap gap-2">
-        <button onclick="switchTab('stock-in')" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-md flex items-center space-x-1.5 transition">
+        <button onclick="switchTab('stock-in')" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-md flex items-center space-x-1.5 transition active:scale-95">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           <span>รับอะไหล่เข้า</span>
         </button>
-        <button onclick="switchTab('stock-issue')" class="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow-md flex items-center space-x-1.5 transition">
+        <button onclick="switchTab('stock-issue')" class="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow-md flex items-center space-x-1.5 transition active:scale-95">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
           <span>เบิกอะไหล่ด่วน</span>
         </button>
-        <button onclick="openQRScanner()" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow-md flex items-center space-x-1.5 transition">
+        <button onclick="switchTab('tool-loans')" class="px-3.5 py-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-xl text-xs font-semibold shadow-md flex items-center space-x-1.5 transition active:scale-95">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span>ยืม-คืนเครื่องมือ</span>
+        </button>
+        <button onclick="openQRScanner()" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow-md flex items-center space-x-1.5 transition active:scale-95">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
           <span>สแกน QR</span>
         </button>
       </div>
     </div>
 
-    <!-- 9 KPI SUMMARY CARDS -->
+    <!-- 10 KPI SUMMARY CARDS (Clickable to Filtered Views) -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
       
       <!-- Card 1: Total Parts -->
-      <div onclick="switchTab('spare-parts')" class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:shadow-md cursor-pointer transition">
+      <div onclick="switchTabWithFilter('spare-parts', 'ALL', 'ALL')" class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:border-sky-400 hover:shadow-md cursor-pointer transition active:scale-95" title="คลิกเพื่อดูรายการอะไหล่ทั้งหมด">
         <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
           <span>อะไหล่ทั้งหมด</span>
           <span class="p-1.5 rounded-lg bg-sky-50 text-sky-600">
@@ -1079,23 +1119,29 @@ function renderDashboard(container) {
           </span>
         </div>
         <div class="mt-2 text-2xl font-bold text-slate-800">${totalParts.toLocaleString()}</div>
-        <div class="text-[11px] text-slate-400 mt-0.5">รายการพร้อมควบคุม</div>
+        <div class="text-[11px] text-sky-600 font-medium mt-0.5 flex items-center justify-between">
+          <span>รายการพร้อมควบคุม</span>
+          <span>&rarr;</span>
+        </div>
       </div>
 
       <!-- Card 2: In Stock -->
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+      <div onclick="switchTabWithFilter('spare-parts', 'NORMAL', 'ALL')" class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:border-emerald-400 hover:shadow-md cursor-pointer transition active:scale-95" title="คลิกเพื่อดูอะไหล่สต็อกปกติ">
         <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
-          <span>สต็อกปกติ (> Min)</span>
+          <span>สต็อกปกติ (พร้อมใช้)</span>
           <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
           </span>
         </div>
         <div class="mt-2 text-2xl font-bold text-emerald-600">${inStockParts.toLocaleString()}</div>
-        <div class="text-[11px] text-emerald-700 mt-0.5 font-medium">${((inStockParts/totalParts)*100).toFixed(1)}% ของคลัง</div>
+        <div class="text-[11px] text-emerald-700 mt-0.5 font-medium flex items-center justify-between">
+          <span>${totalParts > 0 ? ((inStockParts/totalParts)*100).toFixed(1) : 0}% ของคลัง</span>
+          <span>&rarr;</span>
+        </div>
       </div>
 
       <!-- Card 3: Low Stock -->
-      <div onclick="switchTab('alerts')" class="bg-white rounded-xl p-4 shadow-sm border border-amber-200 hover:shadow-md cursor-pointer transition">
+      <div onclick="switchTabWithFilter('spare-parts', 'LOW', 'ALL')" class="bg-white rounded-xl p-4 shadow-sm border border-amber-200 hover:border-amber-400 hover:shadow-md cursor-pointer transition active:scale-95" title="คลิกเพื่อดูอะไหล่สต็อกต่ำกว่า Min">
         <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
           <span>สต็อกต่ำกว่า Min</span>
           <span class="p-1.5 rounded-lg bg-amber-50 text-amber-600 font-bold">
@@ -1103,11 +1149,14 @@ function renderDashboard(container) {
           </span>
         </div>
         <div class="mt-2 text-2xl font-bold text-amber-600">${lowStockParts.toLocaleString()}</div>
-        <div class="text-[11px] text-amber-700 mt-0.5 font-medium">ควรวางแผนสั่งซื้อ</div>
+        <div class="text-[11px] text-amber-700 mt-0.5 font-medium flex items-center justify-between">
+          <span>ควรวางแผนสั่งซื้อ</span>
+          <span>&rarr;</span>
+        </div>
       </div>
 
       <!-- Card 4: Out of Stock -->
-      <div onclick="switchTab('alerts')" class="bg-white rounded-xl p-4 shadow-sm border border-rose-200 hover:shadow-md cursor-pointer transition">
+      <div onclick="switchTabWithFilter('spare-parts', 'ZERO', 'ALL')" class="bg-white rounded-xl p-4 shadow-sm border border-rose-200 hover:border-rose-400 hover:shadow-md cursor-pointer transition active:scale-95" title="คลิกเพื่อดูอะไหล่ที่หมดสต็อก">
         <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
           <span>หมดสต็อก (Stock=0)</span>
           <span class="p-1.5 rounded-lg bg-rose-50 text-rose-600">
@@ -1115,11 +1164,14 @@ function renderDashboard(container) {
           </span>
         </div>
         <div class="mt-2 text-2xl font-bold text-rose-600">${outOfStockParts.toLocaleString()}</div>
-        <div class="text-[11px] text-rose-600 mt-0.5 font-semibold">ขาดสต็อกเร่งด่วน!</div>
+        <div class="text-[11px] text-rose-600 mt-0.5 font-semibold flex items-center justify-between">
+          <span>ขาดสต็อกเร่งด่วน</span>
+          <span>&rarr;</span>
+        </div>
       </div>
 
       <!-- Card 5: Critical Spares -->
-      <div onclick="switchTab('critical-spares')" class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:shadow-md cursor-pointer transition">
+      <div onclick="switchTab('critical-spares')" class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:border-red-400 hover:shadow-md cursor-pointer transition active:scale-95" title="คลิกเพื่อดูรายการอะไหล่วิกฤต">
         <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
           <span>อะไหล่วิกฤต (Critical)</span>
           <span class="p-1.5 rounded-lg bg-red-50 text-red-600 font-bold">
@@ -1127,33 +1179,55 @@ function renderDashboard(container) {
           </span>
         </div>
         <div class="mt-2 text-2xl font-bold text-slate-900">${criticalParts.toLocaleString()}</div>
-        <div class="text-[11px] ${criticalZero > 0 ? 'text-red-600 font-bold animate-pulse' : 'text-slate-500'} mt-0.5">
-          ${criticalZero > 0 ? `⚠️ มี ${criticalZero} ตัวเป็น 0!` : 'สต็อกมีครบทุกตัว'}
+        <div class="text-[11px] ${criticalZero > 0 ? 'text-red-600 font-bold animate-pulse' : 'text-slate-500'} mt-0.5 flex items-center justify-between">
+          <span>${criticalZero > 0 ? `⚠️ มี ${criticalZero} ตัวเป็น 0!` : 'สต็อกมีครบทุกตัว'}</span>
+          <span>&rarr;</span>
         </div>
       </div>
 
-      <!-- Card 6: Monthly In -->
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+      <!-- Card 6: Active Tool Loans (NEW) -->
+      <div onclick="switchTab('tool-loans')" class="bg-gradient-to-br from-amber-50/60 to-white rounded-xl p-4 shadow-sm border border-amber-200 hover:border-amber-400 hover:shadow-md cursor-pointer transition active:scale-95" title="คลิกเพื่อไปหน้าระบบยืม-คืนเครื่องมือ">
+        <div class="flex items-center justify-between text-amber-800 text-xs font-semibold">
+          <span>เครื่องมือที่กำลังยืม</span>
+          <span class="p-1.5 rounded-lg bg-amber-100 text-amber-800 font-bold">
+            🧰
+          </span>
+        </div>
+        <div class="mt-2 text-2xl font-bold text-amber-700 font-mono">${activeLoans.length.toLocaleString()} <span class="text-xs font-normal text-amber-600">ชิ้น</span></div>
+        <div class="text-[11px] mt-0.5 flex items-center justify-between ${overdueLoans.length > 0 ? 'text-rose-600 font-bold animate-pulse' : 'text-amber-700'}">
+          <span>${overdueLoans.length > 0 ? `⚠️ เกินกำหนด ${overdueLoans.length} รายการ` : (activeLoans.length > 0 ? 'นำไปใช้งานที่เครื่องจักร' : 'พร้อมใช้งานครบทุกชิ้น')}</span>
+          <span>&rarr;</span>
+        </div>
+      </div>
+
+      <!-- Card 7: Monthly In -->
+      <div onclick="switchTab('stock-movement')" class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:border-emerald-400 hover:shadow-md cursor-pointer transition active:scale-95" title="คลิกเพื่อดูประวัติรับเข้าสต็อก">
         <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
           <span>รับเข้าเดือนนี้</span>
           <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 font-mono">+IN</span>
         </div>
         <div class="mt-2 text-2xl font-bold text-emerald-600">${monthlyIn.length} รายการ</div>
-        <div class="text-[11px] text-slate-500 mt-0.5">ยอดรับรวม: ${monthlyIn.reduce((s, m) => s + (m.qtyIn || 0), 0)} ชิ้น</div>
+        <div class="text-[11px] text-slate-500 mt-0.5 flex items-center justify-between">
+          <span>ยอดรับรวม: ${monthlyIn.reduce((s, m) => s + (m.qtyIn || 0), 0)} ชิ้น</span>
+          <span>&rarr;</span>
+        </div>
       </div>
 
-      <!-- Card 7: Monthly Out -->
-      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+      <!-- Card 8: Monthly Out -->
+      <div onclick="switchTab('stock-movement')" class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:border-rose-400 hover:shadow-md cursor-pointer transition active:scale-95" title="คลิกเพื่อดูประวัติการเบิกจ่าย">
         <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
           <span>เบิกจ่ายเดือนนี้</span>
           <span class="p-1.5 rounded-lg bg-rose-50 text-rose-600 font-mono">-OUT</span>
         </div>
         <div class="mt-2 text-2xl font-bold text-rose-600">${monthlyOut.length} ครั้ง</div>
-        <div class="text-[11px] text-slate-500 mt-0.5">ยอดเบิกรวม: ${monthlyOut.reduce((s, m) => s + (m.qtyOut || 0), 0)} ชิ้น</div>
+        <div class="text-[11px] text-slate-500 mt-0.5 flex items-center justify-between">
+          <span>ยอดเบิกรวม: ${monthlyOut.reduce((s, m) => s + (m.qtyOut || 0), 0)} ชิ้น</span>
+          <span>&rarr;</span>
+        </div>
       </div>
 
-      <!-- Card 8: High Issue Items -->
-      <div onclick="switchTab('analytics')" class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:shadow-md cursor-pointer transition">
+      <!-- Card 9: High Issue Items -->
+      <div onclick="switchTab('analytics')" class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:border-indigo-400 hover:shadow-md cursor-pointer transition active:scale-95" title="คลิกเพื่อดูการวิเคราะห์การเบิกใช้">
         <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
           <span>เบิกใช้สูงเดือนนี้</span>
           <span class="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
@@ -1161,19 +1235,20 @@ function renderDashboard(container) {
           </span>
         </div>
         <div class="mt-2 text-2xl font-bold text-indigo-600">${new Set(monthlyOut.map(m => m.partNumber)).size} ชนิด</div>
-        <div class="text-[11px] text-slate-500 mt-0.5">Fast-Moving Parts</div>
+        <div class="text-[11px] text-slate-500 mt-0.5 flex items-center justify-between">
+          <span>Fast-Moving Parts</span>
+          <span>&rarr;</span>
+        </div>
       </div>
 
-      <!-- Card 9 & 10: Total Inventory Valuation (Span 2 cols on lg) -->
-      <div class="col-span-2 bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-4 text-white shadow-sm border border-slate-700 flex items-center justify-between">
-        <div>
-          <div class="text-xs text-sky-400 font-medium">มูลค่าสินค้าคงคลังรวมโดยประมาณ (Estimated Valuation)</div>
-          <div class="text-2xl sm:text-3xl font-bold text-white font-mono mt-1">฿ ${totalValuation.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-          <div class="text-[11px] text-slate-400 mt-0.5">คำนวณจาก Current Stock × Unit Cost (THB)</div>
+      <!-- Card 10: Total Inventory Valuation -->
+      <div onclick="switchTab('reports')" class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-4 text-white shadow-sm border border-slate-700 hover:border-sky-400 hover:shadow-md cursor-pointer transition active:scale-95" title="คลิกเพื่อดูรายงานสรุปมูลค่าสต็อก">
+        <div class="flex items-center justify-between">
+          <div class="text-xs text-sky-400 font-medium">มูลค่าสินค้าคงคลังรวม</div>
+          <span class="text-slate-400 text-xs">&rarr;</span>
         </div>
-        <div class="hidden sm:block p-3 bg-white/10 rounded-xl">
-          <svg class="w-8 h-8 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        </div>
+        <div class="text-xl sm:text-2xl font-bold text-white font-mono mt-2">฿ ${totalValuation.toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+        <div class="text-[11px] text-slate-400 mt-0.5">Current Stock × Unit Cost</div>
       </div>
 
     </div>
@@ -1186,7 +1261,7 @@ function renderDashboard(container) {
         <div class="flex items-center justify-between mb-4">
           <div>
             <h3 class="text-sm font-bold text-slate-800">1. การเคลื่อนไหวของสต็อก (Stock Movement: In vs Out)</h3>
-            <p class="text-xs text-slate-500">เปรียบเทียบยอดรับเข้าและยอดเบิกจ่ายในรอบเดือน</p>
+            <p class="text-xs text-slate-500">เปรียบเทียบยอดรับเข้าและยอดเบิกจ่ายในรอบ 5 เดือนล่าสุด</p>
           </div>
           <span class="text-xs font-semibold px-2 py-0.5 bg-sky-50 text-sky-700 rounded">รายเดือน</span>
         </div>
@@ -1214,7 +1289,7 @@ function renderDashboard(container) {
         <div class="flex items-center justify-between mb-4">
           <div>
             <h3 class="text-sm font-bold text-slate-800">3. สัดส่วนอะไหล่ตามหมวดหมู่ (Category Breakdown)</h3>
-            <p class="text-xs text-slate-500">จำนวนรายการจำแนกตามกลุ่มอะไหล่ใน Tool Room</p>
+            <p class="text-xs text-slate-500">จำนวนรายการจำแนกตามกลุ่มอะไหล่ใน Tool Room (คลิกชิ้นส่วนกราฟเพื่อเปิดดู)</p>
           </div>
         </div>
         <div class="h-64 relative flex items-center justify-center">
@@ -1252,56 +1327,103 @@ function renderDashboard(container) {
 
     </div>
 
-    <!-- Recent Movements Preview Table -->
-    <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
-      <div class="flex items-center justify-between mb-4">
+    <!-- RECENT TRANSACTIONS: DUAL PREVIEW (Stock Movements & Tool Loans) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Box A: Recent Movements Preview Table -->
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
         <div>
-          <h3 class="text-sm font-bold text-slate-800">รายการเคลื่อนไหวล่าสุด (Recent Stock Transactions)</h3>
-          <p class="text-xs text-slate-500">รายการรับเข้า-เบิกจ่าย 5 รายการล่าสุด</p>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">📦 รายการเคลื่อนไหวสต็อกล่าสุด (Recent Movements)</h3>
+              <p class="text-xs text-slate-500">รายการรับเข้า-เบิกจ่ายอะไหล่ 5 รายการล่าสุด</p>
+            </div>
+            <button onclick="switchTab('stock-movement')" class="text-xs text-sky-600 hover:text-sky-800 font-semibold">ดูทั้งหมด &rarr;</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="p-2">วัน-เวลา</th>
+                  <th class="p-2">ประเภท</th>
+                  <th class="p-2">รหัสอะไหล่</th>
+                  <th class="p-2 text-right">จำนวน</th>
+                  <th class="p-2">ผู้ทำรายการ</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${movements.length === 0 ? `
+                  <tr>
+                    <td colspan="5" class="p-6 text-center text-slate-400">
+                      <svg class="w-7 h-7 mx-auto text-slate-300 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                      ยังไม่มีประวัติการเคลื่อนไหวสต็อก
+                    </td>
+                  </tr>
+                ` : movements.slice(0, 5).map(m => `
+                  <tr class="hover:bg-slate-50 transition">
+                    <td class="p-2 text-slate-500 font-mono text-[11px]">${m.date ? m.date.slice(0, 16) : '-'}</td>
+                    <td class="p-2">${renderTypeBadge(m.type)}</td>
+                    <td class="p-2 font-mono font-bold text-sky-700 cursor-pointer hover:underline" onclick="showPartDetailByCode('${m.partNumber}')" title="${m.partName || ''}">${m.partNumber}</td>
+                    <td class="p-2 text-right font-bold ${m.type === 'IN' || m.type === 'RETURN' ? 'text-emerald-600' : 'text-rose-600'}">
+                      ${m.type === 'IN' || m.type === 'RETURN' ? `+${m.qtyIn}` : `-${m.qtyOut}`}
+                    </td>
+                    <td class="p-2 text-slate-600 truncate max-w-[90px]">${m.user || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <button onclick="switchTab('stock-movement')" class="text-xs text-sky-600 hover:text-sky-800 font-semibold">ดูประวัติทั้งหมด &rarr;</button>
       </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
-          <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-            <tr>
-              <th class="p-2.5">วัน-เวลา</th>
-              <th class="p-2.5">Transaction No.</th>
-              <th class="p-2.5">ประเภท</th>
-              <th class="p-2.5">รหัสอะไหล่</th>
-              <th class="p-2.5">ชื่ออะไหล่</th>
-              <th class="p-2.5 text-right">จำนวน</th>
-              <th class="p-2.5 text-right">คงเหลือ</th>
-              <th class="p-2.5">เครื่องจักร</th>
-              <th class="p-2.5">ผู้ทำรายการ</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            ${movements.length === 0 ? `
-              <tr>
-                <td colspan="9" class="p-8 text-center text-slate-400">
-                  <svg class="w-8 h-8 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                  ยังไม่มีประวัติการเคลื่อนไหวสต็อก (ระบบเริ่มต้นใหม่พร้อมบันทึกรายการจริง)
-                </td>
-              </tr>
-            ` : movements.slice(0, 6).map(m => `
-              <tr class="hover:bg-slate-50/80 transition">
-                <td class="p-2.5 text-slate-500 font-mono text-[11px]">${m.date}</td>
-                <td class="p-2.5 font-mono font-semibold text-slate-700">${m.transactionNo}</td>
-                <td class="p-2.5">${renderTypeBadge(m.type)}</td>
-                <td class="p-2.5 font-mono font-bold text-sky-700 cursor-pointer hover:underline" onclick="showPartDetailByCode('${m.partNumber}')">${m.partNumber}</td>
-                <td class="p-2.5 text-slate-800 max-w-xs truncate">${m.partName}</td>
-                <td class="p-2.5 text-right font-bold ${m.type === 'IN' || m.type === 'RETURN' ? 'text-emerald-600' : 'text-rose-600'}">
-                  ${m.type === 'IN' || m.type === 'RETURN' ? `+${m.qtyIn}` : `-${m.qtyOut}`}
-                </td>
-                <td class="p-2.5 text-right font-mono font-bold text-slate-800">${m.balance}</td>
-                <td class="p-2.5 text-slate-600">${m.machine || '-'}</td>
-                <td class="p-2.5 text-slate-600">${m.user || '-'}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+
+      <!-- Box B: Recent Tool Loans Preview Table -->
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">🧰 รายการยืม-คืนเครื่องมือล่าสุด (Recent Tool Loans)</h3>
+              <p class="text-xs text-slate-500">ประวัติการยืมเครื่องมือช่างและเครื่องมือวัดล่าสุด</p>
+            </div>
+            <button onclick="switchTab('tool-loans')" class="text-xs text-amber-600 hover:text-amber-800 font-semibold">ดูทั้งหมด &rarr;</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="p-2">วันที่ยืม</th>
+                  <th class="p-2">รหัสเครื่องมือ</th>
+                  <th class="p-2">ผู้ยืม</th>
+                  <th class="p-2">เครื่องจักร</th>
+                  <th class="p-2 text-center">สถานะ</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${toolLoans.length === 0 ? `
+                  <tr>
+                    <td colspan="5" class="p-6 text-center text-slate-400">
+                      <svg class="w-7 h-7 mx-auto text-slate-300 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                      ยังไม่มีรายการยืมเครื่องมือ (ระบบพร้อมบันทึกการยืมจริง)
+                    </td>
+                  </tr>
+                ` : toolLoans.slice(0, 5).map(l => `
+                  <tr class="hover:bg-slate-50 transition cursor-pointer" onclick="switchTab('tool-loans')">
+                    <td class="p-2 text-slate-500 font-mono text-[11px]">${l.borrowDate ? l.borrowDate.slice(0, 16) : '-'}</td>
+                    <td class="p-2 font-mono font-bold text-sky-700" title="${l.toolName || ''}">${l.toolCode || l.partNumber || '-'}</td>
+                    <td class="p-2 text-slate-800 font-medium truncate max-w-[100px]">${l.borrowerName || '-'}</td>
+                    <td class="p-2 text-slate-600 truncate max-w-[90px]">${l.machine || '-'}</td>
+                    <td class="p-2 text-center">
+                      ${l.status === 'BORROWED' ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">ยืมใช้งาน</span>' : 
+                        l.status === 'OVERDUE' ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">เกินกำหนด</span>' : 
+                        '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">ส่งคืนแล้ว</span>'}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
+
     </div>
   `;
 
@@ -1410,31 +1532,53 @@ function initDashboardCharts(parts, movements) {
     });
   }
 
-  // 3. Category Breakdown
+  // 3. Category Breakdown (With Interactive Click Linking)
   const ctxCat = document.getElementById('chartCategory');
   if (ctxCat) {
     const catMap = {};
     parts.forEach(p => {
-      const c = p.category.split('(')[0].trim();
+      let c = (p.category || '').trim();
+      if (c.includes('Workshop Tools')) c = 'เครื่องมือช่าง (Workshop Tools)';
+      else if (c.includes('Tool & Equipment')) c = 'เครื่องมือวัด (Tool & Equipment)';
+      else if (c.includes('(')) c = c.split('(')[0].trim();
+      else if (!c) c = 'ทั่วไป';
       catMap[c] = (catMap[c] || 0) + 1;
     });
+    const catKeys = Object.keys(catMap);
     appState.charts.cat = new Chart(ctxCat, {
       type: 'doughnut',
       data: {
-        labels: Object.keys(catMap),
+        labels: catKeys,
         datasets: [{
           data: Object.values(catMap),
           backgroundColor: ['#0284c7', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b', '#14b8a6']
         }]
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+        },
+        onClick: (evt, elements) => {
+          if (elements && elements.length > 0) {
+            const idx = elements[0].index;
+            const label = catKeys[idx];
+            if (label.includes('เครื่องมือช่าง') || label.includes('เครื่องมือวัด')) {
+              switchTabWithFilter('spare-parts', 'ALL', 'TOOL');
+            } else {
+              switchTabWithFilter('spare-parts', 'ALL', 'SPARE');
+            }
+          }
+        }
+      }
     });
   }
 
-  // 4. Min Deficit
+  // 4. Min Deficit (Strictly currentStock < minStock)
   const ctxDef = document.getElementById('chartMinDeficit');
   if (ctxDef) {
-    const lowParts = parts.filter(p => p.minStock > 0 && p.currentStock <= p.minStock).slice(0, 8);
+    const lowParts = parts.filter(p => p.minStock > 0 && p.currentStock < p.minStock).slice(0, 8);
     const hasLow = lowParts.length > 0;
     appState.charts.def = new Chart(ctxDef, {
       type: 'bar',
@@ -1463,7 +1607,11 @@ function initDashboardCharts(parts, movements) {
   if (ctxVal) {
     const catValMap = {};
     parts.forEach(p => {
-      const c = p.category.split('(')[0].trim();
+      let c = (p.category || '').trim();
+      if (c.includes('Workshop Tools')) c = 'เครื่องมือช่าง (Workshop Tools)';
+      else if (c.includes('Tool & Equipment')) c = 'เครื่องมือวัด (Tool & Equipment)';
+      else if (c.includes('(')) c = c.split('(')[0].trim();
+      else if (!c) c = 'ทั่วไป';
       catValMap[c] = (catValMap[c] || 0) + ((p.currentStock || 0) * (p.unitCost || 0));
     });
     appState.charts.val = new Chart(ctxVal, {
@@ -1534,7 +1682,7 @@ function renderSpareParts(container) {
 
     <!-- Filter & Search Bar -->
     <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
         
         <!-- Search Input -->
         <div class="sm:col-span-2 relative">
@@ -1546,26 +1694,31 @@ function renderSpareParts(container) {
           </span>
         </div>
 
+        <!-- Item Type Filter (Tools vs Spare Parts) -->
+        <div>
+          <select id="itemTypeFilter" onchange="handleItemTypeFilter(this.value)" class="w-full py-2 px-2.5 border border-purple-300 rounded-lg text-xs focus:border-purple-500 focus:outline-none font-semibold bg-purple-50/60 text-purple-900 cursor-pointer">
+            <option value="ALL" ${appState.filterItemType === 'ALL' ? 'selected' : ''}>-- ทุกประเภท (เครื่องมือ & อะไหล่) --</option>
+            <option value="TOOL" ${appState.filterItemType === 'TOOL' ? 'selected' : ''}>🧰 เครื่องมือช่าง & เครื่องมือวัด (Tools)</option>
+            <option value="SPARE" ${appState.filterItemType === 'SPARE' ? 'selected' : ''}>📦 อะไหล่ทั่วไป & สิ้นเปลือง (Spares)</option>
+          </select>
+        </div>
+
         <!-- Stock Status Filter -->
         <div>
-          <select id="statusFilter" onchange="handleStatusFilter(this.value)" class="w-full py-2 px-2.5 border border-slate-300 rounded-lg text-xs focus:border-sky-500 focus:outline-none font-medium">
+          <select id="statusFilter" onchange="handleStatusFilter(this.value)" class="w-full py-2 px-2.5 border border-slate-300 rounded-lg text-xs focus:border-sky-500 focus:outline-none font-medium cursor-pointer">
             <option value="ALL" ${appState.filterStockStatus === 'ALL' ? 'selected' : ''}>-- ทุกสถานะสต็อก --</option>
-            <option value="NORMAL" ${appState.filterStockStatus === 'NORMAL' ? 'selected' : ''}>🟢 ปกติ (> Min)</option>
-            <option value="LOW" ${appState.filterStockStatus === 'LOW' ? 'selected' : ''}>🟡 สต็อกต่ำ (<= Min)</option>
-            <option value="REORDER" ${appState.filterStockStatus === 'REORDER' ? 'selected' : ''}>🟠 ถึงจุดสั่งซื้อ (<= Reorder)</option>
+            <option value="NORMAL" ${appState.filterStockStatus === 'NORMAL' ? 'selected' : ''}>🟢 ปกติ (>= Min)</option>
+            <option value="LOW" ${appState.filterStockStatus === 'LOW' ? 'selected' : ''}>🟡 สต็อกต่ำ (&lt; Min)</option>
+            <option value="REORDER" ${appState.filterStockStatus === 'REORDER' ? 'selected' : ''}>🟠 ถึงจุดสั่งซื้อ (&lt;= Reorder)</option>
             <option value="ZERO" ${appState.filterStockStatus === 'ZERO' ? 'selected' : ''}>🔴 หมดสต็อก (Stock=0)</option>
           </select>
         </div>
 
       </div>
 
-      <!-- Quick status badges row -->
-      <div id="spareStatusButtons" class="flex items-center space-x-2 pt-1 border-t border-slate-100 text-[11px] text-slate-500">
-        <span>สถานะ:</span>
-        <button onclick="handleStatusFilter('ALL')" class="px-2 py-0.5 rounded ${appState.filterStockStatus === 'ALL' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700'}">ทั้งหมด (${parts.length})</button>
-        <button onclick="handleStatusFilter('NORMAL')" class="px-2 py-0.5 rounded ${appState.filterStockStatus === 'NORMAL' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700'}">ปกติ (${parts.filter(p=>p.currentStock>p.minStock).length})</button>
-        <button onclick="handleStatusFilter('LOW')" class="px-2 py-0.5 rounded ${appState.filterStockStatus === 'LOW' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-700'}">สต็อกต่ำ (${parts.filter(p=>p.currentStock<=p.minStock && p.currentStock>0).length})</button>
-        <button onclick="handleStatusFilter('ZERO')" class="px-2 py-0.5 rounded ${appState.filterStockStatus === 'ZERO' ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-700'}">หมด (${parts.filter(p=>p.currentStock===0).length})</button>
+      <!-- Quick status & type badges row -->
+      <div id="spareStatusButtons" class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-[11px]">
+        <!-- populated by updateSparePartsTable() -->
       </div>
     </div>
 
@@ -1606,21 +1759,38 @@ function updateSparePartsTable() {
   if (!tbody) return;
 
   const parts = (appState.db && appState.db.parts) || [];
+  const totalTools = parts.filter(p => isPartTool(p)).length;
+  const totalSpares = parts.filter(p => !isPartTool(p)).length;
 
-  // Update status select and status filter buttons
+  // Update item type select
+  const itemTypeSelect = document.getElementById('itemTypeFilter');
+  if (itemTypeSelect && itemTypeSelect.value !== appState.filterItemType) {
+    itemTypeSelect.value = appState.filterItemType;
+  }
+
+  // Update status select
   const statusSelect = document.getElementById('statusFilter');
   if (statusSelect && statusSelect.value !== appState.filterStockStatus) {
     statusSelect.value = appState.filterStockStatus;
   }
 
+  // Update button rows
   const statusBtns = document.getElementById('spareStatusButtons');
   if (statusBtns) {
     statusBtns.innerHTML = `
-      <span>สถานะ:</span>
-      <button onclick="handleStatusFilter('ALL')" class="px-2 py-0.5 rounded ${appState.filterStockStatus === 'ALL' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700'}">ทั้งหมด (${parts.length})</button>
-      <button onclick="handleStatusFilter('NORMAL')" class="px-2 py-0.5 rounded ${appState.filterStockStatus === 'NORMAL' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700'}">ปกติ (${parts.filter(p=>p.currentStock>p.minStock).length})</button>
-      <button onclick="handleStatusFilter('LOW')" class="px-2 py-0.5 rounded ${appState.filterStockStatus === 'LOW' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-700'}">สต็อกต่ำ (${parts.filter(p=>p.currentStock<=p.minStock && p.currentStock>0).length})</button>
-      <button onclick="handleStatusFilter('ZERO')" class="px-2 py-0.5 rounded ${appState.filterStockStatus === 'ZERO' ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-700'}">หมด (${parts.filter(p=>p.currentStock===0).length})</button>
+      <div class="flex flex-wrap items-center gap-1.5">
+        <span class="text-slate-500 font-medium">ประเภท:</span>
+        <button onclick="handleItemTypeFilter('ALL')" class="px-2.5 py-0.5 rounded font-semibold transition cursor-pointer ${appState.filterItemType === 'ALL' ? 'bg-purple-700 text-white shadow-xs' : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'}">ทั้งหมด (${parts.length})</button>
+        <button onclick="handleItemTypeFilter('TOOL')" class="px-2.5 py-0.5 rounded font-semibold transition cursor-pointer ${appState.filterItemType === 'TOOL' ? 'bg-purple-700 text-white shadow-xs' : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'}">🧰 เครื่องมือ (${totalTools})</button>
+        <button onclick="handleItemTypeFilter('SPARE')" class="px-2.5 py-0.5 rounded font-semibold transition cursor-pointer ${appState.filterItemType === 'SPARE' ? 'bg-sky-700 text-white shadow-xs' : 'bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200'}">📦 อะไหล่ (${totalSpares})</button>
+      </div>
+      <div class="flex flex-wrap items-center gap-1.5">
+        <span class="text-slate-500 font-medium">สถานะ:</span>
+        <button onclick="handleStatusFilter('ALL')" class="px-2 py-0.5 rounded font-medium transition cursor-pointer ${appState.filterStockStatus === 'ALL' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">ทั้งหมด</button>
+        <button onclick="handleStatusFilter('NORMAL')" class="px-2 py-0.5 rounded font-medium transition cursor-pointer ${appState.filterStockStatus === 'NORMAL' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}">ปกติ (${parts.filter(p=>(p.minStock > 0 ? p.currentStock >= p.minStock : p.currentStock > 0)).length})</button>
+        <button onclick="handleStatusFilter('LOW')" class="px-2 py-0.5 rounded font-medium transition cursor-pointer ${appState.filterStockStatus === 'LOW' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'}">สต็อกต่ำ (${parts.filter(p=>p.minStock > 0 && p.currentStock < p.minStock && p.currentStock > 0).length})</button>
+        <button onclick="handleStatusFilter('ZERO')" class="px-2 py-0.5 rounded font-medium transition cursor-pointer ${appState.filterStockStatus === 'ZERO' ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-700 hover:bg-rose-100'}">หมด (${parts.filter(p=>p.currentStock===0).length})</button>
+      </div>
     `;
   }
 
@@ -1628,13 +1798,18 @@ function updateSparePartsTable() {
   const tokens = q ? q.split(/\s+/).filter(Boolean) : [];
 
   let filtered = parts.filter(p => {
-    if (appState.filterStockStatus === 'NORMAL' && (p.currentStock <= p.minStock)) return false;
-    if (appState.filterStockStatus === 'LOW' && (p.currentStock > p.minStock || p.currentStock === 0)) return false;
+    // 1. Item Type Filter
+    if (appState.filterItemType === 'TOOL' && !isPartTool(p)) return false;
+    if (appState.filterItemType === 'SPARE' && isPartTool(p)) return false;
+
+    // 2. Stock Status Filter
+    if (appState.filterStockStatus === 'NORMAL' && (p.minStock > 0 ? p.currentStock < p.minStock : p.currentStock === 0)) return false;
+    if (appState.filterStockStatus === 'LOW' && (p.currentStock >= p.minStock || p.currentStock === 0 || p.minStock === 0)) return false;
     if (appState.filterStockStatus === 'REORDER' && (p.currentStock > p.reorderPoint || p.currentStock === 0)) return false;
     if (appState.filterStockStatus === 'ZERO' && p.currentStock > 0) return false;
 
     if (tokens.length > 0) {
-      const haystack = `${p.partNumber || ''} ${p.partName || ''} ${p.location || ''} ${p.specification || ''} ${p.description || ''} ${p.unit || ''}`.toLowerCase();
+      const haystack = `${p.partNumber || ''} ${p.partName || ''} ${p.location || ''} ${p.specification || ''} ${p.description || ''} ${p.unit || ''} ${p.category || ''}`.toLowerCase();
       for (const t of tokens) {
         if (!haystack.includes(t)) return false;
       }
@@ -1746,7 +1921,23 @@ function handleSpareSearch(val) {
 function handleStatusFilter(val) {
   appState.filterStockStatus = val;
   appState.currentPage = 1;
-  renderSpareParts(document.getElementById('mainContent'));
+  const tbody = document.getElementById('sparePartsTableBody');
+  if (tbody) {
+    updateSparePartsTable();
+  } else {
+    renderSpareParts(document.getElementById('mainContent'));
+  }
+}
+
+function handleItemTypeFilter(val) {
+  appState.filterItemType = val;
+  appState.currentPage = 1;
+  const tbody = document.getElementById('sparePartsTableBody');
+  if (tbody) {
+    updateSparePartsTable();
+  } else {
+    renderSpareParts(document.getElementById('mainContent'));
+  }
 }
 
 // ==================== EDIT PART MODAL LOGIC ====================
@@ -1773,8 +1964,8 @@ function openEditPartModal(partId) {
   document.getElementById('editUnit').value = part.unit || 'ชิ้น';
   document.getElementById('editCurrentStock').value = part.currentStock !== undefined ? part.currentStock : 0;
   document.getElementById('editUnitCost').value = part.unitCost !== undefined ? part.unitCost : '';
-  document.getElementById('editMinStock').value = part.minStock !== undefined ? part.minStock : 5;
-  document.getElementById('editMaxStock').value = part.maxStock !== undefined ? part.maxStock : 50;
+  document.getElementById('editMinStock').value = part.minStock !== undefined ? part.minStock : 0;
+  document.getElementById('editMaxStock').value = part.maxStock !== undefined ? part.maxStock : 0;
   document.getElementById('editRemark').value = part.remark || '';
   document.getElementById('editReason').value = '';
   // Populate Category Type and Tool Condition
@@ -1808,8 +1999,10 @@ async function handleSavePartEdit(e) {
   const unit = document.getElementById('editUnit').value.trim() || 'ชิ้น';
   const currentStock = parseFloat(document.getElementById('editCurrentStock').value);
   const unitCost = parseFloat(document.getElementById('editUnitCost').value) || 0;
-  const minStock = parseFloat(document.getElementById('editMinStock').value) || 0;
-  const maxStock = parseFloat(document.getElementById('editMaxStock').value) || 0;
+  const minStockVal = document.getElementById('editMinStock').value.trim();
+  const minStock = minStockVal !== '' ? parseFloat(minStockVal) : 0;
+  const maxStockVal = document.getElementById('editMaxStock').value.trim();
+  const maxStock = maxStockVal !== '' ? parseFloat(maxStockVal) : 0;
   const remark = document.getElementById('editRemark').value.trim();
   const editReason = document.getElementById('editReason').value.trim();
 
@@ -1837,7 +2030,7 @@ async function handleSavePartEdit(e) {
           unitCost,
           minStock,
           maxStock,
-          reorderPoint: Math.round(minStock * 1.5),
+          reorderPoint: catType === 'Tool' ? 0 : Math.round(minStock * 1.5),
           remark,
           editReason,
           editedBy: appState.currentUser.name
@@ -5567,11 +5760,11 @@ function openAddPartModal() {
         </div>
         <div>
           <label class="block font-semibold mb-1">Min Stock (เตือนสต็อกต่ำ)</label>
-          <input type="number" id="newMin" value="5" class="w-full p-2 border border-slate-300 rounded font-mono">
+          <input type="number" id="newMin" value="0" min="0" class="w-full p-2 border border-slate-300 rounded font-mono">
         </div>
         <div>
           <label class="block font-semibold mb-1">Max Stock (เพดานจัดเก็บ)</label>
-          <input type="number" id="newMax" value="50" class="w-full p-2 border border-slate-300 rounded font-mono">
+          <input type="number" id="newMax" value="1" min="0" class="w-full p-2 border border-slate-300 rounded font-mono">
         </div>
         <div class="col-span-2">
           <label class="block font-semibold mb-1">หมายเหตุ (Remark)</label>
@@ -5590,8 +5783,10 @@ function openAddPartModal() {
       const unit = document.getElementById('newUnit').value.trim() || 'ชิ้น';
       const currentStock = parseFloat(document.getElementById('newStock').value) || 0;
       const unitCost = parseFloat(document.getElementById('newCost').value) || 0;
-      const minStock = parseFloat(document.getElementById('newMin').value) || 5;
-      const maxStock = parseFloat(document.getElementById('newMax').value) || 50;
+      const minVal = document.getElementById('newMin').value.trim();
+      const minStock = minVal !== '' ? parseFloat(minVal) : 0;
+      const maxVal = document.getElementById('newMax').value.trim();
+      const maxStock = maxVal !== '' ? parseFloat(maxVal) : 0;
       const remark = document.getElementById('newRemark').value.trim();
 
       const catTypeSel = document.getElementById('newCategoryType');
@@ -5620,7 +5815,7 @@ function openAddPartModal() {
           unitCost,
           minStock,
           maxStock,
-          reorderPoint: Math.round(minStock * 1.5),
+          reorderPoint: categoryType === 'Tool' ? 0 : Math.round(minStock * 1.5),
           currentStock,
           remark,
           isCritical: false,
