@@ -781,12 +781,12 @@ function applyUserRole(targetRole, options = {}) {
     const sectionReports = document.getElementById('section-reports-system');
     if (sectionReports) sectionReports.classList.toggle('hidden', !isAdmin);
 
-    // 6. Spare Parts Master database: visible to all users
+    // 6. Spare Parts Master database: visible only to Store Admin & Developer
     const navSpareParts = document.getElementById('nav-spare-parts');
-    if (navSpareParts) navSpareParts.classList.toggle('hidden', false);
+    if (navSpareParts) navSpareParts.classList.toggle('hidden', !isAdmin);
 
     // 7. Redirect to dashboard if currently viewing an Admin-only tab as non-admin
-    const adminOnlyTabs = ['reports', 'audit-log', 'master-data', 'users'];
+    const adminOnlyTabs = ['spare-parts', 'reports', 'audit-log', 'master-data', 'users'];
     if (adminOnlyTabs.includes(appState.currentTab) && !isAdmin) {
       appState.currentTab = 'dashboard';
     }
@@ -894,11 +894,41 @@ function switchTabWithFilter(tabId, statusFilter = 'ALL', itemTypeFilter = 'ALL'
 }
 
 function switchTab(tabId, pushHistory = true) {
-  const r = (appState.currentUser && appState.currentUser.role) || 'Viewer / Auditor';
+  const r = (appState.currentUser && appState.currentUser.role) || 'User';
   const isAdmin = isAdminOrAbove(r);
-  const adminOnlyTabs = ['reports', 'audit-log', 'master-data', 'users'];
+  const adminOnlyTabs = ['spare-parts', 'reports', 'audit-log', 'master-data', 'users'];
 
   if (adminOnlyTabs.includes(tabId) && !isAdmin) {
+    if (tabId === 'spare-parts') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'สิทธิ์การเข้าถึงไม่เพียงพอ',
+        html: `
+          <div class="text-sm text-slate-700 text-left space-y-2">
+            <p><strong>เมนูฐานข้อมูลอะไหล่ (Spare Parts Master)</strong> อนุญาตเฉพาะผู้ใช้งานระดับ <strong>Store Admin</strong> หรือ <strong>Developer</strong> ขึ้นไปเท่านั้น</p>
+            <p class="text-xs text-amber-700 bg-amber-50 p-2.5 rounded border border-amber-200">
+              ⚠️ บทบาท <strong>User (ผู้ใช้งานทั่วไป)</strong> ไม่สามารถเข้าถึงหน้านี้ได้ เพื่อป้องกันการแก้ไขหรือจัดการข้อมูลอะไหล่โดยไม่ได้รับอนุญาต
+            </p>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '🔑 เข้าสู่ระบบ Store Admin',
+        cancelButtonText: 'เข้าใจแล้ว',
+        confirmButtonColor: '#d97706',
+        cancelButtonColor: '#64748b'
+      }).then((res) => {
+        if (res.isConfirmed) {
+          changeUserRole('Store Admin / Storekeeper').then(() => {
+            const currentR = (appState.currentUser && appState.currentUser.role) || 'User';
+            if (isAdminOrAbove(currentR)) {
+              switchTab('spare-parts');
+            }
+          });
+        }
+      });
+      return;
+    }
+
     Swal.fire({
       icon: 'warning',
       title: 'สิทธิ์การเข้าถึงไม่เพียงพอ',
@@ -1633,6 +1663,30 @@ function initDashboardCharts(parts, movements) {
 // ==================== 2. SPARE PARTS MASTER MODULE (TOOL ROOM) ====================
 
 function renderSpareParts(container) {
+  const r = (appState.currentUser && appState.currentUser.role) || 'User';
+  if (!isAdminOrAbove(r)) {
+    container.innerHTML = `
+      <div class="bg-white rounded-xl border border-slate-200 p-8 text-center max-w-md mx-auto my-12 shadow-sm">
+        <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+          🔒
+        </div>
+        <h2 class="text-base font-bold text-slate-800 mb-2">สิทธิ์การเข้าถึงไม่เพียงพอ</h2>
+        <p class="text-xs text-slate-600 mb-6 leading-relaxed">
+          เมนูฐานข้อมูลอะไหล่สงวนสิทธิ์สำหรับบทบาท <strong>Store Admin</strong> หรือ <strong>Developer</strong> ขึ้นไปเท่านั้น เพื่อป้องกันการแก้ไขข้อมูลโดยไม่ได้รับอนุญาต
+        </p>
+        <div class="flex justify-center space-x-3">
+          <button onclick="switchTab('dashboard')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition">
+            กลับหน้าแดชบอร์ด
+          </button>
+          <button onclick="changeUserRole('Store Admin / Storekeeper').then(() => { if (isAdminOrAbove(appState.currentUser.role)) switchTab('spare-parts'); })" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold transition shadow-sm">
+            🔑 เข้าสู่ระบบ Store Admin
+          </button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
   const parts = (appState.db && appState.db.parts) || [];
   const canEdit = isDeveloperRole(appState.currentUser.role) || isStoreAdminRole(appState.currentUser.role);
 
