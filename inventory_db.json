@@ -189,15 +189,6 @@
       "phone": "086-666-7788",
       "active": true,
       "accessRole": "User"
-    },
-    {
-      "id": "EMP-007",
-      "name": "Warrawat Baokhiev",
-      "department": "Mechanical Engineering",
-      "roleTitle": "วิศวกรเครื่องกล / Developer",
-      "phone": "02-xxx-xxxx",
-      "active": true,
-      "accessRole": "Developer"
     }
   ],
   "parts": [

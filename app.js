@@ -3188,7 +3188,7 @@ function renderStockReturn(container) {
             <label class="block font-semibold text-slate-700 mb-1">ผู้รับคืน (Received By) <span class="text-rose-500">*</span></label>
             <select id="retReceivedBySelect" required class="w-full border border-slate-300 rounded-lg p-2 bg-white font-medium cursor-pointer">
               ${getPersonnelSelectOptions(appState.currentUser.name)}
-            </select> p-2">
+            </select>
           </div>
 
           <div class="sm:col-span-2">
@@ -6012,24 +6012,18 @@ function onEditLoanToolSelectChange(selectEl) {
 
 
 // Options Generator for Personnel (used in Tool Loans, Stock Issue, Stock Return, Stock In)
+// Strictly from Personnel Master (appState.db.personnel) - DO NOT include system login users
 function getPersonnelSelectOptions(selectedName = '') {
   const personnel = (appState.db && appState.db.personnel) || [];
-  const users = (appState.db && appState.db.users) || [];
   let options = '<option value="">-- เลือกรายชื่อช่าง / บุคลากร --</option>';
 
-  personnel.forEach(p => {
+  const activePersonnel = personnel.filter(p => p.active !== false);
+
+  activePersonnel.forEach(p => {
     const isSel = p.name === selectedName ? 'selected' : '';
     const deptInfo = p.department ? ` (${p.department})` : (p.roleTitle ? ` (${p.roleTitle})` : '');
     options += `<option value="${p.name}" data-dept="${p.department || ''}" ${isSel}>${p.name}${deptInfo}</option>`;
   });
-
-  users.forEach(u => {
-    if (!personnel.some(p => p.name === u.name)) {
-      const isSel = u.name === selectedName ? 'selected' : '';
-      options += `<option value="${u.name}" data-dept="${u.department || ''}" ${isSel}>${u.name} (${u.role})</option>`;
-    }
-  });
-
 
   return options;
 }
@@ -6155,18 +6149,12 @@ function onStockInReceiverChange(selectEl) {
 function syncMasterDatalists() {
   if (!appState.db) return;
 
-  // 1. Sync Personnel Master Datalist
+  // 1. Sync Personnel Master Datalist (Strictly from Personnel Master)
   const pList = document.getElementById('personnelMasterDatalist');
   if (pList) {
     const personnel = appState.db.personnel || [];
-    const users = appState.db.users || [];
-    let pOptions = personnel.map(p => `<option value="${p.name}">`);
-    users.forEach(u => {
-      if (!personnel.some(p => p.name === u.name)) {
-        pOptions.push(`<option value="${u.name}">`);
-      }
-    });
-    pList.innerHTML = pOptions.join('');
+    const activePersonnel = personnel.filter(p => p.active !== false);
+    pList.innerHTML = activePersonnel.map(p => `<option value="${p.name}">`).join('');
   }
 
   // 2. Sync Machines Master Datalist
@@ -6178,11 +6166,12 @@ function syncMasterDatalists() {
       '<option value="อื่นๆ (ระบุในหมายเหตุ)">';
   }
 
-  // 3. Sync Technicians Datalist
+  // 3. Sync Technicians Datalist (Strictly from Personnel Master)
   const techsList = document.getElementById('techniciansDatalist');
   if (techsList) {
     const personnel = appState.db.personnel || [];
-    techsList.innerHTML = personnel.map(p => `<option value="${p.name}">`).join('');
+    const activePersonnel = personnel.filter(p => p.active !== false);
+    techsList.innerHTML = activePersonnel.map(p => `<option value="${p.name}">`).join('');
   }
 
   // 4. Sync Machines Datalist
