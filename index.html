@@ -105,7 +105,7 @@
         </button>
 
         <!-- Notification Bell with Badge -->
-        <button onclick="switchTab('alerts')" class="relative p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition" title="การแจ้งเตือนสต็อก">
+        <button id="headerAlertBtn" onclick="switchTab('alerts')" class="relative p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition" title="การแจ้งเตือนสต็อก">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
           <span id="headerAlertCount" class="absolute -top-1 -right-1 bg-rose-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full min-w-[18px] text-center hidden animate-pulse">0</span>
         </button>
@@ -208,7 +208,7 @@
         </div>
 
         <!-- SECTION: STOCK CONTROL & MONITORING -->
-        <div>
+        <div id="section-control-monitoring">
           <div class="px-3 text-[11px] font-bold tracking-wider text-slate-400 uppercase mb-1">Control & Monitoring</div>
           <div class="space-y-0.5">
             <button onclick="switchTab('locations')" id="nav-locations" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
@@ -257,9 +257,12 @@
               </div>
               <span class="text-[10px] bg-purple-950 text-purple-300 font-bold px-1.5 py-0.5 rounded border border-purple-800">DEV</span>
             </button>
-            <button onclick="switchTab('users')" id="nav-users" class="nav-item admin-only w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
-              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-              <span>ผู้ใช้งาน & สิทธิ์ (Users)</span>
+            <button onclick="switchTab('users')" id="nav-users" class="nav-item develop-only admin-only w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+              <div class="flex items-center space-x-3">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                <span>ผู้ใช้งาน & สิทธิ์ (Users)</span>
+              </div>
+              <span class="text-[10px] bg-purple-950 text-purple-300 font-bold px-1.5 py-0.5 rounded border border-purple-800">DEV</span>
             </button>
           </div>
         </div>
@@ -287,11 +290,11 @@
           <div class="flex items-center space-x-2">
             <button type="button" onclick="goBackTab()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition active:scale-95 shadow-xs cursor-pointer">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-              <span>← ย้อนกลับ (Back)</span>
+              <span>ย้อนกลับ (Back)</span>
             </button>
             <button type="button" onclick="switchTab('dashboard')" class="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition active:scale-95 shadow-xs cursor-pointer">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-              <span>🏠 กลับหน้าหลัก (Dashboard)</span>
+              <span>กลับหน้าหลัก (Dashboard)</span>
             </button>
           </div>
           <div class="flex items-center space-x-2 text-xs text-slate-500">
@@ -1040,8 +1043,8 @@
   <datalist id="personnelMasterDatalist"></datalist>
   <datalist id="machinesMasterDatalist"></datalist>
 
-  <!-- APPLICATION LOGIC (with Cache Busting v=3.8.2) -->
-  <script src="/js/app.js?v=3.8.2"></script>
+  <!-- APPLICATION LOGIC (with Cache Busting v=3.8.3) -->
+  <script src="/js/app.js?v=3.8.3"></script>
 </body>
 </html>
 

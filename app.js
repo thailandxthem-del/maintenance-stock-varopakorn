@@ -348,6 +348,46 @@ function isAdminOrAbove(r) {
   return isDeveloperRole(r) || isStoreAdminRole(r);
 }
 
+function checkAdminAccess(container, moduleName = 'เมนูนี้') {
+  const r = (appState.currentUser && appState.currentUser.role) || 'User';
+  if (!isAdminOrAbove(r)) {
+    if (container) {
+      container.innerHTML = `
+        <div class="p-8 text-center bg-white rounded-2xl border border-amber-200 shadow-sm max-w-xl mx-auto my-12">
+          <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🔒</div>
+          <h2 class="text-lg font-bold text-slate-900 mb-1">ต้องใช้สิทธิ์ Store Admin ขึ้นไป</h2>
+          <p class="text-xs text-slate-500 mb-5">${moduleName} สงวนสิทธิ์สำหรับ Store Admin และ Developer เท่านั้น</p>
+          <button onclick="changeUserRole('Store Admin / Storekeeper')" class="px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold rounded-xl text-xs transition shadow-md shadow-amber-500/20">
+            📦 ยืนยันรหัสผ่านเพื่อสลับเป็น Store Admin
+          </button>
+        </div>
+      `;
+    }
+    return false;
+  }
+  return true;
+}
+
+function checkDeveloperAccess(container, moduleName = 'เมนูนี้') {
+  const r = (appState.currentUser && appState.currentUser.role) || 'User';
+  if (!isDeveloperRole(r)) {
+    if (container) {
+      container.innerHTML = `
+        <div class="p-8 text-center bg-white rounded-2xl border border-purple-200 shadow-sm max-w-xl mx-auto my-12">
+          <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🔒</div>
+          <h2 class="text-lg font-bold text-slate-900 mb-1">เฉพาะสิทธิ์ Developer เท่านั้น</h2>
+          <p class="text-xs text-slate-500 mb-5">${moduleName} สงวนสิทธิ์สำหรับ Developer เท่านั้น</p>
+          <button onclick="changeUserRole('Developer')" class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-md shadow-purple-500/20">
+            💻 ยืนยันรหัสผ่านเพื่อสลับเป็น Developer
+          </button>
+        </div>
+      `;
+    }
+    return false;
+  }
+  return true;
+}
+
 function renderPersonnelAccessBadge(role) {
   if (isDeveloperRole(role)) {
     return '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-300">💻 Developer (สิทธิ์สูงสุด)</span>';
@@ -753,41 +793,58 @@ function applyUserRole(targetRole, options = {}) {
     const isUser = isUserRole(r);
     const isAdmin = isAdminOrAbove(r);
 
-    // 1. Develop-only (Master Data Management: บุคลากร & เครื่องจักร)
+    // 1. Develop-only (Master Data Management: บุคลากร & เครื่องจักร, ผู้ใช้งาน & สิทธิ์)
     document.querySelectorAll('.develop-only').forEach(el => {
       el.classList.toggle('hidden', !isDev);
     });
 
-    // 2. Admin-only (Users management)
+    // 2. Admin-only
     document.querySelectorAll('.admin-only').forEach(el => {
       el.classList.toggle('hidden', !isDev);
     });
 
-    // 3. Stock In & Stock Adjust navigation (Developer & Store Admin only)
+    // 3. Control & Monitoring section (Location Map, Low Stock Alerts, Purchase Rec, Analytics)
+    const sectionControl = document.getElementById('section-control-monitoring');
+    if (sectionControl) sectionControl.classList.toggle('hidden', !isAdmin);
+
+    // 4. Reports & System section (Reports 13, Audit Log)
+    const sectionReports = document.getElementById('section-reports-system');
+    if (sectionReports) sectionReports.classList.toggle('hidden', !isAdmin);
+
+    // 5. Inventory menus restricted to Store Admin & Developer
+    const navSpareParts = document.getElementById('nav-spare-parts');
+    if (navSpareParts) navSpareParts.classList.toggle('hidden', !isAdmin);
+
     const navStockIn = document.getElementById('nav-stock-in');
-    if (navStockIn) navStockIn.classList.toggle('hidden', !isDev && !isStore);
+    if (navStockIn) navStockIn.classList.toggle('hidden', !isAdmin);
 
     const navStockAdj = document.getElementById('nav-stock-adjustment');
-    if (navStockAdj) navStockAdj.classList.toggle('hidden', !isDev && !isStore);
+    if (navStockAdj) navStockAdj.classList.toggle('hidden', !isAdmin);
 
-    // 4. Stock Issue & Stock Return navigation (All active roles have access)
+    const navStockMovement = document.getElementById('nav-stock-movement');
+    if (navStockMovement) navStockMovement.classList.toggle('hidden', !isAdmin);
+
+    // 6. Navigation items visible to all active roles
     const navStockReturn = document.getElementById('nav-stock-return');
     if (navStockReturn) navStockReturn.classList.toggle('hidden', false);
 
     const navStockIssue = document.getElementById('nav-stock-issue');
     if (navStockIssue) navStockIssue.classList.toggle('hidden', false);
 
-    // 5. Reports & System section: Admin level and above only (Developer & Store Admin)
-    const sectionReports = document.getElementById('section-reports-system');
-    if (sectionReports) sectionReports.classList.toggle('hidden', !isAdmin);
+    const navToolLoans = document.getElementById('nav-tool-loans');
+    if (navToolLoans) navToolLoans.classList.toggle('hidden', false);
 
-    // 6. Spare Parts Master database: visible only to Store Admin & Developer
-    const navSpareParts = document.getElementById('nav-spare-parts');
-    if (navSpareParts) navSpareParts.classList.toggle('hidden', !isAdmin);
+    // 7. Header Notification Bell (Alerts)
+    const headerAlertBtn = document.getElementById('headerAlertBtn');
+    if (headerAlertBtn) headerAlertBtn.classList.toggle('hidden', !isAdmin);
 
-    // 7. Redirect to dashboard if currently viewing an Admin-only tab as non-admin
-    const adminOnlyTabs = ['spare-parts', 'reports', 'audit-log', 'master-data', 'users'];
-    if (adminOnlyTabs.includes(appState.currentTab) && !isAdmin) {
+    // 8. Auto-redirect if current tab is not allowed for the selected role
+    const devOnlyTabs = ['master-data', 'users'];
+    const userAllowedTabs = ['dashboard', 'stock-issue', 'stock-return', 'tool-loans'];
+
+    if (!isDev && devOnlyTabs.includes(appState.currentTab)) {
+      appState.currentTab = 'dashboard';
+    } else if (!isAdmin && !userAllowedTabs.includes(appState.currentTab)) {
       appState.currentTab = 'dashboard';
     }
 
@@ -895,45 +952,70 @@ function switchTabWithFilter(tabId, statusFilter = 'ALL', itemTypeFilter = 'ALL'
 
 function switchTab(tabId, pushHistory = true) {
   const r = (appState.currentUser && appState.currentUser.role) || 'User';
+  const isDev = isDeveloperRole(r);
   const isAdmin = isAdminOrAbove(r);
-  const adminOnlyTabs = ['spare-parts', 'reports', 'audit-log', 'master-data', 'users'];
 
-  if (adminOnlyTabs.includes(tabId) && !isAdmin) {
-    if (tabId === 'spare-parts') {
-      Swal.fire({
-        icon: 'warning',
-        title: 'สิทธิ์การเข้าถึงไม่เพียงพอ',
-        html: `
-          <div class="text-sm text-slate-700 text-left space-y-2">
-            <p><strong>เมนูฐานข้อมูลอะไหล่ (Spare Parts Master)</strong> อนุญาตเฉพาะผู้ใช้งานระดับ <strong>Store Admin</strong> หรือ <strong>Developer</strong> ขึ้นไปเท่านั้น</p>
-            <p class="text-xs text-amber-700 bg-amber-50 p-2.5 rounded border border-amber-200">
-              ⚠️ บทบาท <strong>User (ผู้ใช้งานทั่วไป)</strong> ไม่สามารถเข้าถึงหน้านี้ได้ เพื่อป้องกันการแก้ไขหรือจัดการข้อมูลอะไหล่โดยไม่ได้รับอนุญาต
-            </p>
-          </div>
-        `,
-        showCancelButton: true,
-        confirmButtonText: '🔑 เข้าสู่ระบบ Store Admin',
-        cancelButtonText: 'เข้าใจแล้ว',
-        confirmButtonColor: '#d97706',
-        cancelButtonColor: '#64748b'
-      }).then((res) => {
-        if (res.isConfirmed) {
-          changeUserRole('Store Admin / Storekeeper').then(() => {
-            const currentR = (appState.currentUser && appState.currentUser.role) || 'User';
-            if (isAdminOrAbove(currentR)) {
-              switchTab('spare-parts');
-            }
-          });
-        }
-      });
-      return;
-    }
+  const devOnlyTabs = ['master-data', 'users'];
+  const userAllowedTabs = ['dashboard', 'stock-issue', 'stock-return', 'tool-loans'];
 
+  // Check Developer-only tabs
+  if (devOnlyTabs.includes(tabId) && !isDev) {
     Swal.fire({
       icon: 'warning',
       title: 'สิทธิ์การเข้าถึงไม่เพียงพอ',
-      text: 'เมนูนี้อนุญาตเฉพาะผู้ใช้งานระดับ Store Admin หรือ Developer ขึ้นไปเท่านั้น',
-      confirmButtonColor: '#0284c7'
+      html: `
+        <div class="text-sm text-slate-700 text-left space-y-2">
+          <p><strong>${getTabTitle(tabId)}</strong> อนุญาตเฉพาะผู้ใช้งานระดับ <strong>Developer (สิทธิ์สูงสุด)</strong> เท่านั้น</p>
+          <p class="text-xs text-purple-700 bg-purple-50 p-2.5 rounded border border-purple-200">
+            🔒 สำหรับผู้ดูแลระบบวิศวกรรม/นักพัฒนาในการตั้งค่าโครงสร้างระบบและสิทธิ์การใช้งาน
+          </p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: '🔑 เข้าสู่ระบบ Developer',
+      cancelButtonText: 'เข้าใจแล้ว',
+      confirmButtonColor: '#7c3aed',
+      cancelButtonColor: '#64748b'
+    }).then((res) => {
+      if (res.isConfirmed) {
+        changeUserRole('Developer').then(() => {
+          const currentR = (appState.currentUser && appState.currentUser.role) || 'User';
+          if (isDeveloperRole(currentR)) {
+            switchTab(tabId);
+          }
+        });
+      }
+    });
+    return;
+  }
+
+  // Check Admin-level tabs for general User
+  if (!isAdmin && !userAllowedTabs.includes(tabId)) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'สิทธิ์การเข้าถึงไม่เพียงพอ',
+      html: `
+        <div class="text-sm text-slate-700 text-left space-y-2">
+          <p><strong>${getTabTitle(tabId)}</strong> อนุญาตเฉพาะผู้ใช้งานระดับ <strong>Store Admin</strong> หรือ <strong>Developer</strong> ขึ้นไปเท่านั้น</p>
+          <p class="text-xs text-amber-700 bg-amber-50 p-2.5 rounded border border-amber-200">
+            ⚠️ บทบาท <strong>User (ผู้ใช้งานทั่วไป)</strong> สามารถใช้งานได้เฉพาะเมนู <strong>แดชบอร์ด, เบิกอะไหล่, คืนอะไหล่</strong> และ <strong>ยืม-คืนเครื่องมือ</strong> เพื่อความปลอดภัยของข้อมูลคลัง
+          </p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: '🔑 เข้าสู่ระบบ Store Admin',
+      cancelButtonText: 'เข้าใจแล้ว',
+      confirmButtonColor: '#d97706',
+      cancelButtonColor: '#64748b'
+    }).then((res) => {
+      if (res.isConfirmed) {
+        changeUserRole('Store Admin / Storekeeper').then(() => {
+          const currentR = (appState.currentUser && appState.currentUser.role) || 'User';
+          if (isAdminOrAbove(currentR)) {
+            switchTab(tabId);
+          }
+        });
+      }
     });
     return;
   }
@@ -1075,6 +1157,8 @@ function renderDashboard(container) {
   const parts = appState.db.parts || [];
   const movements = appState.db.movements || [];
   const toolLoans = appState.db.toolLoans || [];
+  const r = (appState.currentUser && appState.currentUser.role) || 'User';
+  const isAdmin = isAdminOrAbove(r);
 
   // Metrics
   const totalParts = parts.length;
@@ -1118,10 +1202,12 @@ function renderDashboard(container) {
         </p>
       </div>
       <div class="flex flex-wrap gap-2">
+        ${isAdmin ? `
         <button onclick="switchTab('stock-in')" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-md flex items-center space-x-1.5 transition active:scale-95">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           <span>รับอะไหล่เข้า</span>
         </button>
+        ` : ''}
         <button onclick="switchTab('stock-issue')" class="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow-md flex items-center space-x-1.5 transition active:scale-95">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
           <span>เบิกอะไหล่ด่วน</span>
@@ -1334,7 +1420,7 @@ function renderDashboard(container) {
             <h3 class="text-sm font-bold text-slate-800">4. สต็อกต่ำกว่าเกณฑ์ (Min Stock vs Current Stock)</h3>
             <p class="text-xs text-slate-500">เปรียบเทียบยอดคงเหลือกับค่า Minimum ของอะไหล่ที่ต้องเติม</p>
           </div>
-          <button onclick="switchTab('purchase-rec')" class="text-xs text-sky-600 hover:text-sky-800 font-semibold">ไปสั่งซื้อ &rarr;</button>
+          ${isAdmin ? `<button onclick="switchTab('purchase-rec')" class="text-xs text-sky-600 hover:text-sky-800 font-semibold">ไปสั่งซื้อ &rarr;</button>` : ''}
         </div>
         <div class="h-64 relative">
           <canvas id="chartMinDeficit"></canvas>
@@ -1368,7 +1454,7 @@ function renderDashboard(container) {
               <h3 class="text-sm font-bold text-slate-800">📦 รายการเคลื่อนไหวสต็อกล่าสุด (Recent Movements)</h3>
               <p class="text-xs text-slate-500">รายการรับเข้า-เบิกจ่ายอะไหล่ 5 รายการล่าสุด</p>
             </div>
-            <button onclick="switchTab('stock-movement')" class="text-xs text-sky-600 hover:text-sky-800 font-semibold">ดูทั้งหมด &rarr;</button>
+            ${isAdmin ? `<button onclick="switchTab('stock-movement')" class="text-xs text-sky-600 hover:text-sky-800 font-semibold">ดูทั้งหมด &rarr;</button>` : ''}
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
@@ -3432,6 +3518,7 @@ async function handleStockAdjustSubmit(e) {
 // ==================== 7. STOCK MOVEMENT LEDGER MODULE ====================
 
 function renderStockMovement(container) {
+  if (!checkAdminAccess(container, 'เมนูประวัติการเคลื่อนไหวสต็อก (Stock Movement)')) return;
   const movements = appState.db.movements || [];
   const parts = appState.db.parts || [];
   const machines = appState.db.machines || [];
@@ -3563,6 +3650,7 @@ function filterMovementTable() {
 // ==================== 8. PURCHASE RECOMMENDATION MODULE ====================
 
 function renderPurchaseRecommendation(container) {
+  if (!checkAdminAccess(container, 'เมนูระบบเสนอแนะการจัดซื้ออะไหล่ (Purchase Recommendation)')) return;
   const parts = appState.db.parts || [];
   const movements = appState.db.movements || [];
 
@@ -3787,6 +3875,7 @@ function createPurchaseProposal() {
 // ==================== 9. USAGE ANALYTICS MODULE ====================
 
 function renderUsageAnalytics(container) {
+  if (!checkAdminAccess(container, 'เมนูวิเคราะห์การใช้อะไหล่ (Usage Analytics)')) return;
   const parts = appState.db.parts || [];
   const movements = appState.db.movements || [];
   const machines = appState.db.machines || [];
@@ -4015,6 +4104,7 @@ function renderUsageAnalytics(container) {
 // ==================== 10. MACHINE-WISE PARTS MODULE ====================
 
 function renderMachineParts(container, selectedMachineCode = 'M-001') {
+  if (!checkAdminAccess(container, 'เมนูอะไหล่ตามเครื่องจักร (Machine-wise Parts)')) return;
   const machines = appState.db.machines || [];
   const parts = appState.db.parts || [];
   const movements = appState.db.movements || [];
@@ -4151,6 +4241,7 @@ function renderMachineParts(container, selectedMachineCode = 'M-001') {
 // ==================== 11. CRITICAL SPARE MANAGEMENT MODULE ====================
 
 function renderCriticalSpares(container) {
+  if (!checkAdminAccess(container, 'เมนูการจัดการอะไหล่วิกฤต (Critical Spares)')) return;
   const parts = appState.db.parts || [];
   const criticals = parts.filter(p => p.isCritical);
   const zeroStock = criticals.filter(p => p.currentStock === 0);
@@ -4240,6 +4331,7 @@ function renderCriticalSpares(container) {
 // ==================== 12. LOCATION MANAGEMENT MODULE ====================
 
 function renderLocations(container) {
+  if (!checkAdminAccess(container, 'เมนูตำแหน่งจัดเก็บ (Location Map)')) return;
   const parts = appState.db.parts || [];
   
   // Group actual locations from parts database
@@ -4470,6 +4562,7 @@ function searchByLocationOrPart(val) {
 // ==================== 13. PHYSICAL STOCK COUNT MODULE ====================
 
 function renderStockCount(container) {
+  if (!checkAdminAccess(container, 'เมนูตรวจนับสต็อก (Physical Stock Count)')) return;
   const parts = appState.db.parts || [];
   const rounds = appState.db.stockCountRounds || [];
 
@@ -4708,6 +4801,7 @@ function startNewCountRound() {
 // ==================== 14. ALERTS CENTER MODULE ====================
 
 function renderAlerts(container) {
+  if (!checkAdminAccess(container, 'ศูนย์แจ้งเตือนสต็อกอัตโนมัติ (Stock Alerts)')) return;
   const parts = appState.db.parts || [];
   
   const outOfStock = parts.filter(p => p.currentStock === 0);
@@ -4830,6 +4924,7 @@ function renderAlerts(container) {
 // ==================== 15. REPORTS HUB (13 REPORTS) ====================
 
 function renderReports(container) {
+  if (!checkAdminAccess(container, 'ศูนย์รายงานสารสนเทศ 13 ฉบับ (Reports Hub)')) return;
   const reportsList = [
     { id: 'RPT-01', name: '1. Current Stock Report', th: 'รายงานสินค้าคงเหลือปัจจุบัน' },
     { id: 'RPT-02', name: '2. Stock Movement Report', th: 'รายงานประวัติความเคลื่อนไหวสต็อก' },
@@ -5100,6 +5195,7 @@ function exportCurrentReportExcel() {
 // ==================== 16. AUDIT LOG MODULE ====================
 
 function renderAuditLog(container) {
+  if (!checkAdminAccess(container, 'เมนูบันทึกการตรวจสอบระบบ (Audit Log Trail)')) return;
   const logs = appState.db.auditLogs || [];
 
   container.innerHTML = `
@@ -5162,6 +5258,7 @@ function renderAuditLog(container) {
 // ==================== 17. MASTER DATA & USERS ====================
 
 function renderMasterData(container) {
+  if (!checkDeveloperAccess(container, 'เมนูจัดการข้อมูลระบบหลัก (System Master Data)')) return;
   const machines = appState.db.machines || [];
   const suppliers = appState.db.suppliers || [];
 
