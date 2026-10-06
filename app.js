@@ -500,6 +500,8 @@ function syncUsersFromDb() {
 // ==================== INITIALIZATION ====================
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Immediately lock down UI to User role on first load
+  applyUserRole('User', { silent: true });
   initApp();
   setupKeyboardShortcuts();
   setupGlobalScannerGunListener();
@@ -524,7 +526,7 @@ async function initApp() {
     syncMasterDatalists();
     updateHeaderCounts();
     // Initialize strictly in User role by default (ไม่ต้องใส่รหัส)
-    changeUserRole('User', { silent: true, skipAuth: true });
+    applyUserRole('User', { silent: true });
     // Check if URL contains scan parameter (e.g. from scanning QR code with phone camera)
     const urlParams = new URLSearchParams(window.location.search);
     const scanCode = urlParams.get('code') || urlParams.get('item');
@@ -714,10 +716,11 @@ async function changeUserRole(newRole, options = {}) {
 
   const previousRole = (appState.currentUser && appState.currentUser.role) || 'User';
 
-  // If already in this role and not forced, do nothing
+  // If already in this role and not forced, ensure role rules are applied and return
   if (previousRole === targetRole && !options.force) {
     const roleSelect = document.getElementById('roleSelector');
     if (roleSelect && roleSelect.value !== targetRole) roleSelect.value = targetRole;
+    applyUserRole(targetRole, options);
     return;
   }
 

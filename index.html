@@ -105,7 +105,7 @@
         </button>
 
         <!-- Notification Bell with Badge -->
-        <button id="headerAlertBtn" onclick="switchTab('alerts')" class="relative p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition" title="การแจ้งเตือนสต็อก">
+        <button id="headerAlertBtn" onclick="switchTab('alerts')" class="relative p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition hidden" title="การแจ้งเตือนสต็อก">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
           <span id="headerAlertCount" class="absolute -top-1 -right-1 bg-rose-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full min-w-[18px] text-center hidden animate-pulse">0</span>
         </button>
@@ -151,11 +151,11 @@
         <div>
           <div class="px-3 text-[11px] font-bold tracking-wider text-slate-400 uppercase mb-1">Inventory / คลังอะไหล่</div>
           <div class="space-y-0.5">
-            <button onclick="switchTab('spare-parts')" id="nav-spare-parts" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+            <button onclick="switchTab('spare-parts')" id="nav-spare-parts" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition hidden">
               <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
               <span>ฐานข้อมูลอะไหล่ (Master)</span>
             </button>
-            <button onclick="switchTab('stock-in')" id="nav-stock-in" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+            <button onclick="switchTab('stock-in')" id="nav-stock-in" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition hidden">
               <div class="flex items-center space-x-3">
                 <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <span>รับอะไหล่เข้า (Stock In)</span>
@@ -176,14 +176,14 @@
               </div>
               <span class="text-[10px] bg-sky-950 text-sky-300 px-1.5 py-0.5 rounded font-mono">RET</span>
             </button>
-            <button onclick="switchTab('stock-adjustment')" id="nav-stock-adjustment" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+            <button onclick="switchTab('stock-adjustment')" id="nav-stock-adjustment" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition hidden">
               <div class="flex items-center space-x-3">
                 <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                 <span>ปรับปรุงยอด (Adjustment)</span>
               </div>
               <span class="text-[10px] bg-amber-950 text-amber-300 px-1.5 py-0.5 rounded font-mono">ADJ</span>
             </button>
-            <button onclick="switchTab('stock-movement')" id="nav-stock-movement" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+            <button onclick="switchTab('stock-movement')" id="nav-stock-movement" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition hidden">
               <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
               <span>ประวัติเคลื่อนไหว (Ledger)</span>
             </button>
@@ -208,7 +208,7 @@
         </div>
 
         <!-- SECTION: STOCK CONTROL & MONITORING -->
-        <div id="section-control-monitoring">
+        <div id="section-control-monitoring" class="hidden">
           <div class="px-3 text-[11px] font-bold tracking-wider text-slate-400 uppercase mb-1">Control & Monitoring</div>
           <div class="space-y-0.5">
             <button onclick="switchTab('locations')" id="nav-locations" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
@@ -236,10 +236,8 @@
           </div>
         </div>
 
-
-
         <!-- SECTION: REPORTS & ADMIN -->
-        <div id="section-reports-system">
+        <div id="section-reports-system" class="hidden">
           <div class="px-3 text-[11px] font-bold tracking-wider text-slate-400 uppercase mb-1">Reports & System</div>
           <div class="space-y-0.5">
             <button onclick="switchTab('reports')" id="nav-reports" class="nav-item w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
@@ -250,14 +248,14 @@
               <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
               <span>บันทึกระบบ (Audit Log)</span>
             </button>
-            <button onclick="switchTab('master-data')" id="nav-master-data" class="nav-item develop-only w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+            <button onclick="switchTab('master-data')" id="nav-master-data" class="nav-item develop-only w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition hidden">
               <div class="flex items-center space-x-3">
                 <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 <span>จัดการบุคลากร & เครื่องจักร</span>
               </div>
               <span class="text-[10px] bg-purple-950 text-purple-300 font-bold px-1.5 py-0.5 rounded border border-purple-800">DEV</span>
             </button>
-            <button onclick="switchTab('users')" id="nav-users" class="nav-item develop-only admin-only w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition">
+            <button onclick="switchTab('users')" id="nav-users" class="nav-item develop-only admin-only w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition hidden">
               <div class="flex items-center space-x-3">
                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                 <span>ผู้ใช้งาน & สิทธิ์ (Users)</span>
@@ -1043,8 +1041,8 @@
   <datalist id="personnelMasterDatalist"></datalist>
   <datalist id="machinesMasterDatalist"></datalist>
 
-  <!-- APPLICATION LOGIC (with Cache Busting v=3.8.3) -->
-  <script src="/js/app.js?v=3.8.3"></script>
+  <!-- APPLICATION LOGIC (with Cache Busting v=3.8.4) -->
+  <script src="/js/app.js?v=3.8.4"></script>
 </body>
 </html>
 
