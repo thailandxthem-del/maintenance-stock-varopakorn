@@ -426,7 +426,7 @@ function isPartTool(part) {
 // Global State (Default starts as User - ไม่ต้องใส่รหัส)
 const appState = {
   db: null,
-  currentUser: { id: 'U-003', name: 'Test1', role: 'User', department: 'Plant Maintenance', title: 'ผู้ใช้งาน (User) (ใช้งานทั่วไป)' },
+  currentUser: { id: 'U-001', name: 'ผู้ใช้งาน (User)', role: 'User', department: '', title: 'ผู้ใช้งาน (User)' },
   currentTab: 'dashboard',
   selectedPart: null,
   searchQuery: '',
@@ -439,15 +439,15 @@ const appState = {
   charts: {}
 };
 
-// 3 Canonical System Roles (รวม Viewer เข้ากับ User)
+// 3 Canonical System Roles (ควบคุมระดับสิทธิ์แบบ RBAC)
 const SYSTEM_USERS = {
-  'User': { id: 'U-003', name: 'Test1', role: 'User', department: 'Plant Maintenance', email: 'thanaphat@varopakorn.com', phone: '', title: 'ผู้ใช้งาน (User) (ใช้งานทั่วไป)', badgeColor: 'text-sky-400' },
-  'Store Admin / Storekeeper': { id: 'U-001', name: 'Test2', role: 'Store Admin / Storekeeper', department: 'Tool Room Store', email: 'somchai@varopakorn.com', phone: '', title: 'Store Admin / Storekeeper (ปฏิบัติการ)', badgeColor: 'text-amber-400' },
-  'Developer': { id: 'U-004', name: 'Warrawat Baokhiev', role: 'Developer', department: 'Mechanical Engineering', email: 'dev@varopakorn.com', phone: '02-xxx-xxxx', title: 'Developer (สิทธิ์สูงสุด)', badgeColor: 'text-purple-400' },
-  'Viewer / Auditor': { id: 'U-003', name: 'Test1', role: 'User', department: 'Plant Maintenance', email: 'thanaphat@varopakorn.com', phone: '', title: 'ผู้ใช้งาน (User) (ใช้งานทั่วไป)', badgeColor: 'text-sky-400' }
+  'User': { id: 'U-001', name: 'ผู้ใช้งาน (User)', role: 'User', department: '', email: '', phone: '', title: 'ผู้ใช้งาน (User)', badgeColor: 'text-sky-400' },
+  'Store Admin / Storekeeper': { id: 'U-002', name: 'Store Admin / Storekeeper', role: 'Store Admin / Storekeeper', department: '', email: '', phone: '', title: 'Store Admin / Storekeeper', badgeColor: 'text-amber-400' },
+  'Developer': { id: 'U-003', name: 'Developer', role: 'Developer', department: '', email: '', phone: '', title: 'Developer (สิทธิ์สูงสุด)', badgeColor: 'text-purple-400' },
+  'Viewer / Auditor': { id: 'U-001', name: 'ผู้ใช้งาน (User)', role: 'User', department: '', email: '', phone: '', title: 'ผู้ใช้งาน (User)', badgeColor: 'text-sky-400' }
 };
 
-// ซิงค์รายชื่อและข้อมูลผู้ใช้ทั้งหมดจากฐานข้อมูลอัตโนมัติ
+// ซิงค์บทบาทและระดับสิทธิ์การใช้งานจากฐานข้อมูล
 function syncUsersFromDb() {
   if (!appState.db || !appState.db.users) return;
   appState.db.users.forEach(u => {
@@ -458,24 +458,22 @@ function syncUsersFromDb() {
 
     if (SYSTEM_USERS[canonicalRole]) {
       SYSTEM_USERS[canonicalRole].id = u.id;
-      SYSTEM_USERS[canonicalRole].name = u.name;
-      SYSTEM_USERS[canonicalRole].department = u.department || '';
-      SYSTEM_USERS[canonicalRole].email = u.email || '';
-      SYSTEM_USERS[canonicalRole].phone = u.phone || '';
-      SYSTEM_USERS[canonicalRole].title = `${u.name} (${canonicalRole})`;
+      SYSTEM_USERS[canonicalRole].name = u.name || canonicalRole;
+      SYSTEM_USERS[canonicalRole].title = canonicalRole === 'Developer' ? 'Developer (สิทธิ์สูงสุด)' : (canonicalRole === 'Store Admin / Storekeeper' ? 'Store Admin / Storekeeper' : 'ผู้ใช้งาน (User)');
     }
   });
 
-  // ถ้ากำลังล็อกอินด้วยผู้ใช้นี้อยู่ ให้อัปเดตชื่อและตำแหน่งใน State และ Header ทันที
+  // ถ้ากำลังใช้งานด้วยบทบาทนี้อยู่ ให้อัปเดตชื่อใน State และ Header ทันที
   if (appState.currentUser) {
-    const matched = appState.db.users.find(u => u.id === appState.currentUser.id);
+    const canonical = isDeveloperRole(appState.currentUser.role) ? 'Developer' : (isStoreAdminRole(appState.currentUser.role) ? 'Store Admin / Storekeeper' : 'User');
+    const matched = SYSTEM_USERS[canonical];
     if (matched) {
       appState.currentUser.name = matched.name;
-      appState.currentUser.department = matched.department || '';
-      appState.currentUser.email = matched.email || '';
-      appState.currentUser.phone = matched.phone || '';
+      appState.currentUser.title = matched.title;
       const userLbl = document.getElementById('currentUserLabel');
       if (userLbl) userLbl.innerText = matched.name;
+      const roleBadge = document.getElementById('currentRoleBadge');
+      if (roleBadge) roleBadge.innerText = matched.title;
     }
   }
 
@@ -5334,94 +5332,175 @@ function renderUsers(container) {
       <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div class="flex items-center space-x-2">
-            <h1 class="text-lg font-bold text-slate-800">จัดการผู้ใช้งานและกำหนดสิทธิ์ (User Roles & Permissions)</h1>
-            <span class="text-xs bg-purple-100 text-purple-800 font-semibold px-2 py-0.5 rounded-full font-mono">${users.length} บัญชี</span>
+            <h1 class="text-lg font-bold text-slate-800">บทบาทและสิทธิ์การเข้าใช้งานระบบ (User Roles & Permissions)</h1>
+            <span class="text-xs bg-purple-100 text-purple-800 font-semibold px-2 py-0.5 rounded-full font-mono">3 บทบาทมาตรฐาน (RBAC)</span>
           </div>
-          <p class="text-xs text-slate-500 mt-0.5">ผู้มีสิทธิ์ Develop และ Admin สามารถเพิ่มผู้ใช้, แก้ไขชื่อ, บทบาท, และรายละเอียดของทุกคนได้ (รวมทั้ง User Develop)</p>
-        </div>
-        <div>
-          ${isDev ? `
-            <button onclick="openUserModal()" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-semibold shadow-sm flex items-center space-x-1.5 transition">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-              <span>+ เพิ่มผู้ใช้งานใหม่</span>
-            </button>
-          ` : ''}
+          <p class="text-xs text-slate-500 mt-0.5">ระบบควบคุมสิทธิ์ตามบทบาท (Role) สำหรับรายชื่อบุคคลในการเบิก-คืน หรือยืมเครื่องมือ จะดึงจากเมนู "จัดการบุคลากร" โดยตรง</p>
         </div>
       </div>
 
-      <!-- Current User Banner -->
+      <!-- Current Role Banner -->
       <div class="bg-slate-900 text-white p-4 rounded-xl shadow flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-600 to-sky-500 flex items-center justify-center font-bold text-white text-base shadow">
-            ${(appState.currentUser.name || 'U').charAt(0)}
+          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center font-bold text-white text-base shadow">
+            💻
           </div>
           <div>
             <div class="font-bold text-white text-sm flex items-center space-x-2">
-              <span>${appState.currentUser.name}</span>
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isDeveloperRole(appState.currentUser.role) ? 'bg-purple-500 text-white' : (isStoreAdminRole(appState.currentUser.role) ? 'bg-amber-500 text-slate-950' : (isUserRole(appState.currentUser.role) ? 'bg-sky-500 text-white' : 'bg-slate-500 text-white'))}">
-                ${appState.currentUser.role}
+              <span>Developer (ผู้ดูแลระบบ)</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500 text-white">
+                สิทธิ์สูงสุด (Super Admin)
               </span>
             </div>
-            <div class="text-slate-400 text-[11px] mt-0.5">${appState.currentUser.department || 'Tool Room'} • ${appState.currentUser.email || '-'}</div>
+            <div class="text-slate-400 text-[11px] mt-0.5">สามารถเข้าถึง ควบคุม และตั้งค่าได้ทุกโมดูลในระบบ รวมถึงจัดการบุคลากร เครื่องจักร และฐานข้อมูล</div>
           </div>
         </div>
         <div>
-          <button onclick="openUserModal('${appState.currentUser.id}')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition">
-            <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-            <span>แก้ไขข้อมูลของตนเอง</span>
+          <button onclick="changeUserRole('Store Admin / Storekeeper')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition">
+            <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+            <span>ทดสอบสลับบทบาท</span>
           </button>
         </div>
       </div>
 
-      <!-- Users Table -->
+      <!-- Roles & Permissions Matrix Table -->
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <table class="w-full text-left text-xs">
           <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200 uppercase text-[11px] tracking-wider">
             <tr>
-              <th class="p-3">User ID</th>
-              <th class="p-3">ชื่อ-นามสกุล</th>
-              <th class="p-3">บทบาท (Role)</th>
-              <th class="p-3">แผนก / หน้าที่</th>
-              <th class="p-3">Email & โทรศัพท์</th>
-              <th class="p-3 text-center">สถานะ</th>
-              <th class="p-3 text-center">จัดการ</th>
+              <th class="p-3 w-48">บทบาท (Role)</th>
+              <th class="p-3 w-44">ระดับสิทธิ์ (Level)</th>
+              <th class="p-3">สิทธิ์การเข้าถึงเมนู (Accessible Menus)</th>
+              <th class="p-3 w-48">การยืนยันตัวตน (Auth)</th>
+              <th class="p-3 text-center w-28">สถานะ</th>
+              <th class="p-3 text-center w-36">การทำงาน</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
-            ${users.map(u => `
-              <tr class="hover:bg-slate-50 transition">
-                <td class="p-3 font-mono font-bold text-sky-700">${u.id}</td>
-                <td class="p-3">
-                  <div class="font-bold text-slate-800">${u.name}</div>
-                  <div class="text-[10px] text-slate-400 font-mono">${u.username || ''}</div>
-                </td>
-                <td class="p-3">
-                  ${renderUserRoleBadge(u.role)}
-                </td>
-                <td class="p-3 text-slate-700 font-medium">${u.department || '-'}</td>
-                <td class="p-3">
-                  <div class="text-slate-600">${u.email || '-'}</div>
-                  <div class="text-slate-400 font-mono text-[10px]">${u.phone || '-'}</div>
-                </td>
-                <td class="p-3 text-center">
-                  <span class="px-2 py-0.5 rounded-full text-[10px] ${u.active !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'} font-bold">
-                    ${u.active !== false ? '🟢 Active' : '🔴 Inactive'}
-                  </span>
-                </td>
-                <td class="p-3 text-center">
-                  ${isDev ? `
-                    <button onclick="openUserModal('${u.id}')" class="px-2.5 py-1 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold border border-indigo-200 text-xs transition inline-flex items-center space-x-1 shadow-sm">
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                      <span>แก้ไข</span>
-                    </button>
-                  ` : `
-                    <span class="text-slate-400 text-[11px]">-</span>
-                  `}
-                </td>
-              </tr>
-            `).join('')}
+            <!-- 1. USER ROLE -->
+            <tr class="hover:bg-slate-50 transition">
+              <td class="p-3">
+                <div class="font-bold text-slate-800 text-sm">👥 ผู้ใช้งานทั่วไป (User)</div>
+                <div class="text-[10px] text-slate-400 font-mono">ROLE-01</div>
+              </td>
+              <td class="p-3">
+                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-100 text-sky-800 inline-block">
+                  ใช้งานทั่วไป (General)
+                </span>
+              </td>
+              <td class="p-3 leading-relaxed">
+                <div class="space-y-0.5 text-slate-700 font-medium">
+                  <div><span class="text-emerald-600 font-bold">✓</span> แดชบอร์ดภาพรวมสต็อก (Dashboard)</div>
+                  <div><span class="text-emerald-600 font-bold">✓</span> ขอเบิกอะไหล่ (Stock Issue)</div>
+                  <div><span class="text-emerald-600 font-bold">✓</span> ขอคืนอะไหล่ (Stock Return)</div>
+                  <div><span class="text-emerald-600 font-bold">✓</span> ขอยืม-คืนเครื่องมือ (Tool Loans)</div>
+                  <div class="text-[10px] text-slate-400 italic pt-1">*เมนูการจัดการคลัง สต็อก และรายงานทั้งหมดจะถูกซ่อนอัตโนมัติ</div>
+                </div>
+              </td>
+              <td class="p-3">
+                <span class="text-emerald-700 font-semibold text-[11px] flex items-center space-x-1">
+                  <span>🟢 เข้าใช้งานได้ทันที</span>
+                </span>
+                <div class="text-[10px] text-slate-400 mt-0.5">(ไม่ต้องใส่รหัสผ่าน)</div>
+              </td>
+              <td class="p-3 text-center">
+                <span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-bold">
+                  🟢 Active
+                </span>
+              </td>
+              <td class="p-3 text-center">
+                <button onclick="changeUserRole('User')" class="px-3 py-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 font-semibold border border-sky-200 text-xs transition inline-flex items-center space-x-1 shadow-xs">
+                  <span>สลับเป็น User</span>
+                </button>
+              </td>
+            </tr>
+
+            <!-- 2. STORE ADMIN ROLE -->
+            <tr class="hover:bg-slate-50 transition">
+              <td class="p-3">
+                <div class="font-bold text-slate-800 text-sm">📦 Store Admin / Storekeeper</div>
+                <div class="text-[10px] text-slate-400 font-mono">ROLE-02</div>
+              </td>
+              <td class="p-3">
+                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 inline-block">
+                  ปฏิบัติการคลัง (Operations)
+                </span>
+              </td>
+              <td class="p-3 leading-relaxed">
+                <div class="space-y-0.5 text-slate-700 font-medium">
+                  <div><span class="text-emerald-600 font-bold">✓</span> จัดการคลังสต็อกเต็มรูปแบบ (รับเข้า, เบิกจ่าย, รับคืน, ยืมเครื่องมือ)</div>
+                  <div><span class="text-emerald-600 font-bold">✓</span> ฐานข้อมูลอะไหล่, ปรับปรุงสต็อก, บันทึกประวัติความเคลื่อนไหว</div>
+                  <div><span class="text-emerald-600 font-bold">✓</span> แผนผังตำแหน่งจัดเก็บ, เตือนสต็อกต่ำ, แนะนำสั่งซื้อ, วิเคราะห์การใช้</div>
+                  <div><span class="text-emerald-600 font-bold">✓</span> รายงานสรุป 13 ฉบับ, บันทึกตรวจสอบระบบ (Audit Log)</div>
+                  <div class="text-[10px] text-slate-400 italic pt-1">*ซ่อนเฉพาะ จัดการบุคลากร & เครื่องจักร และ กำหนดสิทธิ์</div>
+                </div>
+              </td>
+              <td class="p-3">
+                <div class="font-mono bg-slate-100 px-2 py-1 rounded border border-slate-200 text-slate-700 font-bold text-[11px] inline-block">
+                  🔑 Varo2026
+                </div>
+              </td>
+              <td class="p-3 text-center">
+                <span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-bold">
+                  🟢 Active
+                </span>
+              </td>
+              <td class="p-3 text-center">
+                <button onclick="changeUserRole('Store Admin / Storekeeper')" class="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold border border-amber-200 text-xs transition inline-flex items-center space-x-1 shadow-xs">
+                  <span>สลับเป็น Store</span>
+                </button>
+              </td>
+            </tr>
+
+            <!-- 3. DEVELOPER ROLE -->
+            <tr class="hover:bg-slate-50 transition bg-purple-50/20">
+              <td class="p-3">
+                <div class="font-bold text-slate-800 text-sm">💻 Developer (ผู้ดูแลระบบ)</div>
+                <div class="text-[10px] text-slate-400 font-mono">ROLE-03</div>
+              </td>
+              <td class="p-3">
+                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100 text-purple-900 inline-block">
+                  สิทธิ์สูงสุด (Super Admin)
+                </span>
+              </td>
+              <td class="p-3 leading-relaxed">
+                <div class="space-y-0.5 text-slate-700 font-medium">
+                  <div><span class="text-emerald-600 font-bold">✓</span> เข้าถึงและควบคุมทุกโมดูลในระบบ 100%</div>
+                  <div><span class="text-emerald-600 font-bold">✓</span> จัดการฐานข้อมูลบุคลากร & เครื่องจักร (Master Data)</div>
+                  <div><span class="text-emerald-600 font-bold">✓</span> กำหนดบทบาทและสิทธิ์การเข้าใช้งานระบบ (Roles & Permissions)</div>
+                  <div><span class="text-emerald-600 font-bold">✓</span> สำรองฐานข้อมูล นำเข้า-ส่งออก และกู้คืนข้อมูลระบบ</div>
+                </div>
+              </td>
+              <td class="p-3">
+                <div class="font-mono bg-purple-100 px-2 py-1 rounded border border-purple-200 text-purple-800 font-bold text-[11px] inline-block">
+                  🔑 Engvaro2026
+                </div>
+              </td>
+              <td class="p-3 text-center">
+                <span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-bold">
+                  🟢 Active
+                </span>
+              </td>
+              <td class="p-3 text-center">
+                <span class="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-800 font-bold border border-purple-200 text-xs inline-block">
+                  ✓ บทบาทปัจจุบัน
+                </span>
+              </td>
+            </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Information Card -->
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-xs text-blue-900 space-y-1.5 shadow-xs">
+        <div class="font-bold flex items-center space-x-1.5 text-blue-950">
+          <svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>คำแนะนำโครงสร้างระบบและการอ้างอิงรายชื่อบุคลากร:</span>
+        </div>
+        <p class="text-blue-800 leading-relaxed">
+          • ระบบใช้โครงสร้างสิทธิ์ตามบทบาท (Role-Based Access Control) 3 ระดับ เพื่อความสะดวก คล่องตัว และความปลอดภัยในการใช้งานในโรงงาน<br>
+          • สำหรับรายชื่อพนักงานช่าง, ผู้ขอเบิก, ผู้รับคืน และผู้ยืมเครื่องมือในแต่ละรายการ ระบบจะดึงรายชื่อจาก <strong>"เมนูจัดการบุคลากร & เครื่องจักร"</strong> โดยตรง จึงไม่จำเป็นต้องสร้างหรือดูแลบัญชีผู้ใช้งานส่วนบุคคลแยกต่างหาก
+        </p>
       </div>
     </div>
   `;
