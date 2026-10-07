@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="50%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0a0f1d"/>
+    </linearGradient>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle Industrial Grid / Hex Ring -->
+  <rect x="24" y="24" width="464" height="464" rx="96" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="12 8" opacity="0.6"/>
+  
+  <!-- Main Emblem Group -->
+  <g filter="url(#shadow)" transform="translate(256, 230)">
+    <!-- Industrial Hex Nut / Cog Base -->
+    <path d="M0 -140 L121 -70 L121 70 L0 140 L-121 70 L-121 -70 Z" fill="#1e293b" stroke="url(#primaryGrad)" stroke-width="14" stroke-linejoin="round"/>
+    
+    <!-- Inner Storage Box / Toolbox Silhouette -->
+    <rect x="-64" y="-48" width="128" height="96" rx="16" fill="url(#primaryGrad)"/>
+    
+    <!-- Toolbox Handle -->
+    <path d="M-36 -48 C-36 -72 36 -72 36 -48" fill="none" stroke="url(#accentGrad)" stroke-width="12" stroke-linecap="round"/>
+    
+    <!-- Front Latch & Divider -->
+    <rect x="-14" y="-8" width="28" height="20" rx="4" fill="url(#accentGrad)"/>
+    <line x1="-64" y1="0" x2="64" y2="0" stroke="#0369a1" stroke-width="4"/>
+    
+    <!-- Crossing Precision Wrench (Accent Tool) -->
+    <g transform="rotate(-32)">
+      <path d="M70 -80 L88 -62 L-40 66 L-58 48 Z" fill="url(#accentGrad)"/>
+      <!-- Wrench head -->
+      <circle cx="86" cy="-86" r="26" fill="none" stroke="url(#accentGrad)" stroke-width="10"/>
+      <rect x="74" y="-102" width="24" height="18" fill="#1e293b"/>
+    </g>
+  </g>
+
+  <!-- Bottom Badge: TOOL ROOM -->
+  <rect x="96" y="380" width="320" height="58" rx="29" fill="#0284c7" fill-opacity="0.2" stroke="#38bdf8" stroke-width="2.5"/>
+  <text x="256" y="418" text-anchor="middle" font-family="'Inter', -apple-system, sans-serif" font-weight="800" font-size="24" fill="#f8fafc" letter-spacing="4">TOOL ROOM STOCK</text>
+</svg>

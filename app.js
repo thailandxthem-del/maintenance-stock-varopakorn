@@ -495,6 +495,119 @@ function syncUsersFromDb() {
   }
 }
 
+// ==================== PWA INSTALLATION & SERVICE WORKER ====================
+let deferredPWAInstallPrompt = null;
+
+function initPWA() {
+  // 1. Register Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((reg) => {
+          console.log('[PWA] Service Worker registered with scope:', reg.scope);
+          reg.onupdatefound = () => {
+            const installingWorker = reg.installing;
+            if (installingWorker) {
+              installingWorker.onstatechange = () => {
+                if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('[PWA] New version ready.');
+                }
+              };
+            }
+          };
+        })
+        .catch((err) => {
+          console.warn('[PWA] Service Worker registration failed:', err);
+        });
+    });
+  }
+
+  // 2. Listen for Chrome/Edge/Android beforeinstallprompt event
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPWAInstallPrompt = e;
+    const installBtn = document.getElementById('pwaInstallBtn');
+    if (installBtn) {
+      installBtn.classList.remove('hidden');
+      installBtn.classList.add('inline-flex');
+    }
+    console.log('[PWA] captured beforeinstallprompt event');
+  });
+
+  // 3. Listen for app installed event
+  window.addEventListener('appinstalled', () => {
+    deferredPWAInstallPrompt = null;
+    const installBtn = document.getElementById('pwaInstallBtn');
+    if (installBtn) {
+      installBtn.classList.remove('inline-flex');
+      installBtn.classList.add('hidden');
+    }
+    Swal.fire({
+      icon: 'success',
+      title: 'ติดตั้งแอปสำเร็จ!',
+      text: 'ระบบสต็อกอะไหล่ถูกเพิ่มลงในหน้าจอมือถือ/อุปกรณ์ของคุณเรียบร้อยแล้ว',
+      confirmButtonText: 'ตกลง',
+      confirmButtonColor: '#0284c7'
+    });
+  });
+
+  // 4. Check display mode: if running as standalone app, hide install button
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const installBtn = document.getElementById('pwaInstallBtn');
+  if (isStandalone) {
+    console.log('[PWA] Running in standalone app mode');
+    if (installBtn) installBtn.classList.add('hidden');
+  } else {
+    // Show install button on mobile or desktop browsers
+    if (installBtn) {
+      installBtn.classList.remove('hidden');
+      installBtn.classList.add('inline-flex');
+    }
+  }
+}
+
+function handlePWAInstallClick() {
+  if (deferredPWAInstallPrompt) {
+    deferredPWAInstallPrompt.prompt();
+    deferredPWAInstallPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('[PWA] User accepted install prompt');
+      } else {
+        console.log('[PWA] User dismissed install prompt');
+      }
+      deferredPWAInstallPrompt = null;
+    });
+  } else {
+    // Check if on iOS Safari
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isIOS) {
+      const modal = document.getElementById('pwaIOSModal');
+      if (modal) modal.classList.remove('hidden');
+    } else {
+      Swal.fire({
+        icon: 'info',
+        title: 'การติดตั้งแอป (Install App)',
+        html: `
+          <div class="text-sm text-slate-700 text-left space-y-2.5">
+            <p>คุณสามารถติดตั้งระบบนี้ลงบนอุปกรณ์ของคุณได้โดย:</p>
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs font-semibold text-slate-800">
+              <p>📱 <strong>Android / Chrome / Edge:</strong> แตะปุ่มเมนู <strong>(จุดสามจุด ⋮)</strong> มุมขวาบน แล้วเลือก <strong>"ติดตั้งแอป" (Install App)</strong> หรือ <strong>"เพิ่มลงในหน้าจอหลัก"</strong></p>
+              <p>💻 <strong>คอมพิวเตอร์:</strong> คลิกไอคอนติดตั้ง <strong>[+]</strong> ที่แถบ Address Bar ของเบราว์เซอร์</p>
+            </div>
+          </div>
+        `,
+        confirmButtonText: 'เข้าใจแล้ว',
+        confirmButtonColor: '#0284c7'
+      });
+    }
+  }
+}
+
+function closePWAInstallModal() {
+  const modal = document.getElementById('pwaIOSModal');
+  if (modal) modal.classList.add('hidden');
+}
+
 // ==================== INITIALIZATION ====================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -503,6 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initApp();
   setupKeyboardShortcuts();
   setupGlobalScannerGunListener();
+  initPWA();
 });
 
 async function initApp() {
@@ -864,12 +978,35 @@ function applyUserRole(targetRole, options = {}) {
   }
 }
 
-// Sidebar toggle on mobile
+// Sidebar drawer controls on mobile
+function closeSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  if (sidebar) sidebar.classList.add('-translate-x-full');
+  if (backdrop) backdrop.classList.add('hidden');
+}
+
+function openSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  if (sidebar) sidebar.classList.remove('-translate-x-full');
+  if (backdrop) backdrop.classList.remove('hidden');
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar && sidebar.classList.contains('-translate-x-full')) {
+    openSidebar();
+  } else {
+    closeSidebar();
+  }
+}
+
 const sidebarToggle = document.getElementById('sidebarToggle');
 if (sidebarToggle) {
-  sidebarToggle.addEventListener('click', () => {
-    const sidebar = document.getElementById('sidebar');
-    sidebar.classList.toggle('-translate-x-full');
+  sidebarToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleSidebar();
   });
 }
 
@@ -885,6 +1022,8 @@ function setupKeyboardShortcuts() {
       closePartDetail();
       closeQRScanner();
       closePrintLabel();
+      closeSidebar();
+      closePWAInstallModal();
     }
   });
 }
@@ -1067,9 +1206,17 @@ function switchTab(tabId, pushHistory = true) {
   }
 
   // Close mobile sidebar if open
-  const sidebar = document.getElementById('sidebar');
-  if (sidebar && !sidebar.classList.contains('-translate-x-full') && window.innerWidth < 1024) {
-    sidebar.classList.add('-translate-x-full');
+  closeSidebar();
+
+  // Update mobile bottom navigation active styling
+  document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+    btn.classList.remove('text-sky-400', 'font-semibold');
+    btn.classList.add('text-slate-400');
+  });
+  const mobileActiveNav = document.getElementById(`mobile-nav-${tabId}`);
+  if (mobileActiveNav) {
+    mobileActiveNav.classList.remove('text-slate-400');
+    mobileActiveNav.classList.add('text-sky-400', 'font-semibold');
   }
 
   renderCurrentTab();

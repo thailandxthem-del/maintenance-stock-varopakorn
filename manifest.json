@@ -1,0 +1,70 @@
+{
+  "name": "ระบบสต็อกอะไหล่ Tool Room (Varopakorn)",
+  "short_name": "สต็อกอะไหล่",
+  "description": "ระบบบริหารจัดการสต็อกอะไหล่และอุปกรณ์ซ่อมบำรุง Tool Room บริษัท วโรปกรณ์ จำกัด (มหาชน)",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "th",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "เบิกอะไหล่ (Issue)",
+      "short_name": "เบิกอะไหล่",
+      "description": "เปิดหน้าเบิกจ่ายอะไหล่ทันที",
+      "url": "/#stock-issue",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "คืนอะไหล่ (Return)",
+      "short_name": "คืนอะไหล่",
+      "description": "เปิดหน้ารับคืนอะไหล่ทันที",
+      "url": "/#stock-return",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "สแกน QR Code",
+      "short_name": "สแกน QR",
+      "description": "เปิดกล้องสแกน QR Code ค้นหาอะไหล่",
+      "url": "/#scan-qr",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "ยืมอะไหล่ (Loan)",
+      "short_name": "ยืมอะไหล่",
+      "description": "เปิดหน้ายืมใช้งานอะไหล่",
+      "url": "/#stock-loan",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

@@ -2,8 +2,24 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>ระบบบริหารจัดการ Stock อะไหล่และวัสดุงานซ่อมบำรุง | Maintenance Spare Parts Inventory</title>
+
+  <!-- PWA & Mobile Web App Meta Tags -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="สต็อกอะไหล่">
+  <meta name="application-name" content="สต็อกอะไหล่">
+  <meta name="msapplication-TileColor" content="#0f172a">
+
+  <!-- Icons -->
+  <link rel="icon" type="image/png" href="/icons/favicon.png">
+  <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
   
   <!-- Google Fonts: Sarabun & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -62,6 +78,22 @@
       .print-only { display: block !important; }
     }
     .print-only { display: none; }
+
+    /* Mobile responsive optimizations */
+    html {
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media screen and (max-width: 768px) {
+      input, select, textarea {
+        font-size: 16px !important; /* Prevents auto zoom-in on iOS Safari */
+      }
+    }
+    .safe-area-bottom {
+      padding-bottom: max(0.6rem, env(safe-area-inset-bottom));
+    }
+    .touch-manipulation {
+      touch-action: manipulation;
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col selection:bg-sky-500 selection:text-white">
@@ -72,7 +104,7 @@
       
       <!-- Brand & Factory Badge -->
       <div class="flex items-center space-x-3">
-        <button id="sidebarToggle" class="lg:hidden text-slate-300 hover:text-white focus:outline-none p-1.5 rounded hover:bg-slate-800">
+        <button id="sidebarToggle" onclick="toggleSidebar()" aria-label="เปิดเมนูนำทาง" class="lg:hidden text-slate-300 hover:text-white focus:outline-none p-1.5 rounded hover:bg-slate-800 touch-manipulation">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
         <div class="flex items-center space-x-2.5">
@@ -95,8 +127,15 @@
 
       <!-- Global Search Bar removed per user requirement -->
 
-      <!-- Right: Role Switcher & Quick Actions -->
-      <div class="flex items-center space-x-3">
+      <!-- Right: Role Switcher, PWA Install & Quick Actions -->
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <!-- PWA Install App Button (Visible on mobile/desktop browsers) -->
+        <button id="pwaInstallBtn" onclick="handlePWAInstallClick()" title="ติดตั้งแอปบนหน้าจอมือถือ / แท็บเล็ต / คอมพิวเตอร์" 
+                class="hidden items-center space-x-1 px-2 sm:px-2.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold rounded-lg text-xs shadow-sm transition active:scale-95 border border-emerald-400/30">
+          <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span class="font-bold text-[11px] sm:text-xs">ติดตั้งแอป</span>
+        </button>
+
         <!-- Quick QR Scan Button -->
         <button onclick="openQRScanner()" title="สแกน QR Code / Barcode อะไหล่" 
                 class="flex items-center space-x-1.5 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs text-slate-200 transition">
@@ -132,10 +171,13 @@
   </header>
 
   <!-- MAIN APP CONTAINER -->
-  <div class="flex-1 flex overflow-hidden">
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div id="sidebarBackdrop" onclick="closeSidebar()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-25 hidden lg:hidden transition-opacity"></div>
 
     <!-- SIDEBAR NAVIGATION -->
-    <aside id="sidebar" class="no-print w-64 bg-slate-900 text-slate-300 flex-shrink-0 flex flex-col justify-between border-r border-slate-800 transition-all duration-200 z-30 fixed inset-y-0 left-0 pt-14 lg:pt-0 lg:static lg:translate-x-0 -translate-x-full">
+    <aside id="sidebar" class="no-print w-64 bg-slate-900 text-slate-300 flex-shrink-0 flex flex-col justify-between border-r border-slate-800 transition-all duration-200 z-30 fixed inset-y-0 left-0 pt-14 lg:pt-0 lg:static lg:translate-x-0 -translate-x-full shadow-2xl lg:shadow-none">
       <div class="p-3 overflow-y-auto flex-1 space-y-4">
 
         <!-- DASHBOARD -->
@@ -280,7 +322,7 @@
     </aside>
 
     <!-- MAIN CONTENT AREA -->
-    <main class="flex-1 overflow-y-auto bg-slate-100 p-4 sm:p-6 lg:p-8">
+    <main class="flex-1 overflow-y-auto bg-slate-100 p-3 sm:p-6 lg:p-8 pb-24 lg:pb-8">
       
       <!-- UNIVERSAL TOP NAVIGATION BAR (Visible in all sub-menus) -->
       <div id="topNavBar" class="max-w-7xl mx-auto mb-4 hidden">
@@ -310,6 +352,30 @@
     </main>
 
   </div>
+
+  <!-- MOBILE BOTTOM NAVIGATION BAR (Visible only on screens < 1024px) -->
+  <nav id="mobileBottomNav" class="no-print lg:hidden fixed bottom-0 inset-x-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 text-slate-300 z-30 flex items-center justify-around px-2 py-1 shadow-2xl safe-area-bottom">
+    <button type="button" onclick="switchTab('dashboard')" id="mobile-nav-dashboard" class="mobile-nav-btn flex-1 flex flex-col items-center justify-center py-1 text-sky-400 font-semibold transition active:scale-95 touch-manipulation">
+      <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+      <span class="text-[10px] tracking-tight">แดชบอร์ด</span>
+    </button>
+    <button type="button" onclick="switchTab('stock-issue')" id="mobile-nav-stock-issue" class="mobile-nav-btn flex-1 flex flex-col items-center justify-center py-1 text-slate-400 hover:text-white transition active:scale-95 touch-manipulation">
+      <svg class="w-5 h-5 mb-0.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span class="text-[10px] tracking-tight">เบิกอะไหล่</span>
+    </button>
+    <!-- Center Floating Action Button: QR Scanner -->
+    <button type="button" onclick="openQRScanner()" title="สแกน QR Code / Barcode" class="flex-none -mt-4 mx-1 w-12 h-12 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex flex-col items-center justify-center shadow-lg shadow-sky-600/50 border-2 border-slate-900 active:scale-90 transition touch-manipulation">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+    </button>
+    <button type="button" onclick="switchTab('stock-return')" id="mobile-nav-stock-return" class="mobile-nav-btn flex-1 flex flex-col items-center justify-center py-1 text-slate-400 hover:text-white transition active:scale-95 touch-manipulation">
+      <svg class="w-5 h-5 mb-0.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+      <span class="text-[10px] tracking-tight">คืนอะไหล่</span>
+    </button>
+    <button type="button" onclick="toggleSidebar()" id="mobile-nav-menu" class="mobile-nav-btn flex-1 flex flex-col items-center justify-center py-1 text-slate-400 hover:text-white transition active:scale-95 touch-manipulation">
+      <svg class="w-5 h-5 mb-0.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      <span class="text-[10px] tracking-tight">เมนูทั้งหมด</span>
+    </button>
+  </nav>
 
   <!-- ==================== MODALS ==================== -->
 
@@ -1037,12 +1103,66 @@
     </div>
   </div>
 
+  <!-- 12. PWA INSTALLATION MODAL (สำหรับอุปกรณ์ iOS Safari) -->
+  <div id="pwaIOSModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full border border-slate-200 overflow-hidden transform transition-all">
+      <div class="p-4 bg-gradient-to-r from-slate-900 to-sky-950 text-white flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 rounded-xl bg-sky-500/20 border border-sky-400/30 flex items-center justify-center text-sky-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold leading-tight">ติดตั้งแอปบนหน้าจอมือถือ</h3>
+            <p class="text-[11px] text-sky-300">iPhone / iPad (iOS Safari)</p>
+          </div>
+        </div>
+        <button type="button" onclick="closePWAInstallModal()" class="text-slate-400 hover:text-white text-xl font-bold leading-none">&times;</button>
+      </div>
+
+      <div class="p-5 space-y-3.5 text-xs text-slate-700">
+        <p class="text-slate-600 font-medium leading-relaxed">
+          เพิ่มระบบนี้เป็นไอคอนแอปบนหน้าจอมือถือ เพื่อเปิดใช้งานได้แบบ <strong class="text-slate-900">เต็มหน้าจอ (Standalone)</strong> เหมือนแอปทั่วไป:
+        </p>
+        
+        <div class="space-y-2.5">
+          <div class="flex items-start space-x-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <div class="w-6 h-6 rounded-full bg-sky-600 text-white font-bold flex items-center justify-center flex-none text-xs">1</div>
+            <div>
+              <p class="font-semibold text-slate-800">แตะปุ่ม "แชร์" (Share) ที่แถบด้านล่าง Safari</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">ไอคอนสี่เหลี่ยมที่มีลูกศรชี้ขึ้น <span class="font-mono text-sky-600 font-bold">[ ⎋ ]</span></p>
+            </div>
+          </div>
+
+          <div class="flex items-start space-x-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <div class="w-6 h-6 rounded-full bg-sky-600 text-white font-bold flex items-center justify-center flex-none text-xs">2</div>
+            <div>
+              <p class="font-semibold text-slate-800">เลื่อนลงแล้วแตะ <span class="text-sky-600 font-bold">"เพิ่มไปยังหน้าจอโฮม"</span></p>
+              <p class="text-[11px] text-slate-500 mt-0.5">(Add to Home Screen)</p>
+            </div>
+          </div>
+
+          <div class="flex items-start space-x-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <div class="w-6 h-6 rounded-full bg-sky-600 text-white font-bold flex items-center justify-center flex-none text-xs">3</div>
+            <div>
+              <p class="font-semibold text-slate-800">แตะปุ่ม <span class="text-emerald-600 font-bold">"เพิ่ม" (Add)</span> ที่มุมขวาบน</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">ไอคอนสต็อกอะไหล่จะพร้อมเปิดใช้งานทันที</p>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" onclick="closePWAInstallModal()" class="w-full mt-2 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold transition text-xs shadow-sm active:scale-95">
+          รับทราบ / ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- PERSISTENT MASTER DATALISTS -->
   <datalist id="personnelMasterDatalist"></datalist>
   <datalist id="machinesMasterDatalist"></datalist>
 
-  <!-- APPLICATION LOGIC (with Cache Busting v=3.8.5) -->
-  <script src="/js/app.js?v=3.8.5"></script>
+  <!-- APPLICATION LOGIC (with Cache Busting v=3.10.0-pwa) -->
+  <script src="/js/app.js?v=3.10.0-pwa"></script>
 </body>
 </html>
 

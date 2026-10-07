@@ -156,6 +156,7 @@ const MIME_TYPES = {
   '.js': 'application/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.svg': 'image/svg+xml',
@@ -1400,12 +1401,16 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
       res.end(`500 Server Error: ${err.message}`);
     } else {
-      res.writeHead(200, {
+      const headers = {
         'Content-Type': contentType,
         'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
         'Pragma': 'no-cache',
         'Expires': '0'
-      });
+      };
+      if (path.basename(filePath) === 'sw.js') {
+        headers['Service-Worker-Allowed'] = '/';
+      }
+      res.writeHead(200, headers);
       res.end(content);
     }
   });
