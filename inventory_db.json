@@ -1,6 +1,6 @@
 {
-  "version": 1791277577533,
-  "lastUpdated": "2026-10-06T09:06:17.533Z",
+  "version": 1791377161210,
+  "lastUpdated": "2026-10-07T12:46:01.210Z",
   "users": [
     {
       "id": "U-001",
@@ -36,7 +36,7 @@
   "machines": [
     {
       "code": "M-001",
-      "name": "CNC Milling Machine (เครื่องกัดซีเอ็น��ี)",
+      "name": "CNC Milling Machine (เครื่องกัดซีเอ็นซี)",
       "location": "Production Line A",
       "dept": "Machining",
       "active": true
@@ -1489,6 +1489,33 @@
   "toolLoans": [],
   "stockCountRounds": [],
   "auditLogs": [
+    {
+      "id": "AUD-MC-DEL-1791377161210",
+      "timestamp": "2026-10-07 12:46:01",
+      "user": "Tester",
+      "action": "MACHINE_DELETE",
+      "partNumber": "MY-RENAMED-PRESS",
+      "reason": "ลบเครื่องจักร: Custom Press Line 1 Renamed (MY-RENAMED-PRESS) เหตุผล: ปรับปรุงรายการเครื่องจักร",
+      "reference": "MY-RENAMED-PRESS"
+    },
+    {
+      "id": "AUD-MC-1791377161190",
+      "timestamp": "2026-10-07 12:46:01",
+      "user": "Developer",
+      "action": "MACHINE_SAVE",
+      "partNumber": "MY-RENAMED-PRESS",
+      "reason": "บันทึกข้อมูลเครื่องจักร: Custom Press Line 1 Renamed (MY-RENAMED-PRESS) (เปลี่ยนรหัสเดิมจาก CUSTOM-PRESS-01)",
+      "reference": "MY-RENAMED-PRESS"
+    },
+    {
+      "id": "AUD-MC-1791377161144",
+      "timestamp": "2026-10-07 12:46:00",
+      "user": "Developer",
+      "action": "MACHINE_SAVE",
+      "partNumber": "CUSTOM-PRESS-01",
+      "reason": "บันทึกข้อมูลเครื่องจักร: Custom Press Line 1 (CUSTOM-PRESS-01)",
+      "reference": "CUSTOM-PRESS-01"
+    },
     {
       "id": "AUD-1791277577406",
       "timestamp": "2026-10-06 09:06:17",

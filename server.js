@@ -1300,27 +1300,68 @@ const server = http.createServer(async (req, res) => {
         const db = readDB();
         if (!db.machines) db.machines = [];
         const body = await readRequestBody(req);
-        const { code, name, location, dept, active, operator, isNew } = body;
+        const { oldCode, code, name, location, dept, department, active, operator } = body;
 
         if (!code || !name) {
           return sendJSON(res, 400, { error: 'กรุณาระบุรหัสและชื่อเครื่องจักร' });
         }
 
         const cleanCode = code.trim().toUpperCase();
-        let machine = db.machines.find(m => m.code.toUpperCase() === cleanCode);
+        const cleanOldCode = oldCode ? oldCode.trim().toUpperCase() : '';
+        const targetDept = (dept || department || 'Maintenance').trim();
+
+        // Check if editing existing machine by oldCode or finding by current code
+        let machine = null;
+        if (cleanOldCode) {
+          machine = db.machines.find(m => m.code.toUpperCase() === cleanOldCode);
+        }
+        if (!machine) {
+          machine = db.machines.find(m => m.code.toUpperCase() === cleanCode);
+        }
+
+        // Check if user changed code to another existing machine's code (prevent duplicate collision)
+        if (cleanOldCode && cleanCode !== cleanOldCode) {
+          const duplicate = db.machines.find(m => m.code.toUpperCase() === cleanCode);
+          if (duplicate && duplicate !== machine) {
+            return sendJSON(res, 400, { error: `รหัสเครื่องจักร ${cleanCode} มีอยู่ในระบบแล้ว กรุณาใช้รหัสอื่นที่ไม่ซ้ำ` });
+          }
+        }
+
         const nowIso = new Date().toISOString();
 
         if (machine) {
+          const prevCode = machine.code;
+          machine.code = cleanCode;
           machine.name = name.trim();
           machine.location = location ? location.trim() : '';
-          machine.dept = dept ? dept.trim() : 'Maintenance';
+          machine.dept = targetDept;
+          machine.department = targetDept;
           machine.active = active !== undefined ? active : true;
+
+          // Cascade code update if renamed
+          if (cleanOldCode && cleanCode !== cleanOldCode) {
+            if (db.parts) {
+              db.parts.forEach(p => {
+                if (p.machine && p.machine.toUpperCase() === cleanOldCode) {
+                  p.machine = cleanCode;
+                }
+              });
+            }
+            if (db.movements) {
+              db.movements.forEach(mv => {
+                if (mv.machine && mv.machine.toUpperCase() === cleanOldCode) {
+                  mv.machine = cleanCode;
+                }
+              });
+            }
+          }
         } else {
           machine = {
             code: cleanCode,
             name: name.trim(),
             location: location ? location.trim() : '',
-            dept: dept ? dept.trim() : 'Maintenance',
+            dept: targetDept,
+            department: targetDept,
             active: active !== undefined ? active : true
           };
           db.machines.unshift(machine);
@@ -1333,13 +1374,13 @@ const server = http.createServer(async (req, res) => {
           user: operator || 'Developer',
           action: 'MACHINE_SAVE',
           partNumber: machine.code,
-          reason: `บันทึกข้อมูลเครื่องจักร: ${machine.name} (${machine.code})`,
+          reason: `บันทึกข้อมูลเครื่องจักร: ${machine.name} (${machine.code})` + (cleanOldCode && cleanOldCode !== cleanCode ? ` (เปลี่ยนรหัสเดิมจาก ${cleanOldCode})` : ''),
           reference: machine.code
         });
 
         saveDB(db);
         broadcastEvent('MASTER_DATA_UPDATE', { type: 'MACHINE', machine });
-        return sendJSON(res, 200, { success: true, message: `บันทึกข้อมูลเครื่องจักร ${machine.name} สำเร็จ`, machine });
+        return sendJSON(res, 200, { success: true, message: `บันทึกข้อมูลเครื่องจักร ${machine.name} (${machine.code}) สำเร็จ`, machine });
       }
 
       if (pathname === '/api/machines/delete' && method === 'POST') {

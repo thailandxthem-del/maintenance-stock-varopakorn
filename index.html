@@ -1065,10 +1065,12 @@
       </div>
 
       <form id="machineForm" onsubmit="handleSaveMachine(event)" class="p-6 space-y-4 text-xs">
+        <input type="hidden" id="machineOriginalCode">
         <div>
           <label class="block font-semibold text-slate-700 mb-1">รหัสเครื่องจักร (Machine Code) <span class="text-rose-500">*</span></label>
-          <input type="text" id="machineCodeInput" required placeholder="เช่น M-001, CM-01, WS-01" 
+          <input type="text" id="machineCodeInput" required placeholder="ใส่รหัสเครื่องจักรตามจริงของคุณ เช่น CNC-01, PRESS-02, LINE-A..." 
                  class="w-full border border-slate-300 rounded-lg p-2.5 font-mono font-bold text-slate-900 focus:border-amber-500 focus:outline-none uppercase">
+          <p class="text-[11px] text-amber-700 font-medium mt-1">💡 กำหนดหรือแก้ไขรหัสเครื่องจักรได้เองอิสระตามหน้างานจริง (ระบบไม่บังคับรันเลข)</p>
         </div>
 
         <div>

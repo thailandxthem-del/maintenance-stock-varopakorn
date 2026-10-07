@@ -7874,32 +7874,36 @@ function openMachineModal(code = null) {
 
   const titleEl = document.getElementById('machineModalTitle');
   const codeInput = document.getElementById('machineCodeInput');
+  const origCodeInput = document.getElementById('machineOriginalCode');
   const nameInput = document.getElementById('machineNameInput');
   const locInput = document.getElementById('machineLocationInput');
   const deptInput = document.getElementById('machineDeptInput');
+
+  // ALWAYS allow editing and typing custom machine codes! Never lock or force read-only!
+  codeInput.readOnly = false;
+  codeInput.classList.remove('bg-slate-100', 'cursor-not-allowed');
 
   if (code && appState.db && appState.db.machines) {
     const m = appState.db.machines.find(x => x.code === code);
     if (m) {
       if (titleEl) titleEl.innerText = `แก้ไขข้อมูลเครื่องจักร (${m.code})`;
+      if (origCodeInput) origCodeInput.value = m.code;
       codeInput.value = m.code;
-      codeInput.readOnly = true;
-      codeInput.classList.add('bg-slate-100', 'cursor-not-allowed');
       nameInput.value = m.name;
       locInput.value = m.location || '';
-      deptInput.value = m.department || 'Maintenance';
+      deptInput.value = m.department || m.dept || 'Maintenance';
     }
   } else {
     if (titleEl) titleEl.innerText = 'เพิ่มเครื่องจักร / จุดใช้งานใหม่';
+    if (origCodeInput) origCodeInput.value = '';
     codeInput.value = '';
-    codeInput.readOnly = false;
-    codeInput.classList.remove('bg-slate-100', 'cursor-not-allowed');
     nameInput.value = '';
     locInput.value = '';
     deptInput.value = 'Maintenance';
   }
 
   modal.classList.remove('hidden');
+  setTimeout(() => codeInput.focus(), 60);
 }
 
 function closeMachineModal() {
@@ -7909,6 +7913,8 @@ function closeMachineModal() {
 
 async function handleSaveMachine(e) {
   e.preventDefault();
+  const origCodeEl = document.getElementById('machineOriginalCode');
+  const oldCode = origCodeEl ? origCodeEl.value.trim().toUpperCase() : '';
   const code = document.getElementById('machineCodeInput').value.trim().toUpperCase();
   const name = document.getElementById('machineNameInput').value.trim();
   const location = document.getElementById('machineLocationInput').value.trim();
@@ -7925,12 +7931,14 @@ async function handleSaveMachine(e) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        oldCode,
         code,
         name,
         location,
+        dept: department,
         department,
         active: true,
-        updatedBy
+        operator: updatedBy
       })
     });
     const result = await res.json();
