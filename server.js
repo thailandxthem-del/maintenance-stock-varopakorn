@@ -1,4 +1,5 @@
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
@@ -11,6 +12,143 @@ function getDBPath() {
   return dataPath;
 }
 const DB_PATH = getDBPath();
+
+// Cloudflare Workers KV Configuration for Persistent Cloud Storage
+const CF_CONFIG = {
+  enabled: true,
+  token: process.env.CF_API_TOKEN || 'cfut_OpVRhdSu37irdddGFdqCkvIo09skKdXkFRlJ8a0mbc7466ff',
+  accountId: process.env.CF_ACCOUNT_ID || 'cd74af5fdb8075cc333e3555903d04fa',
+  namespaceId: process.env.CF_KV_NAMESPACE_ID || '63ace812732747248c1faf2b91509014',
+  key: 'inventory_database'
+};
+
+let kvSyncTimeout = null;
+let pendingKVData = null;
+
+function saveToCloudflareKV(data) {
+  if (!CF_CONFIG.enabled || !CF_CONFIG.token || !CF_CONFIG.accountId || !CF_CONFIG.namespaceId) return Promise.resolve(false);
+  return new Promise((resolve) => {
+    try {
+      const payload = typeof data === 'string' ? data : JSON.stringify(data);
+      const req = https.request({
+        hostname: 'api.cloudflare.com',
+        path: `/client/v4/accounts/${CF_CONFIG.accountId}/storage/kv/namespaces/${CF_CONFIG.namespaceId}/values/${encodeURIComponent(CF_CONFIG.key)}`,
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${CF_CONFIG.token}`,
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(payload)
+        }
+      }, (res) => {
+        let body = '';
+        res.on('data', chunk => body += chunk);
+        res.on('end', () => {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            console.log(`[Cloudflare KV] Synced database successfully (${Buffer.byteLength(payload)} bytes)`);
+            resolve(true);
+          } else {
+            console.warn(`[Cloudflare KV] Sync warning (status ${res.statusCode}):`, body.slice(0, 150));
+            resolve(false);
+          }
+        });
+      });
+      req.on('error', (err) => {
+        console.error('[Cloudflare KV] Network error while saving:', err.message);
+        resolve(false);
+      });
+      req.setTimeout(8000, () => {
+        req.destroy();
+        console.warn('[Cloudflare KV] Save timeout after 8s');
+        resolve(false);
+      });
+      req.write(payload);
+      req.end();
+    } catch (e) {
+      console.error('[Cloudflare KV] Error:', e.message);
+      resolve(false);
+    }
+  });
+}
+
+function queueCloudflareKVSync(data) {
+  pendingKVData = data;
+  if (kvSyncTimeout) clearTimeout(kvSyncTimeout);
+  kvSyncTimeout = setTimeout(() => {
+    if (pendingKVData) {
+      saveToCloudflareKV(pendingKVData);
+      pendingKVData = null;
+    }
+  }, 1200);
+}
+
+function loadFromCloudflareKV() {
+  if (!CF_CONFIG.enabled || !CF_CONFIG.token || !CF_CONFIG.accountId || !CF_CONFIG.namespaceId) return Promise.resolve(null);
+  return new Promise((resolve) => {
+    try {
+      const req = https.request({
+        hostname: 'api.cloudflare.com',
+        path: `/client/v4/accounts/${CF_CONFIG.accountId}/storage/kv/namespaces/${CF_CONFIG.namespaceId}/values/${encodeURIComponent(CF_CONFIG.key)}`,
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${CF_CONFIG.token}`
+        }
+      }, (res) => {
+        let body = '';
+        res.on('data', chunk => body += chunk);
+        res.on('end', () => {
+          if (res.statusCode === 200 && body) {
+            try {
+              const data = JSON.parse(body);
+              console.log(`[Cloudflare KV] Loaded database from cloud! (${data.parts ? data.parts.length : 0} parts, ${data.personnel ? data.personnel.length : 0} personnel)`);
+              resolve(data);
+            } catch (parseErr) {
+              console.error('[Cloudflare KV] Parse error:', parseErr.message);
+              resolve(null);
+            }
+          } else {
+            console.warn(`[Cloudflare KV] No remote data or status ${res.statusCode}`);
+            resolve(null);
+          }
+        });
+      });
+      req.on('error', (err) => {
+        console.error('[Cloudflare KV] Load error:', err.message);
+        resolve(null);
+      });
+      req.setTimeout(10000, () => {
+        req.destroy();
+        console.warn('[Cloudflare KV] Load timeout after 10s');
+        resolve(null);
+      });
+      req.end();
+    } catch (e) {
+      console.error('[Cloudflare KV] Error:', e.message);
+      resolve(null);
+    }
+  });
+}
+
+async function initCloudflareKVSync() {
+  console.log('[Cloudflare KV] Checking for cloud database backup...');
+  try {
+    const remoteData = await loadFromCloudflareKV();
+    if (remoteData && remoteData.parts && remoteData.parts.length > 0) {
+      console.log('[Cloudflare KV] Remote database active. Restoring local files from Cloudflare KV...');
+      fs.writeFileSync(DB_PATH, JSON.stringify(remoteData, null, 2), 'utf8');
+      const dataPath = path.join(__dirname, 'data', 'inventory_db.json');
+      if (fs.existsSync(dataPath) && DB_PATH !== dataPath) {
+        fs.writeFileSync(dataPath, JSON.stringify(remoteData, null, 2), 'utf8');
+      }
+      currentDBVersion = remoteData.version || Date.now();
+    } else {
+      console.log('[Cloudflare KV] Initializing cloud database with local data...');
+      const localData = readDB();
+      saveToCloudflareKV(localData);
+    }
+  } catch (err) {
+    console.error('[Cloudflare KV] Init sync error:', err.message);
+  }
+}
 
 // MIME types for static files
 const MIME_TYPES = {
@@ -78,6 +216,12 @@ function saveDB(data) {
     data.version = currentDBVersion;
     data.lastUpdated = new Date().toISOString();
     fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
+    const dataPath = path.join(__dirname, 'data', 'inventory_db.json');
+    if (fs.existsSync(dataPath) && DB_PATH !== dataPath) {
+      fs.writeFileSync(dataPath, JSON.stringify(data, null, 2), 'utf8');
+    }
+    // Asynchronously push to Cloudflare KV for persistent cloud storage
+    queueCloudflareKVSync(data);
     return true;
   } catch (err) {
     console.error('Error saving DB:', err);
@@ -174,6 +318,18 @@ const server = http.createServer(async (req, res) => {
           version: currentDBVersion,
           lastUpdated: db.lastUpdated || new Date().toISOString(),
           activeClients: sseClients.size
+        });
+      }
+
+      // GET /api/cloud-status - Check Cloudflare KV Sync Status
+      if (pathname === '/api/cloud-status' && method === 'GET') {
+        return sendJSON(res, 200, {
+          status: 'connected',
+          provider: 'Cloudflare Workers KV',
+          namespace: 'MAINTENANCE_STOCK_KV',
+          namespaceId: CF_CONFIG.namespaceId,
+          accountId: CF_CONFIG.accountId,
+          lastUpdated: db.lastUpdated || new Date().toISOString()
         });
       }
 
@@ -1261,5 +1417,7 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 System running at: http://localhost:${PORT}`);
   console.log(`🌐 Network LAN IP:    http://140.140.1.51:${PORT}`);
   console.log(`⚡ Real-time SSE Sync: Enabled (/api/events)`);
+  console.log(`☁️ Cloudflare KV Sync: Enabled (MAINTENANCE_STOCK_KV)`);
   console.log(`=======================================================`);
+  initCloudflareKVSync();
 });
